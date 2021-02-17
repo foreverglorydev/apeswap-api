@@ -43,7 +43,6 @@ export class PairsService {
   }
 
   async processPair(pair: PairDocument) {
-    this.logger.log(pair);
     const price = await this.getPrice(pair.address, pair.base, pair.token);
     pair.latestPrice = price;
     await pair.save();
@@ -93,7 +92,6 @@ export class PairsService {
   }
 
   async processPairCandles(pair: PairDocument) {
-    this.logger.log(pair);
     const to = Math.floor(Date.now() / 1000);
     const candleData = await this.getParsedCandleData({
       address: pair.address,
@@ -104,10 +102,12 @@ export class PairsService {
       from: pair.latestTimestamp || 0,
       to,
     });
+    if (candleData.length === 0) return;
     pair.latestPrice = candleData[candleData.length - 1].c;
     pair.latestTimestamp = to;
     await pair.save();
-    return this.candleModel.insertMany(candleData);
+    const inserts = await this.candleModel.insertMany(candleData);
+    this.logger.log(`Inserted ${inserts.length} new candles`);
   }
 
   async getParsedCandleData({
