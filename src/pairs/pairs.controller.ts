@@ -8,6 +8,6 @@ export class PairsController {
 
   @Get()
   candleData(@Query() candleDataDto: GetCandleDataDto) {
-    return this.pairsService.getCandleData(candleDataDto);
+    return []; // this.pairsService.getCandleData(candleDataDto);
   }
 }

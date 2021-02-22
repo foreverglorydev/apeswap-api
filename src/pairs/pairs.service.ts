@@ -158,7 +158,7 @@ export class PairsService {
     // ?symbol=BSC_NONAME%3ABANANA%2FBUSD.0x7Bd46f6Da97312AC2DBD1749f82E202764C0B914&resolution=60&from=1613486707&to=1613522707
     const url = `${this.baseUrl}?symbol=${symbol}:${token}/${base}.${address}&resolution=${resolution}&from=${from}&to=${to}`;
     console.log(url);
-    // const { data } = await this.httpService.get(url).toPromise();
-    return {};
+    const { data } = await this.httpService.get(url).toPromise();
+    return data;
   }
 }
