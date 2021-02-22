@@ -9,7 +9,7 @@ import { LotteryModule } from './lottery/lottery.module';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
+    // ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       envFilePath: ['.development.env', '.env'],
     }),
