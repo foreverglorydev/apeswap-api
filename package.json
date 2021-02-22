@@ -27,10 +27,12 @@
     "@nestjs/mongoose": "^7.2.3",
     "@nestjs/platform-express": "^7.5.1",
     "@nestjs/schedule": "^0.4.2",
+    "dotenv": "^8.2.0",
     "mongoose": "^5.11.16",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^6.6.3"
+    "rxjs": "^6.6.3",
+    "web3": "^1.3.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.5.1",

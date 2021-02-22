@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PairsModule } from './pairs/pairs.module';
+import { LotteryModule } from './lottery/lottery.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PairsModule } from './pairs/pairs.module';
     }),
     MongooseModule.forRoot(process.env.MONGO_URL, { useCreateIndex: true }),
     PairsModule,
+    LotteryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
