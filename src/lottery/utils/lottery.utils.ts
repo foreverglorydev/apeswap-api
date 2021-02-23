@@ -5,7 +5,7 @@ import { getContract } from 'src/utils/lib/web3';
 
 // import * as lotteryABI from './lottery.json';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const lotteryABI = require('./lottery');
+const lotteryABI = require('./lottery.json');
 
 export interface SingleLotteryReturn {
   numbers1: Promise<[string, string, string, string]>;
