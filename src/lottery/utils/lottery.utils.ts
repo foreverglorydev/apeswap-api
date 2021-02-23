@@ -3,9 +3,7 @@ import { ratesV2, ratesV1, rates, Rates } from './lottery.config';
 import { LOTTERY_CONTRACT } from 'src/utils/constants';
 import { getContract } from 'src/utils/lib/web3';
 
-// import * as lotteryABI from './lottery.json';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const lotteryABI = require('./lottery.json');
+import lotteryABI from './lottery.json';
 
 export interface SingleLotteryReturn {
   numbers1: Promise<[string, string, string, string]>;
