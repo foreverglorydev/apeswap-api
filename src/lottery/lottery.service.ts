@@ -82,7 +82,7 @@ export class LotteryService {
     error?: string;
     errorMessage?: string;
   }> {
-    const issueIndex = await getIssueIndex();
+    const issueIndex = ((await getIssueIndex()) as number) - 1;
     if (typeof issueIndex !== 'number') {
       return issueIndex;
     }
@@ -105,15 +105,11 @@ export class LotteryService {
       const end = start - pageSize;
 
       for (let i = start; i >= 0 && i > end; i--) {
-        if (i !== 349) {
-          finalNumbersProm.push(getSingleLotteryBatch(i));
-        }
+        finalNumbersProm.push(getSingleLotteryBatch(i));
       }
     } else {
       for (let i = issueIndex; i >= 0; i--) {
-        if (i !== 349) {
-          finalNumbersProm.push(getSingleLotteryBatch(i));
-        }
+        finalNumbersProm.push(getSingleLotteryBatch(i));
       }
     }
     const finalNumbers = await computeLotteries(finalNumbersProm);
@@ -138,7 +134,6 @@ export class LotteryService {
     if (typeof issueIndex !== 'number') {
       throw new Error('IssueIndex not a number');
     }
-    console.log(issueIndex);
     const allLotteries = await getAllLotteries(issueIndex - 1);
     const history: Array<LotteryHistory> = allLotteries.map(
       (x): LotteryHistory => {

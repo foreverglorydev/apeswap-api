@@ -52,29 +52,18 @@ export const getSingleLotteryBatch = (index: number): SingleLotteryReturn => {
   const lotteryContract = getContract(lotteryABI, LOTTERY_CONTRACT);
   const batch = new PromisifyBatchRequest<string>();
   const batch2 = new PromisifyBatchRequest<string>();
-  console.log(index);
   [
     lotteryContract.methods.historyNumbers(index, 0).call,
     lotteryContract.methods.historyNumbers(index, 1).call,
     lotteryContract.methods.historyNumbers(index, 2).call,
     lotteryContract.methods.historyNumbers(index, 3).call,
   ].map((x) => batch.add(x));
-  if (index >= 349 && index <= 355) {
-    [
-      lotteryContract.methods.historyAmount(index, 0).call,
-      lotteryContract.methods.historyAmount(index, 1).call,
-      lotteryContract.methods.historyAmount(index, 2).call,
-      lotteryContract.methods.historyAmount(index, 3).call,
-      // lotteryContract.methods.historyAmount(index, 4).call,
-    ].map((x) => batch2.add(x));
-  } else {
-    [
-      lotteryContract.methods.historyAmount(index, 0).call,
-      lotteryContract.methods.historyAmount(index, 1).call,
-      lotteryContract.methods.historyAmount(index, 2).call,
-      lotteryContract.methods.historyAmount(index, 3).call,
-    ].map((x) => batch2.add(x));
-  }
+  [
+    lotteryContract.methods.historyAmount(index, 0).call,
+    lotteryContract.methods.historyAmount(index, 1).call,
+    lotteryContract.methods.historyAmount(index, 2).call,
+    lotteryContract.methods.historyAmount(index, 3).call,
+  ].map((x) => batch2.add(x));
 
   return {
     numbers1: batch.execute() as Promise<[string, string, string, string]>,
@@ -152,10 +141,7 @@ export const getAllLotteries = (
 ): Promise<Array<Lottery>> => {
   const finalNumbersProm: Array<SingleLotteryReturn> = [];
   for (let i = issueIndex; i >= 0; i--) {
-    if (i !== 349) {
-      console.log(i);
-      finalNumbersProm.push(getSingleLotteryBatch(i));
-    }
+    finalNumbersProm.push(getSingleLotteryBatch(i));
   }
   return computeLotteries(finalNumbersProm);
 };
