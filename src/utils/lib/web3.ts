@@ -1,7 +1,12 @@
+import configuration from 'src/config/configuration';
 import Web3 from 'web3';
-import { BSC_NODE_RPC } from '../constants';
+
+function getNodes(): string {
+  return configuration()[process.env.CHAIN_ID].appNodes;
+}
 
 export const getWeb3 = (): Web3 => {
+  const BSC_NODE_RPC = getNodes();
   const provider: string =
     BSC_NODE_RPC[Math.floor(Math.random() * BSC_NODE_RPC.length)];
 

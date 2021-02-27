@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LOTTERY_CONTRACT } from 'src/utils/constants';
+import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { ceilDecimal } from 'src/utils/math';
 import { generateLotteryDate } from './utils/lottery.date';
 import {
@@ -17,6 +17,10 @@ import {
 
 @Injectable()
 export class LotteryService {
+  constructor(private configService: ChainConfigService) {}
+
+  lotteryContract = this.configService.get<string>(`lottery.address`);
+
   async getLottery(
     lotteryNumber: number,
   ): Promise<
@@ -57,7 +61,7 @@ export class LotteryService {
       lotteryNumbers: numbers1.map((x) => Number(x)),
       poolSize: ceilDecimal(poolSize, 2),
       burned: ceilDecimal((poolSize / 100) * ratesToUse.burn, 2),
-      contractLink: `https://bscscan.com/address/${LOTTERY_CONTRACT}`,
+      contractLink: `https://bscscan.com/address/${this.lotteryContract}`,
       jackpotTicket: numbers2[1] / ticketPrice,
       match3Ticket: numbers2[2] / ticketPrice,
       match2Ticket: numbers2[3] / ticketPrice,

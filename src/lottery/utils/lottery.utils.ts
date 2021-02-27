@@ -1,9 +1,9 @@
 import { PromisifyBatchRequest } from 'src/utils/lib/PromiseBatchRequest';
 import { ratesV2, ratesV1, rates, Rates } from './lottery.config';
-import { LOTTERY_CONTRACT } from 'src/utils/constants';
 import { getContract } from 'src/utils/lib/web3';
 
 import lotteryABI from './lottery.json';
+import configuration from 'src/config/configuration';
 
 export interface SingleLotteryReturn {
   numbers1: Promise<[string, string, string, string]>;
@@ -40,6 +40,14 @@ export interface LotteryHistory {
   burned: number;
 }
 
+function lotteryContractAddress(): string {
+  return configuration()[process.env.CHAIN_ID].lottery.address;
+}
+
+export function getLotteryContract() {
+  return getContract(lotteryABI, lotteryContractAddress());
+}
+
 /**
  * Request all Lottery Methods to get the Lottery Data
  * This Method is not async and is not waiting
@@ -49,7 +57,7 @@ export interface LotteryHistory {
  * @param index
  */
 export const getSingleLotteryBatch = (index: number): SingleLotteryReturn => {
-  const lotteryContract = getContract(lotteryABI, LOTTERY_CONTRACT);
+  const lotteryContract = getContract(lotteryABI, lotteryContractAddress());
   const batch = new PromisifyBatchRequest<string>();
   const batch2 = new PromisifyBatchRequest<string>();
   [
@@ -100,7 +108,7 @@ const createLotteryItem = async (
 export const getIssueIndex = async (): Promise<
   number | { error: string; errorMessage: string }
 > => {
-  const lotteryContract = getContract(lotteryABI, LOTTERY_CONTRACT);
+  const lotteryContract = getContract(lotteryABI, lotteryContractAddress());
   let issueIndex: number | undefined = undefined;
   let retryIsseIndex = 0;
   while (typeof issueIndex === 'undefined' && retryIsseIndex <= 3) {
