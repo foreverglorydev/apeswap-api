@@ -21,10 +21,10 @@ export class LotteryController {
   }
 
   @Get('draw')
-  async processLottery() {
+  async drawLottery() {
     try {
       await this.drawingService.enterDrawing();
-      await this.drawingService.drawing();
+      await this.drawingService.draw();
       return 'success';
     } catch (e) {
       this.logger.error(e);
@@ -37,6 +37,16 @@ export class LotteryController {
     try {
       await this.drawingService.reset();
       return 'success';
+    } catch (e) {
+      this.logger.error(e);
+      return 'error';
+    }
+  }
+
+  @Get('process')
+  async processLottery() {
+    try {
+      return this.drawingService.process();
     } catch (e) {
       this.logger.error(e);
       return 'error';

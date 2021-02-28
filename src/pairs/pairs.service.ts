@@ -32,7 +32,7 @@ export class PairsService {
     return this.pairModel.find();
   }
 
-  @Interval(60000)
+  // @Interval(60000)
   async processPairs() {
     const pairs = await this.getPairs();
     const promises = [];
@@ -81,7 +81,7 @@ export class PairsService {
     return baseBalance.value / pairBalance.value;
   }
 
-  @Interval(60000)
+  // @Interval(60000)
   async processPairsCandles() {
     const pairs = await this.getPairs();
     const promises = [];
