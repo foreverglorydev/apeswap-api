@@ -26,9 +26,9 @@ export default () => ({
       address: '0x5c8D727b265DBAfaba67E050f2f739cAeEB4A6F9',
     },
     appNodes: [
-      'https://data-seed-prebsc-2-s2.binance.org:8545',
-      'https://data-seed-prebsc-2-s2.binance.org:8545',
-      'https://data-seed-prebsc-2-s2.binance.org:8545',
+      'https://bsc-dataseed1.binance.org:443',
+      'https://bsc-dataseed1.binance.org:443',
+      'https://bsc-dataseed1.binance.org:443',
     ],
   },
 });
