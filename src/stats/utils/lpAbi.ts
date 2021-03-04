@@ -1,4 +1,4 @@
-export const UNI_ABI = [
+export const LP_ABI = [
   {
     inputs: [],
     payable: false,

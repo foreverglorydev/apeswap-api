@@ -3,13 +3,13 @@ import { getContract } from 'src/utils/lib/web3';
 import { getBscPrices, loadMasterChefInfo } from 'src/utils/bsc_helpers';
 import { tokenType } from 'src/utils/helpers';
 
-import masterChefABI from './masterChefABI.json';
+import masterApeABI from './masterApeABI.json';
 import configuration from 'src/config/configuration';
 import { poolBalance } from 'src/pairs/pairs.queries';
 import { ERC20_ABI } from './erc20Abi';
-import { UNI_ABI } from './uniAbi';
+import { LP_ABI } from './lpAbi';
 
-function masterChefContractAddress(): string {
+function masterApeContractAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.masterApe;
 }
 
@@ -22,13 +22,13 @@ function bananaBusdAddress(): string {
 }
 
 export function getStatsContract() {
-  return getContract(masterChefABI, masterChefContractAddress());
+  return getContract(masterApeABI, masterApeContractAddress());
 }
 
 export async function getReward(): Promise<any> {
   const MasterChefContract = getContract(
-    masterChefABI,
-    masterChefContractAddress(),
+    masterApeABI,
+    masterApeContractAddress(),
   );
   const rewards =
     (((await MasterChefContract.methods.cakePerBlock().call()) / 1e18) *
@@ -49,11 +49,10 @@ function getBananaPriceWithPoolList(poolList) {
 }
 
 export async function getAllStats(httpService): Promise<any> {
-  const poolIndex = 2;
   const myAddress = process.env.TEST_ADDRESS;
   const masterChefContract = getContract(
-    masterChefABI,
-    masterChefContractAddress(),
+    masterApeABI,
+    masterApeContractAddress(),
   );
   const prices = await getBscPrices(httpService);
   const tokens = {};
@@ -84,7 +83,7 @@ export async function getAllStats(httpService): Promise<any> {
     tokenAddresses.map(async (address) => {
       tokens[address] = await getBscToken(
         address,
-        masterChefContractAddress(),
+        masterApeContractAddress(),
         myAddress,
       );
     }),
@@ -97,19 +96,14 @@ export async function getAllStats(httpService): Promise<any> {
       ? getPoolPrices(tokens, prices, poolInfo.poolToken)
       : undefined,
   );
-  const rewardsPerWeek = await getReward();
+  //const rewardsPerWeek = await getReward();
 
-  return 1;
+  return poolPrices;
 }
 
 function getPoolPrices(tokens, prices, pool) {
   if (pool.token0 != null) return getLPTokenPrices(tokens, prices, pool);
   return getBep20Prices(prices, pool);
-  /*
-  if (pool.poolTokens != null) return getBalancerPrices(tokens, prices, pool);
-  if (pool.virtualPrice != null) return getCurvePrices(prices, pool);
-  if (pool.token != null) return getWrapPrices(tokens, prices, pool);
-  */
 }
 
 function getParameterCaseInsensitive(object, key) {
@@ -168,7 +162,7 @@ function getBep20Prices(prices, pool) {
   const tvl = (pool.totalSupply * price) / 10 ** pool.decimals;
   const staked_tvl = pool.staked * price;
 
-  console.log('Price for ' + pool.symbol + ' is ' + price);
+  //console.log('Price for ' + pool.symbol + ' is ' + price);
   return {
     staked_tvl: staked_tvl,
     price: price,
@@ -178,16 +172,19 @@ function getBep20Prices(prices, pool) {
 
 async function getBscPoolInfo(masterChefContract, poolIndex, myAddress) {
   const poolInfo = await masterChefContract.methods.poolInfo(poolIndex).call();
+  // get poolInfo.lpToken
+  // call to see if poolToken has token0 value
+  // poolInfo.poolToken.token0 != null/undefined
   const poolToken =
     poolIndex !== 0
       ? await getBscLpToken(
           poolInfo.lpToken,
-          masterChefContractAddress(),
+          masterApeContractAddress(),
           myAddress,
         )
       : await getBscToken(
           poolInfo.lpToken,
-          masterChefContractAddress(),
+          masterApeContractAddress(),
           myAddress,
         );
   const userInfo = await masterChefContract.methods
@@ -231,8 +228,8 @@ async function getBscToken(tokenAddress, stakingAddress, userAddress) {
 }
 
 async function getBscLpToken(tokenAddress, stakingAddress, userAddress) {
-  const uni = getContract(UNI_ABI, tokenAddress);
-  return await getBscUniPool(uni, tokenAddress, stakingAddress, userAddress);
+  const lp = getContract(LP_ABI, tokenAddress);
+  return await getBscLp(lp, tokenAddress, stakingAddress, userAddress);
 }
 
 async function getBep20(token, address, stakingAddress, userAddress) {
@@ -260,12 +257,12 @@ async function getBep20(token, address, stakingAddress, userAddress) {
       (await token.methods.balanceOf(stakingAddress).call()) / 10 ** decimals,
     unstaked:
       (await token.methods.balanceOf(userAddress).call()) / 10 ** decimals,
-    contract: token,
+    //contract: token,
     tokens: [address],
   };
 }
 
-async function getBscUniPool(pool, poolAddress, stakingAddress, userAddress) {
+async function getBscLp(pool, poolAddress, stakingAddress, userAddress) {
   const reserves = await pool.methods.getReserves().call();
   const q0 = reserves._reserve0;
   const q1 = reserves._reserve1;
@@ -287,7 +284,7 @@ async function getBscUniPool(pool, poolAddress, stakingAddress, userAddress) {
     decimals: decimals,
     unstaked:
       (await pool.methods.balanceOf(userAddress).call()) / 10 ** decimals,
-    contract: pool,
+    //contract: pool,
     tokens: [token0, token1],
     is1inch: false,
   };
