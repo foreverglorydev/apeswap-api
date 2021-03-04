@@ -6,562 +6,19 @@ import { tokenType } from 'src/utils/helpers';
 import masterChefABI from './masterChefABI.json';
 import configuration from 'src/config/configuration';
 import { poolBalance } from 'src/pairs/pairs.queries';
-
-const ERC20_ABI = [
-  {
-    constant: true,
-    inputs: [],
-    name: 'name',
-    outputs: [{ name: '', type: 'string' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { name: '_spender', type: 'address' },
-      { name: '_value', type: 'uint256' },
-    ],
-    name: 'approve',
-    outputs: [{ name: '', type: 'bool' }],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'totalSupply',
-    outputs: [{ name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { name: '_from', type: 'address' },
-      { name: '_to', type: 'address' },
-      { name: '_value', type: 'uint256' },
-    ],
-    name: 'transferFrom',
-    outputs: [{ name: '', type: 'bool' }],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'decimals',
-    outputs: [{ name: '', type: 'uint8' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [{ name: '_owner', type: 'address' }],
-    name: 'balanceOf',
-    outputs: [{ name: 'balance', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'symbol',
-    outputs: [{ name: '', type: 'string' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { name: '_to', type: 'address' },
-      { name: '_value', type: 'uint256' },
-    ],
-    name: 'transfer',
-    outputs: [{ name: '', type: 'bool' }],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [
-      { name: '_owner', type: 'address' },
-      { name: '_spender', type: 'address' },
-    ],
-    name: 'allowance',
-    outputs: [{ name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  { payable: true, stateMutability: 'payable', type: 'fallback' },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'owner', type: 'address' },
-      { indexed: true, name: 'spender', type: 'address' },
-      { indexed: false, name: 'value', type: 'uint256' },
-    ],
-    name: 'Approval',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'from', type: 'address' },
-      { indexed: true, name: 'to', type: 'address' },
-      { indexed: false, name: 'value', type: 'uint256' },
-    ],
-    name: 'Transfer',
-    type: 'event',
-  },
-];
-const UNI_ABI = [
-  {
-    inputs: [],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'owner',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'spender',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-    name: 'Approval',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'sender',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount0',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount1',
-        type: 'uint256',
-      },
-      { indexed: true, internalType: 'address', name: 'to', type: 'address' },
-    ],
-    name: 'Burn',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'sender',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount0',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount1',
-        type: 'uint256',
-      },
-    ],
-    name: 'Mint',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'sender',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount0In',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount1In',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount0Out',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount1Out',
-        type: 'uint256',
-      },
-      { indexed: true, internalType: 'address', name: 'to', type: 'address' },
-    ],
-    name: 'Swap',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: 'uint112',
-        name: 'reserve0',
-        type: 'uint112',
-      },
-      {
-        indexed: false,
-        internalType: 'uint112',
-        name: 'reserve1',
-        type: 'uint112',
-      },
-    ],
-    name: 'Sync',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'address', name: 'from', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'to', type: 'address' },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-    name: 'Transfer',
-    type: 'event',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'DOMAIN_SEPARATOR',
-    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'MINIMUM_LIQUIDITY',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'PERMIT_TYPEHASH',
-    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [
-      { internalType: 'address', name: '', type: 'address' },
-      { internalType: 'address', name: '', type: 'address' },
-    ],
-    name: 'allowance',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { internalType: 'address', name: 'spender', type: 'address' },
-      { internalType: 'uint256', name: 'value', type: 'uint256' },
-    ],
-    name: 'approve',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [{ internalType: 'address', name: '', type: 'address' }],
-    name: 'balanceOf',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [{ internalType: 'address', name: 'to', type: 'address' }],
-    name: 'burn',
-    outputs: [
-      { internalType: 'uint256', name: 'amount0', type: 'uint256' },
-      { internalType: 'uint256', name: 'amount1', type: 'uint256' },
-    ],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'decimals',
-    outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'factory',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'getReserves',
-    outputs: [
-      { internalType: 'uint112', name: '_reserve0', type: 'uint112' },
-      { internalType: 'uint112', name: '_reserve1', type: 'uint112' },
-      { internalType: 'uint32', name: '_blockTimestampLast', type: 'uint32' },
-    ],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { internalType: 'address', name: '_token0', type: 'address' },
-      { internalType: 'address', name: '_token1', type: 'address' },
-    ],
-    name: 'initialize',
-    outputs: [],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'kLast',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [{ internalType: 'address', name: 'to', type: 'address' }],
-    name: 'mint',
-    outputs: [{ internalType: 'uint256', name: 'liquidity', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'name',
-    outputs: [{ internalType: 'string', name: '', type: 'string' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [{ internalType: 'address', name: '', type: 'address' }],
-    name: 'nonces',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { internalType: 'address', name: 'owner', type: 'address' },
-      { internalType: 'address', name: 'spender', type: 'address' },
-      { internalType: 'uint256', name: 'value', type: 'uint256' },
-      { internalType: 'uint256', name: 'deadline', type: 'uint256' },
-      { internalType: 'uint8', name: 'v', type: 'uint8' },
-      { internalType: 'bytes32', name: 'r', type: 'bytes32' },
-      { internalType: 'bytes32', name: 's', type: 'bytes32' },
-    ],
-    name: 'permit',
-    outputs: [],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'price0CumulativeLast',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'price1CumulativeLast',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [{ internalType: 'address', name: 'to', type: 'address' }],
-    name: 'skim',
-    outputs: [],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { internalType: 'uint256', name: 'amount0Out', type: 'uint256' },
-      { internalType: 'uint256', name: 'amount1Out', type: 'uint256' },
-      { internalType: 'address', name: 'to', type: 'address' },
-      { internalType: 'bytes', name: 'data', type: 'bytes' },
-    ],
-    name: 'swap',
-    outputs: [],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'symbol',
-    outputs: [{ internalType: 'string', name: '', type: 'string' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [],
-    name: 'sync',
-    outputs: [],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'token0',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'token1',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: true,
-    inputs: [],
-    name: 'totalSupply',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { internalType: 'address', name: 'to', type: 'address' },
-      { internalType: 'uint256', name: 'value', type: 'uint256' },
-    ],
-    name: 'transfer',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    constant: false,
-    inputs: [
-      { internalType: 'address', name: 'from', type: 'address' },
-      { internalType: 'address', name: 'to', type: 'address' },
-      { internalType: 'uint256', name: 'value', type: 'uint256' },
-    ],
-    name: 'transferFrom',
-    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-];
+import { ERC20_ABI } from './erc20Abi';
+import { UNI_ABI } from './uniAbi';
 
 function masterChefContractAddress(): string {
-  return configuration()[process.env.CHAIN_ID].masterChef.address;
+  return configuration()[process.env.CHAIN_ID].contracts.masterApe;
+}
+
+function bananaAddress(): string {
+  return configuration()[process.env.CHAIN_ID].contracts.banana;
+}
+
+function bananaBusdAddress(): string {
+  return configuration()[process.env.CHAIN_ID].contracts.bananaBusd;
 }
 
 export function getStatsContract() {
@@ -586,6 +43,11 @@ export async function getAllPrices(httpService): Promise<any> {
   return prices;
 }
 
+function getBananaPriceWithPoolList(poolList) {
+  const pool = poolList.find((pool) => pool.address === bananaBusdAddress());
+  return pool.poolToken.q1 / pool.poolToken.q0;
+}
+
 export async function getAllStats(httpService): Promise<any> {
   const poolIndex = 2;
   const myAddress = process.env.TEST_ADDRESS;
@@ -606,17 +68,11 @@ export async function getAllStats(httpService): Promise<any> {
 
   const poolInfos = await Promise.all(
     [...Array(poolCount).keys()].map(
-      async (x) =>
-        await getBscPoolInfo(
-          masterChefContract,
-          masterChefContractAddress(),
-          x,
-          'pendingCake',
-          myAddress,
-        ),
+      async (x) => await getBscPoolInfo(masterChefContract, x, myAddress),
     ),
   );
 
+  // eslint-disable-next-line prefer-spread
   const tokenAddresses = [].concat.apply(
     [],
     poolInfos.filter((x) => x.poolToken).map((x) => x.poolToken.tokens),
@@ -633,6 +89,8 @@ export async function getAllStats(httpService): Promise<any> {
       );
     }),
   );
+
+  prices[bananaAddress()] = { usd: getBananaPriceWithPoolList(poolInfos) };
 
   const poolPrices = poolInfos.map((poolInfo) =>
     poolInfo.poolToken
@@ -718,19 +176,20 @@ function getBep20Prices(prices, pool) {
   };
 }
 
-async function getBscPoolInfo(
-  masterChefContract,
-  masterChefAddress,
-  poolIndex,
-  pendingRewardsFunction,
-  myAddress,
-) {
+async function getBscPoolInfo(masterChefContract, poolIndex, myAddress) {
   const poolInfo = await masterChefContract.methods.poolInfo(poolIndex).call();
-  const poolToken = await getBscToken(
-    poolInfo.lpToken,
-    masterChefContractAddress(),
-    myAddress,
-  );
+  const poolToken =
+    poolIndex !== 0
+      ? await getBscLpToken(
+          poolInfo.lpToken,
+          masterChefContractAddress(),
+          myAddress,
+        )
+      : await getBscToken(
+          poolInfo.lpToken,
+          masterChefContractAddress(),
+          myAddress,
+        );
   const userInfo = await masterChefContract.methods
     .userInfo(poolIndex, myAddress)
     .call();
@@ -740,46 +199,40 @@ async function getBscPoolInfo(
 
   const staked = userInfo.amount / 10 ** poolToken.decimals;
 
-  let stakedToken;
+  /* let stakedToken;
   let userLPStaked;
   if (
     poolInfo.stakedHoldableToken != null &&
     poolInfo.stakedHoldableToken != '0x0000000000000000000000000000000000000000'
   ) {
+    // TODO re check - Probably not needed
     stakedToken = await getBscToken(
       poolInfo.stakedHoldableToken,
       masterChefAddress,
       myAddress,
     );
     userLPStaked = userInfo.stakedLPAmount / 10 ** poolToken.decimals;
-  }
+  } */
   return {
     address: poolInfo.lpToken,
     allocPoints: poolInfo.allocPoint ?? 1,
     poolToken: poolToken,
     userStaked: staked,
     pendingRewardTokens: pendingRewardTokens / 10 ** 18,
-    stakedToken: stakedToken,
-    userLPStaked: userLPStaked,
+    // stakedToken: stakedToken,
+    // userLPStaked: userLPStaked,
     lastRewardBlock: poolInfo.lastRewardBlock,
   };
 }
 
 async function getBscToken(tokenAddress, stakingAddress, userAddress) {
-  switch (tokenType[tokenAddress]) {
-    case 'bep20':
-      const bep20 = getContract(ERC20_ABI, tokenAddress);
-      return await getBep20(bep20, tokenAddress, stakingAddress, userAddress);
-    case 'lp':
-      const uni = getContract(UNI_ABI, tokenAddress);
-      return await getBscUniPool(
-        uni,
-        tokenAddress,
-        stakingAddress,
-        userAddress,
-      );
-  }
-  console.log('Missing address for BSC token');
+  const bep20 = getContract(ERC20_ABI, tokenAddress);
+  return await getBep20(bep20, tokenAddress, stakingAddress, userAddress);
+}
+
+async function getBscLpToken(tokenAddress, stakingAddress, userAddress) {
+  const uni = getContract(UNI_ABI, tokenAddress);
+  return await getBscUniPool(uni, tokenAddress, stakingAddress, userAddress);
 }
 
 async function getBep20(token, address, stakingAddress, userAddress) {
@@ -813,10 +266,9 @@ async function getBep20(token, address, stakingAddress, userAddress) {
 }
 
 async function getBscUniPool(pool, poolAddress, stakingAddress, userAddress) {
-  let q0, q1;
   const reserves = await pool.methods.getReserves().call();
-  q0 = reserves._reserve0;
-  q1 = reserves._reserve1;
+  const q0 = reserves._reserve0;
+  const q1 = reserves._reserve1;
   const decimals = await pool.methods.decimals().call();
   const token0 = await pool.methods.token0().call();
   const token1 = await pool.methods.token1().call();
