@@ -26,7 +26,3 @@ const bscTokens = [
 export async function getBscPrices(httpService) {
   return await lookUpPrices(httpService, bscTokens);
 }
-
-export async function loadMasterChefInfo(httpService) {
-  return await lookUpPrices(httpService, bscTokens);
-}

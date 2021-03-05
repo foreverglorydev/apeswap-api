@@ -1,7 +1,6 @@
 import { Injectable, HttpService } from '@nestjs/common';
 
 import {
-  getStatsContract,
   getReward,
   getAllPrices,
   getAllStats,
@@ -10,10 +9,6 @@ import {
 @Injectable()
 export class StatsService {
   constructor(private httpService: HttpService) {}
-
-  getStats(): any {
-    return getStatsContract();
-  }
 
   async getReward(): Promise<any> {
     const reward = await getReward();

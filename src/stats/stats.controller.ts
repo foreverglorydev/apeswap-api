@@ -7,8 +7,8 @@ export class StatsController {
   constructor(private statsService: StatsService) {}
 
   @Get()
-  getStats() {
-    return this.statsService.getStats();
+  async getAllStats() {
+    return this.statsService.getAllStats();
   }
 
   @Get('reward')
@@ -21,8 +21,5 @@ export class StatsController {
     return this.statsService.getPrices();
   }
 
-  @Get('all')
-  async getAllStats() {
-    return this.statsService.getAllStats();
-  }
+  
 }

@@ -21,6 +21,12 @@ export async function lookUpPrices(httpService, token_array) {
   return prices;
 }
 
+export function getParameterCaseInsensitive(object, key) {
+  return object[
+    Object.keys(object).find((k) => k.toLowerCase() === key.toLowerCase())
+  ];
+}
+
 export const tokenType = {
   '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95': 'bep20', //BANANA
   '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c': 'bep20', //WBNB
