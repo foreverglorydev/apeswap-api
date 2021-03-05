@@ -93,17 +93,17 @@ export async function getAllStats(httpService): Promise<any> {
 
   for (let i = 0; i < poolInfos.length; i++) {
     if (poolInfos[i].poolToken) {
-      getPoolPrices(tokens, prices, poolInfos[i].poolToken, poolPrices);
+      getPoolPrices(tokens, prices, poolInfos[i].poolToken, poolPrices, i);
     }
   }
   return poolPrices;
 }
 
-function getPoolPrices(tokens, prices, pool, poolPrices) {
+function getPoolPrices(tokens, prices, pool, poolPrices, poolIndex) {
   if (pool.token0 != null) {
-    poolPrices.farms.push(getLPTokenPrices(tokens, prices, pool));
+    poolPrices.farms.push(getLPTokenPrices(tokens, prices, pool, poolIndex));
   } else {
-    poolPrices.pools.push(getBep20Prices(prices, pool));
+    poolPrices.pools.push(getBep20Prices(prices, pool, poolIndex));
   }
 }
 
@@ -185,7 +185,7 @@ async function getBscLp(pool, poolAddress, stakingAddress) {
 }
 
 // Given array of prices and single pool contract, return price and tvl info for pool token
-function getLPTokenPrices(tokens, prices, pool) {
+function getLPTokenPrices(tokens, prices, pool, poolIndex) {
   const t0 = getParameterCaseInsensitive(tokens, pool.token0);
   let p0 = getParameterCaseInsensitive(prices, pool.token0)?.usd;
   const t1 = getParameterCaseInsensitive(tokens, pool.token1);
@@ -212,6 +212,7 @@ function getLPTokenPrices(tokens, prices, pool) {
   return {
     address: pool.address,
     lpSymbol: lpSymbol,
+    poolIndex: poolIndex,
     t0: t0,
     p0: p0,
     q0: q0,
@@ -226,7 +227,7 @@ function getLPTokenPrices(tokens, prices, pool) {
 }
 
 // Given array of prices and single pool contract, return price and tvl info for pool token
-function getBep20Prices(prices, pool) {
+function getBep20Prices(prices, pool, poolIndex) {
   const price = getParameterCaseInsensitive(prices, pool.address)?.usd;
   const tvl = (pool.totalSupply * price) / 10 ** pool.decimals;
   const staked_tvl = pool.staked * price;
@@ -234,6 +235,7 @@ function getBep20Prices(prices, pool) {
   return {
     address: pool.address,
     lpSymbol: pool.symbol,
+    poolIndex: poolIndex,
     name: pool.name,
     price: price,
     tvl: tvl,
