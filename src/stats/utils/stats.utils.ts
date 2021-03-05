@@ -64,7 +64,7 @@ export async function getAllStats(httpService): Promise<any> {
     await masterApeContract.methods.poolLength().call(),
     10,
   );
- 
+
   const poolInfos = await Promise.all(
     [...Array(poolCount).keys()].map(
       async (x) => await getBscPoolInfo(masterApeContract, x),
@@ -79,10 +79,7 @@ export async function getAllStats(httpService): Promise<any> {
 
   await Promise.all(
     tokenAddresses.map(async (address) => {
-      tokens[address] = await getBscToken(
-        address,
-        masterApeContractAddress(),
-      );
+      tokens[address] = await getBscToken(address, masterApeContractAddress());
     }),
   );
 
@@ -96,7 +93,7 @@ export async function getAllStats(httpService): Promise<any> {
 
   for (let i = 0; i < poolInfos.length; i++) {
     if (poolInfos[i].poolToken) {
-      getPoolPrices(tokens, prices, poolInfos[i].poolToken, poolPrices)
+      getPoolPrices(tokens, prices, poolInfos[i].poolToken, poolPrices);
     }
   }
   return poolPrices;
@@ -115,15 +112,9 @@ async function getBscPoolInfo(masterApeContract, poolIndex) {
   // Determine if Bep20 or Lp token
   const poolToken =
     poolIndex !== 0
-      ? await getBscLpToken(
-          poolInfo.lpToken,
-          masterApeContractAddress(),
-        )
-      : await getBscToken(
-          poolInfo.lpToken,
-          masterApeContractAddress(),
-        );
-  
+      ? await getBscLpToken(poolInfo.lpToken, masterApeContractAddress())
+      : await getBscToken(poolInfo.lpToken, masterApeContractAddress());
+
   return {
     address: poolInfo.lpToken,
     allocPoints: poolInfo.allocPoint ?? 1,
@@ -216,7 +207,7 @@ function getLPTokenPrices(tokens, prices, pool) {
   const price = tvl / pool.totalSupply;
   prices[pool.address] = { usd: price };
   const staked_tvl = pool.staked * price;
-  let lpSymbol = `[${t0.symbol}]-[${t1.symbol}] LP`;
+  const lpSymbol = `[${t0.symbol}]-[${t1.symbol}] LP`;
 
   return {
     address: pool.address,

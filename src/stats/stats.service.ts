@@ -1,10 +1,6 @@
 import { Injectable, HttpService } from '@nestjs/common';
 
-import {
-  getReward,
-  getAllPrices,
-  getAllStats,
-} from './utils/stats.utils';
+import { getReward, getAllPrices, getAllStats } from './utils/stats.utils';
 
 @Injectable()
 export class StatsService {

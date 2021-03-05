@@ -20,6 +20,4 @@ export class StatsController {
   async getPrices() {
     return this.statsService.getPrices();
   }
-
-  
 }
