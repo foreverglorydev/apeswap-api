@@ -1,13 +1,13 @@
 import { Injectable, HttpService } from '@nestjs/common';
 
-import { getReward, getAllPrices, getAllStats, getWalletStats } from './utils/stats.utils';
+import { getRewardsPerDay, getAllPrices, getAllStats, getWalletStats } from './utils/stats.utils';
 
 @Injectable()
 export class StatsService {
   constructor(private httpService: HttpService) {}
 
   async getReward(): Promise<any> {
-    const reward = await getReward();
+    const reward = await getRewardsPerDay();
     console.log(reward);
     return reward;
   }

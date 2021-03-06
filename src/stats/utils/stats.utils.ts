@@ -22,15 +22,12 @@ function bananaBusdAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.bananaBusd;
 }
 
-export async function getReward(): Promise<any> {
+export async function getRewardsPerDay(): Promise<any> {
   const MasterApeContract = getContract(
     masterApeABI,
     masterApeContractAddress(),
   );
-  const rewards =
-    (((await MasterApeContract.methods.cakePerBlock().call()) / 1e18) *
-      604800) /
-    3;
+  const rewards = (((await MasterApeContract.methods.cakePerBlock().call()) / 1e18) * 86400) / 3;
 
   return rewards;
 }
@@ -46,14 +43,16 @@ function getBananaPriceWithPoolList(poolList) {
 }
 
 export async function getAllStats(httpService): Promise<any> {
-  const myAddress = process.env.TEST_ADDRESS;
   const masterApeContract = getContract(
     masterApeABI,
     masterApeContractAddress(),
   );
   const prices = await getBscPrices(httpService);
   const tokens = {};
-
+  const totalAllocPoints = await masterApeContract.methods
+    .totalAllocPoint()
+    .call();
+  const rewardsPerDay = await getRewardsPerDay();
   const poolCount = parseInt(
     await masterApeContract.methods.poolLength().call(),
     10,
@@ -86,7 +85,7 @@ export async function getAllStats(httpService): Promise<any> {
 
   for (let i = 0; i < poolInfos.length; i++) {
     if (poolInfos[i].poolToken) {
-      getPoolPrices(tokens, prices, poolInfos[i].poolToken, poolPrices, i);
+      getPoolPrices(tokens, prices, poolInfos[i].poolToken, poolPrices, i, poolInfos[i].allocPoints, totalAllocPoints, rewardsPerDay);
     }
   }
   return poolPrices;
@@ -129,7 +128,6 @@ export async function getWalletStatsForPools(wallet, pools, masterApeContract ):
       }
       
       allPools.push(curr_pool);
-      //walletTvl.tvl += stakedTvl;
     }
 
   }));
@@ -164,11 +162,11 @@ export async function getWalletStatsForFarms(wallet, farms, masterApeContract ):
   return allFarms;
 }
 
-function getPoolPrices(tokens, prices, pool, poolPrices, poolIndex) {
+function getPoolPrices(tokens, prices, pool, poolPrices, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay) {
   if (pool.token0 != null) {
-    poolPrices.farms.push(getLPTokenPrices(tokens, prices, pool, poolIndex));
+    poolPrices.farms.push(getLPTokenPrices(tokens, prices, pool, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay));
   } else {
-    poolPrices.pools.push(getBep20Prices(prices, pool, poolIndex));
+    poolPrices.pools.push(getBep20Prices(prices, pool, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay));
   }
 }
 
@@ -183,8 +181,8 @@ async function getBscPoolInfo(masterApeContract, poolIndex) {
   return {
     address: poolInfo.lpToken,
     allocPoints: poolInfo.allocPoint ?? 1,
-    poolToken: poolToken,
-    poolIndex: poolIndex,
+    poolToken,
+    poolIndex,
     lastRewardBlock: poolInfo.lastRewardBlock,
   };
 }
@@ -217,7 +215,7 @@ async function getBep20(token, address, stakingAddress) {
     name: await token.methods.name().call(),
     symbol: await token.methods.symbol().call(),
     totalSupply: await token.methods.totalSupply().call(),
-    decimals: decimals,
+    decimals,
     staked:
       (await token.methods.balanceOf(stakingAddress).call()) / 10 ** decimals,
     tokens: [address],
@@ -239,22 +237,22 @@ async function getBscLp(pool, poolAddress, stakingAddress) {
     q0,
     token1,
     q1,
-    totalSupply: (await pool.methods.totalSupply().call()) / 10 ** decimals,
-    stakingAddress: stakingAddress,
+    totalSupply: (await pool.methods.totalSupply().call()) / 10 ** decimals, 
+    stakingAddress,
     staked:
       (await pool.methods.balanceOf(stakingAddress).call()) / 10 ** decimals,
-    decimals: decimals,
+    decimals,
     tokens: [token0, token1],
-    is1inch: false,
   };
 }
 
 // Given array of prices and single pool contract, return price and tvl info for pool token
-function getLPTokenPrices(tokens, prices, pool, poolIndex) {
+function getLPTokenPrices(tokens, prices, pool, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay) {
   const t0 = getParameterCaseInsensitive(tokens, pool.token0);
   let p0 = getParameterCaseInsensitive(prices, pool.token0)?.usd;
   const t1 = getParameterCaseInsensitive(tokens, pool.token1);
   let p1 = getParameterCaseInsensitive(prices, pool.token1)?.usd;
+
   if (p0 == null && p1 == null) {
     return undefined;
   }
@@ -271,41 +269,51 @@ function getLPTokenPrices(tokens, prices, pool, poolIndex) {
   const tvl = q0 * p0 + q1 * p1;
   const price = tvl / pool.totalSupply;
   prices[pool.address] = { usd: price };
-  const staked_tvl = pool.staked * price;
+  const stakedTvl = pool.staked * price;
   const lpSymbol = `[${t0.symbol}]-[${t1.symbol}] LP`;
+
+  // APR calculations
+  const poolRewardsPerDay = allocPoints / totalAllocPoints * rewardsPerDay;
+  const apr = (poolRewardsPerDay * prices[bananaAddress()].usd) / stakedTvl * 365;
 
   return {
     address: pool.address,
-    lpSymbol: lpSymbol,
-    poolIndex: poolIndex,
-    t0: t0,
-    p0: p0,
-    q0: q0,
-    t1: t1,
-    p1: p1,
-    q1: q1,
-    price: price,
+    lpSymbol,
+    poolIndex,
+    t0,
+    p0,
+    q0,
+    t1,
+    p1,
+    q1,
+    price,
     totalSupply: pool.totalSupply,
-    tvl: tvl,
-    stakedTvl: staked_tvl,
+    tvl,
+    stakedTvl,
+    apr,
     decimals: pool.decimals,
   };
 }
 
 // Given array of prices and single pool contract, return price and tvl info for pool token
-function getBep20Prices(prices, pool, poolIndex) {
+function getBep20Prices(prices, pool, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay) {
   const price = getParameterCaseInsensitive(prices, pool.address)?.usd;
   const tvl = (pool.totalSupply * price) / 10 ** pool.decimals;
-  const staked_tvl = pool.staked * price;
+  const stakedTvl = pool.staked * price;
+
+  // APR calculations
+  const poolRewardsPerDay = allocPoints / totalAllocPoints * rewardsPerDay;
+  const apr = (poolRewardsPerDay * prices[bananaAddress()].usd) / stakedTvl * 365;
 
   return {
     address: pool.address,
     lpSymbol: pool.symbol,
     poolIndex: poolIndex,
     name: pool.name,
-    price: price,
-    tvl: tvl,
-    stakedTvl: staked_tvl,
+    price,
+    tvl,
+    stakedTvl,
+    apr,
     decimals: pool.decimals,
   };
 }
