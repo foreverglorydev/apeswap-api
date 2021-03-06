@@ -1,6 +1,6 @@
 import { Injectable, HttpService } from '@nestjs/common';
 
-import { getReward, getAllPrices, getAllStats } from './utils/stats.utils';
+import { getReward, getAllPrices, getAllStats, getWalletStats } from './utils/stats.utils';
 
 @Injectable()
 export class StatsService {
@@ -20,5 +20,9 @@ export class StatsService {
 
   async getAllStats(): Promise<any> {
     return getAllStats(this.httpService);
+  }
+
+  async getStatsForWallet(wallet): Promise<any> {
+    return getWalletStats(this.httpService, wallet);
   }
 }

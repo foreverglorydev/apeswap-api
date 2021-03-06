@@ -22,12 +22,6 @@ function bananaBusdAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.bananaBusd;
 }
 
-/*
-export function getStatsContract() {
-  return getContract(masterApeABI, masterApeContractAddress());
-}
-*/
-
 export async function getReward(): Promise<any> {
   const MasterApeContract = getContract(
     masterApeABI,
@@ -85,7 +79,6 @@ export async function getAllStats(httpService): Promise<any> {
 
   // TODO: update this to use both BNB and BUSD pools for average Banana price
   prices[bananaAddress()] = { usd: getBananaPriceWithPoolList(poolInfos) };
-
   const poolPrices = {
     pools: [],
     farms: [],
@@ -97,6 +90,78 @@ export async function getAllStats(httpService): Promise<any> {
     }
   }
   return poolPrices;
+}
+
+// Get TVL info given a wallet
+export async function getWalletStats(httpService, wallet): Promise<any> {
+  const poolPrices = await getAllStats(httpService);
+  const masterApeContract = getContract(
+    masterApeABI,
+    masterApeContractAddress(),
+  );
+
+  const walletTvl = {
+    pools: await getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
+    farms: await getWalletStatsForFarms(wallet, poolPrices.farms, masterApeContract),
+  };
+  
+  return walletTvl;
+}
+
+// Get TVL info for Pools only given a wallet
+export async function getWalletStatsForPools(wallet, pools, masterApeContract ): Promise<any> {
+  const allPools = [];
+  await Promise.all(pools.map(async pool => {
+    const userInfo = await masterApeContract.methods
+    .userInfo(pool.poolIndex, wallet)
+    .call();
+    const pendingReward = await masterApeContract.methods
+    .pendingCake(pool.poolIndex, wallet)
+    .call() / 10 ** pool.decimals;
+
+    if (userInfo.amount != 0 || pendingReward != 0) {
+      const stakedTvl = userInfo.amount * pool.price / 10 ** pool.decimals;
+      const curr_pool = {
+        address: pool.address,
+        lpSymbol: pool.lpSymbol,
+        stakedTvl: stakedTvl,
+        pendingReward: pendingReward,
+      }
+      
+      allPools.push(curr_pool);
+      //walletTvl.tvl += stakedTvl;
+    }
+
+  }));
+  return allPools;
+}
+
+// Get TVL info for Farms only given a wallet
+export async function getWalletStatsForFarms(wallet, farms, masterApeContract ): Promise<any> {
+  const allFarms = [];
+  await Promise.all(farms.map(async farm => {
+    const userInfo = await masterApeContract.methods
+    .userInfo(farm.poolIndex, wallet)
+    .call();
+    const pendingReward = await masterApeContract.methods
+    .pendingCake(farm.poolIndex, wallet)
+    .call() / 10 ** farm.decimals;
+
+    if (userInfo.amount != 0 || pendingReward != 0) {
+      const stakedTvl = userInfo.amount * farm.price / 10 ** farm.decimals;
+
+      const curr_farm = {
+        address: farm.address,
+        lpSymbol: farm.lpSymbol,
+        stakedTvl: stakedTvl,
+        pendingReward: pendingReward,
+      }
+
+      //walletTvl.tvl += stakedTvl;
+      allFarms.push(curr_farm);
+    }
+  }));
+  return allFarms;
 }
 
 function getPoolPrices(tokens, prices, pool, poolPrices, poolIndex) {
@@ -223,6 +288,7 @@ function getLPTokenPrices(tokens, prices, pool, poolIndex) {
     totalSupply: pool.totalSupply,
     tvl: tvl,
     stakedTvl: staked_tvl,
+    decimals: pool.decimals,
   };
 }
 
@@ -240,5 +306,6 @@ function getBep20Prices(prices, pool, poolIndex) {
     price: price,
     tvl: tvl,
     stakedTvl: staked_tvl,
+    decimals: pool.decimals,
   };
 }

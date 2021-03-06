@@ -11,6 +11,11 @@ export class StatsController {
     return this.statsService.getAllStats();
   }
 
+  @Get(':wallet')
+  async getStatsForWallet(@Param('wallet') wallet: string) {
+    return this.statsService.getStatsForWallet(wallet);
+  }
+
   @Get('reward')
   async getReward() {
     return this.statsService.getReward();
