@@ -102,7 +102,25 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
   const walletTvl = {
     pools: await getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
     farms: await getWalletStatsForFarms(wallet, poolPrices.farms, masterApeContract),
+    tvl: 0,
+    aggregateApr: 0,
+    earningsPerWeek: 0,
   };
+
+  let totalApr = 0;
+
+  walletTvl.pools.forEach(pool => {
+    walletTvl.tvl += pool.stakedTvl;
+    totalApr += pool.stakedTvl * pool.apr;
+  });
+
+  walletTvl.farms.forEach(farm => {
+    walletTvl.tvl += farm.stakedTvl;
+    totalApr += farm.stakedTvl * farm.apr;
+  });
+
+  walletTvl.aggregateApr = totalApr / walletTvl.tvl;
+  walletTvl.earningsPerWeek = walletTvl.tvl * walletTvl.aggregateApr * 7 / 365
   
   return walletTvl;
 }
@@ -123,8 +141,9 @@ export async function getWalletStatsForPools(wallet, pools, masterApeContract ):
       const curr_pool = {
         address: pool.address,
         lpSymbol: pool.lpSymbol,
-        stakedTvl: stakedTvl,
-        pendingReward: pendingReward,
+        stakedTvl,
+        pendingReward,
+        apr: pool.apr,
       }
       
       allPools.push(curr_pool);
@@ -151,8 +170,9 @@ export async function getWalletStatsForFarms(wallet, farms, masterApeContract ):
       const curr_farm = {
         address: farm.address,
         lpSymbol: farm.lpSymbol,
-        stakedTvl: stakedTvl,
-        pendingReward: pendingReward,
+        stakedTvl,
+        pendingReward,
+        apr: farm.apr,
       }
 
       //walletTvl.tvl += stakedTvl;
