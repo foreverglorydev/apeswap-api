@@ -102,6 +102,7 @@ export async function getAllStats(httpService): Promise<any> {
   const burntAmount = await getBurntTokens(bananaContract);
   const totalSupply = await getTotalTokenSupply(bananaContract) - burntAmount;
   const poolPrices = {
+    bananaPrice: prices[bananaAddress()].usd,
     burntAmount,
     totalSupply,
     marketCap: totalSupply * prices[bananaAddress()].usd,
@@ -126,11 +127,12 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
   );
 
   const walletTvl = {
-    pools: await getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
-    farms: await getWalletStatsForFarms(wallet, poolPrices.farms, masterApeContract),
     tvl: 0,
     aggregateApr: 0,
-    earningsPerWeek: 0,
+    bananaPrice: poolPrices.bananaPrice,
+    bananasEarnedPerWeek: 0,
+    pools: await getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
+    farms: await getWalletStatsForFarms(wallet, poolPrices.farms, masterApeContract),
   };
 
   let totalApr = 0;
@@ -146,7 +148,7 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
   });
 
   walletTvl.aggregateApr = totalApr / walletTvl.tvl;
-  walletTvl.earningsPerWeek = walletTvl.tvl * walletTvl.aggregateApr * 7 / 365
+  walletTvl.bananasEarnedPerWeek = walletTvl.tvl * walletTvl.aggregateApr * 7 / 365 / poolPrices.bananaPrice
   
   return walletTvl;
 }
