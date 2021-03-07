@@ -18,18 +18,29 @@ function bananaAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.banana;
 }
 
+function bnbAddress(): string {
+  return configuration()[process.env.CHAIN_ID].contracts.bnb;
+}
+
 function bananaBusdAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.bananaBusd;
 }
+
+function bananaBnbAddress(): string {
+  return configuration()[process.env.CHAIN_ID].contracts.bananaBnb;
+}
+
+function burnAddress(): string {
+  return configuration()[process.env.CHAIN_ID].contracts.burn;
+}
+
 
 export async function getRewardsPerDay(): Promise<any> {
   const MasterApeContract = getContract(
     masterApeABI,
     masterApeContractAddress(),
   );
-  const rewards = (((await MasterApeContract.methods.cakePerBlock().call()) / 1e18) * 86400) / 3;
-
-  return rewards;
+  return (((await MasterApeContract.methods.cakePerBlock().call()) / 1e18) * 86400) / 3;
 }
 
 export async function getAllPrices(httpService): Promise<any> {
@@ -37,9 +48,19 @@ export async function getAllPrices(httpService): Promise<any> {
   return prices;
 }
 
-function getBananaPriceWithPoolList(poolList) {
-  const pool = poolList.find((pool) => pool.address === bananaBusdAddress());
-  return pool.poolToken.q1 / pool.poolToken.q0;
+function getBananaPriceWithPoolList(poolList, prices) {
+  const poolBusd = poolList.find((pool) => pool.address === bananaBusdAddress());
+  const bananaPriceUsingBusd = poolBusd.poolToken.q1 / poolBusd.poolToken.q0;
+  if (prices[bnbAddress()]) {
+    const poolBnb = poolList.find((pool) => pool.address === bananaBnbAddress());
+    const bnbTvl = poolBnb.poolToken.q1 * prices[bnbAddress()].usd / 10 ** poolBnb.poolToken.decimals;
+    const busdTvl = poolBusd.poolToken.q1 / 10 ** poolBusd.poolToken.decimals;
+    const bananaPriceUsingBnb = poolBnb.poolToken.q1 * prices[bnbAddress()].usd / poolBnb.poolToken.q0;
+
+    return (bananaPriceUsingBnb * bnbTvl + bananaPriceUsingBusd * busdTvl) / (bnbTvl + busdTvl);
+  }
+
+  return bananaPriceUsingBusd;
 }
 
 export async function getAllStats(httpService): Promise<any> {
@@ -76,9 +97,12 @@ export async function getAllStats(httpService): Promise<any> {
     }),
   );
 
-  // TODO: update this to use both BNB and BUSD pools for average Banana price
-  prices[bananaAddress()] = { usd: getBananaPriceWithPoolList(poolInfos) };
+  // If Banana price not returned from Gecko, calculating using pools
+  if (!prices[bananaAddress()]) {
+    prices[bananaAddress()] = { usd: getBananaPriceWithPoolList(poolInfos, prices) };
+  }
   const poolPrices = {
+    burntAmount: await getBurntBananas(),
     pools: [],
     farms: [],
   };
@@ -336,4 +360,13 @@ function getBep20Prices(prices, pool, poolIndex, allocPoints, totalAllocPoints, 
     apr,
     decimals: pool.decimals,
   };
+}
+
+export async function getBurntBananas(): Promise<any> {
+  const bananaContract = getContract(
+    ERC20_ABI,
+    bananaAddress(),
+  );
+  const decimals = await bananaContract.methods.decimals().call();
+  return await bananaContract.methods.balanceOf(burnAddress()).call() / 10 ** decimals
 }
