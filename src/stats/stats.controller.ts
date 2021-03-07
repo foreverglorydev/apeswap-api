@@ -10,14 +10,8 @@ export class StatsController {
     return this.statsService.getAllStats();
   }
 
-  @Get('burnt')
-  async getBurntBanana() {
-    return this.statsService.getBurntBanana();
-  }
-  
   @Get(':wallet')
   async getStatsForWallet(@Param('wallet') wallet: string) {
     return this.statsService.getStatsForWallet(wallet);
   }
-
 }

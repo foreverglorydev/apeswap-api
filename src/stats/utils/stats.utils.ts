@@ -64,10 +64,8 @@ function getBananaPriceWithPoolList(poolList, prices) {
 }
 
 export async function getAllStats(httpService): Promise<any> {
-  const masterApeContract = getContract(
-    masterApeABI,
-    masterApeContractAddress(),
-  );
+  const masterApeContract = getContract(masterApeABI, masterApeContractAddress());
+  const bananaContract = getContract(ERC20_ABI, bananaAddress());
   const prices = await getBscPrices(httpService);
   const tokens = {};
   const totalAllocPoints = await masterApeContract.methods
@@ -101,8 +99,12 @@ export async function getAllStats(httpService): Promise<any> {
   if (!prices[bananaAddress()]) {
     prices[bananaAddress()] = { usd: getBananaPriceWithPoolList(poolInfos, prices) };
   }
+  const burntAmount = await getBurntTokens(bananaContract);
+  const totalSupply = await getTotalTokenSupply(bananaContract) - burntAmount;
   const poolPrices = {
-    burntAmount: await getBurntBananas(),
+    burntAmount,
+    totalSupply,
+    marketCap: totalSupply * prices[bananaAddress()].usd,
     pools: [],
     farms: [],
   };
@@ -199,7 +201,6 @@ export async function getWalletStatsForFarms(wallet, farms, masterApeContract ):
         apr: farm.apr,
       }
 
-      //walletTvl.tvl += stakedTvl;
       allFarms.push(curr_farm);
     }
   }));
@@ -324,10 +325,14 @@ function getLPTokenPrices(tokens, prices, pool, poolIndex, allocPoints, totalAll
     address: pool.address,
     lpSymbol,
     poolIndex,
-    t0,
+    t0Address: t0.address,
+    t0Symbol: t0.symbol,
+    t0Decimals: t0.decimals,
     p0,
     q0,
-    t1,
+    t1Address: t1.address,
+    t1Symbol: t1.symbol,
+    t1Decimals: t1.decimals,
     p1,
     q1,
     price,
@@ -357,16 +362,18 @@ function getBep20Prices(prices, pool, poolIndex, allocPoints, totalAllocPoints, 
     price,
     tvl,
     stakedTvl,
+    staked: pool.staked,
     apr,
     decimals: pool.decimals,
   };
 }
 
-export async function getBurntBananas(): Promise<any> {
-  const bananaContract = getContract(
-    ERC20_ABI,
-    bananaAddress(),
-  );
-  const decimals = await bananaContract.methods.decimals().call();
-  return await bananaContract.methods.balanceOf(burnAddress()).call() / 10 ** decimals
+export async function getBurntTokens(tokenContract): Promise<any> {
+  const decimals = await tokenContract.methods.decimals().call();
+  return await tokenContract.methods.balanceOf(burnAddress()).call() / 10 ** decimals
+}
+
+export async function getTotalTokenSupply(tokenContract): Promise<any> {
+  const decimals = await tokenContract.methods.decimals().call();
+  return await tokenContract.methods.totalSupply().call() / 10 ** decimals
 }
