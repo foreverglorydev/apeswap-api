@@ -126,9 +126,19 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
 
   const walletStats = {
     tvl: 0,
-    aggregateApr: 0,
     bananaPrice: poolPrices.bananaPrice,
+    aggregateApr: 0,
+    aggregateAprPerDay: 0,
+    aggregateAprPerWeek: 0,
+    aggregateAprPerMonth: 0,
+    bananasEarnedPerDay: 0,
     bananasEarnedPerWeek: 0,
+    bananasEarnedPerMonth: 0,
+    bananasEarnedPerYear: 0,
+    dollarsEarnedPerDay: 0,
+    dollarsEarnedPerWeek: 0,
+    dollarsEarnedPerMonth: 0,
+    dollarsEarnedPerYear: 0,
     bananasInWallet: await getTokenBalanceOfAddress(bananaContract, wallet),
     pendingReward: 0,
     pools: await getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
@@ -150,7 +160,17 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
   });
 
   walletStats.aggregateApr = totalApr / walletStats.tvl;
+  walletStats.aggregateAprPerDay = totalApr / 365 / walletStats.tvl;
+  walletStats.aggregateAprPerWeek = totalApr * 7 / 365 / walletStats.tvl;
+  walletStats.aggregateAprPerMonth = totalApr * 30 / 365 / walletStats.tvl;
+  walletStats.bananasEarnedPerDay = walletStats.tvl * walletStats.aggregateApr / 365 / poolPrices.bananaPrice
   walletStats.bananasEarnedPerWeek = walletStats.tvl * walletStats.aggregateApr * 7 / 365 / poolPrices.bananaPrice
+  walletStats.bananasEarnedPerMonth = walletStats.tvl * walletStats.aggregateApr * 30 / 365 / poolPrices.bananaPrice
+  walletStats.bananasEarnedPerYear = walletStats.tvl * walletStats.aggregateApr / poolPrices.bananaPrice
+  walletStats.dollarsEarnedPerDay = walletStats.tvl * walletStats.aggregateApr / 365 
+  walletStats.dollarsEarnedPerWeek = walletStats.tvl * walletStats.aggregateApr * 7 / 365 / poolPrices.bananaPrice
+  walletStats.dollarsEarnedPerMonth = walletStats.tvl * walletStats.aggregateApr * 30 / 365 / poolPrices.bananaPrice
+  walletStats.dollarsEarnedPerYear = walletStats.tvl * walletStats.aggregateApr / poolPrices.bananaPrice
   
   return walletStats;
 }
