@@ -99,7 +99,7 @@ export async function getAllStats(httpService): Promise<any> {
   if (!prices[bananaAddress()]) {
     prices[bananaAddress()] = { usd: getBananaPriceWithPoolList(poolInfos, prices) };
   }
-  const burntAmount = await getBurntTokens(bananaContract);
+  const burntAmount = await getTokenBalanceOfAddress(bananaContract, burnAddress());
   const totalSupply = await getTotalTokenSupply(bananaContract) - burntAmount;
   const poolPrices = {
     bananaPrice: prices[bananaAddress()].usd,
@@ -121,36 +121,38 @@ export async function getAllStats(httpService): Promise<any> {
 // Get TVL info given a wallet
 export async function getWalletStats(httpService, wallet): Promise<any> {
   const poolPrices = await getAllStats(httpService);
-  const masterApeContract = getContract(
-    masterApeABI,
-    masterApeContractAddress(),
-  );
+  const masterApeContract = getContract(masterApeABI, masterApeContractAddress());
+  const bananaContract = getContract(ERC20_ABI, bananaAddress());
 
-  const walletTvl = {
+  const walletStats = {
     tvl: 0,
     aggregateApr: 0,
     bananaPrice: poolPrices.bananaPrice,
     bananasEarnedPerWeek: 0,
+    bananasInWallet: await getTokenBalanceOfAddress(bananaContract, wallet),
+    pendingReward: 0,
     pools: await getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
     farms: await getWalletStatsForFarms(wallet, poolPrices.farms, masterApeContract),
   };
 
   let totalApr = 0;
 
-  walletTvl.pools.forEach(pool => {
-    walletTvl.tvl += pool.stakedTvl;
+  walletStats.pools.forEach(pool => {
+    walletStats.pendingReward += pool.pendingReward;
+    walletStats.tvl += pool.stakedTvl;
     totalApr += pool.stakedTvl * pool.apr;
   });
 
-  walletTvl.farms.forEach(farm => {
-    walletTvl.tvl += farm.stakedTvl;
+  walletStats.farms.forEach(farm => {
+    walletStats.pendingReward += farm.pendingReward;
+    walletStats.tvl += farm.stakedTvl;
     totalApr += farm.stakedTvl * farm.apr;
   });
 
-  walletTvl.aggregateApr = totalApr / walletTvl.tvl;
-  walletTvl.bananasEarnedPerWeek = walletTvl.tvl * walletTvl.aggregateApr * 7 / 365 / poolPrices.bananaPrice
+  walletStats.aggregateApr = totalApr / walletStats.tvl;
+  walletStats.bananasEarnedPerWeek = walletStats.tvl * walletStats.aggregateApr * 7 / 365 / poolPrices.bananaPrice
   
-  return walletTvl;
+  return walletStats;
 }
 
 // Get TVL info for Pools only given a wallet
@@ -370,9 +372,9 @@ function getBep20Prices(prices, pool, poolIndex, allocPoints, totalAllocPoints, 
   };
 }
 
-export async function getBurntTokens(tokenContract): Promise<any> {
+export async function getTokenBalanceOfAddress(tokenContract, address): Promise<any> {
   const decimals = await tokenContract.methods.decimals().call();
-  return await tokenContract.methods.balanceOf(burnAddress()).call() / 10 ** decimals
+  return await tokenContract.methods.balanceOf(address).call() / 10 ** decimals
 }
 
 export async function getTotalTokenSupply(tokenContract): Promise<any> {
