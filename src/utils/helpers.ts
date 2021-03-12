@@ -44,3 +44,12 @@ export const tokenType = {
   '0x51bB531A5253837A23cE8de478a4941A71A4202C': 'lp',
   '0x9949E1DB416a8a05A0cAC0bA6Ea152ba8729e893': 'lp',
 };
+
+export const incentivizedPools = [
+  //{
+  //  contract: '0xf5Cb9F954D3Ea26Bb503A6996a4b2B0aAdC8c969',
+  //},
+  {
+    contract: '0x82576dB7685418CBDD5A9f4721D605C125E4569c',
+  },
+];

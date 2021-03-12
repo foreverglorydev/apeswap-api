@@ -26,6 +26,16 @@ const bscTokens = [
     symbol: 'USDC',
     contract: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
   },
+  {
+    id: 'apoyield',
+    symbol: 'SOUL',
+    contract: '0x67d012f731c23f0313cea1186d0121779c77fcfe',
+  },
+  {
+    id: 'sushi',
+    symbol: 'SUSHI',
+    contract: '0x947950BcC74888a40Ffa2593C5798F11Fc9124C4',
+  },
 ];
 
 export async function getBscPrices(httpService) {
