@@ -1,4 +1,4 @@
-[
+export const MASTER_APE_ABI = [
   {
      "inputs":[
         {

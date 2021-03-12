@@ -2,7 +2,7 @@ import { getContract } from 'src/utils/lib/web3';
 import { getBscPrices } from 'src/utils/bsc_helpers';
 import { getParameterCaseInsensitive, tokenType, incentivizedPools } from 'src/utils/helpers';
 
-import masterApeABI from './masterApeABI.json';
+import { MASTER_APE_ABI} from './masterApeABI';
 import configuration from 'src/config/configuration';
 import { ERC20_ABI } from './erc20Abi';
 import { LP_ABI } from './lpAbi';
@@ -35,7 +35,7 @@ function burnAddress(): string {
 
 export async function getBananaRewardsPerDay(): Promise<any> {
   const MasterApeContract = getContract(
-    masterApeABI,
+    MASTER_APE_ABI,
     masterApeContractAddress(),
   );
   return (((await MasterApeContract.methods.cakePerBlock().call()) / 1e18) * 86400) / 3;
@@ -63,7 +63,7 @@ function getBananaPriceWithPoolList(poolList, prices) {
 }
 
 export async function getAllStats(httpService): Promise<any> {
-  const masterApeContract = getContract(masterApeABI, masterApeContractAddress());
+  const masterApeContract = getContract(MASTER_APE_ABI, masterApeContractAddress());
   const bananaContract = getContract(ERC20_ABI, bananaAddress());
   const prices = await getBscPrices(httpService);
   const tokens = {};
@@ -376,7 +376,7 @@ export async function getTotalTokenSupply(tokenContract): Promise<any> {
 // Get info given a wallet
 export async function getWalletStats(httpService, wallet): Promise<any> {
   const poolPrices = await getAllStats(httpService);
-  const masterApeContract = getContract(masterApeABI, masterApeContractAddress());
+  const masterApeContract = getContract(MASTER_APE_ABI, masterApeContractAddress());
   const bananaContract = getContract(ERC20_ABI, bananaAddress());
 
   const walletStats = {
