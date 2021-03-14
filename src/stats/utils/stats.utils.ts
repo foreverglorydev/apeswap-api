@@ -4,6 +4,7 @@ import { getParameterCaseInsensitive, tokenType, incentivizedPools } from 'src/u
 
 import { MASTER_APE_ABI} from './masterApeABI';
 import configuration from 'src/config/configuration';
+import { tvlQuery } from './stats.queries';
 import { ERC20_ABI } from './erc20Abi';
 import { LP_ABI } from './lpAbi';
 import { SOUL_POOL_ABI } from './soulPoolAbi';
@@ -63,6 +64,15 @@ function getBananaPriceWithPoolList(poolList, prices) {
 }
 
 export async function getAllStats(httpService): Promise<any> {
+
+  const query = tvlQuery();
+  console.log(query);
+  const { data } = await httpService
+  .post('https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph/', { query })
+  .toPromise();
+
+  console.log(data);
+
   const masterApeContract = getContract(MASTER_APE_ABI, masterApeContractAddress());
   const bananaContract = getContract(ERC20_ABI, bananaAddress());
   const prices = await getBscPrices(httpService);
