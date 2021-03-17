@@ -28,8 +28,75 @@ describe('StatsService', () => {
       farms: expect.any(Array),
       incentivizedPools: expect.any(Array),
     };
+    const objPools = {
+      address: expect.any(String),
+      apr: expect.any(Number),
+      decimals: expect.any(String),
+      lpSymbol: expect.any(String),
+      name: expect.any(String),
+      poolIndex: expect.any(Number),
+      price: expect.any(Number),
+      staked: expect.any(Number),
+      stakedTvl: expect.any(Number),
+      tvl: expect.any(Number),
+    };
+    const objFarms = {
+      address: expect.any(String),
+      lpSymbol: expect.any(String),
+      poolIndex: expect.any(Number),
+      t0Address: expect.any(String),
+      t0Symbol: expect.any(String),
+      t0Decimals: expect.any(String),
+      p0: expect.any(Number),
+      q0: expect.any(Number),
+      t1Address: expect.any(String),
+      t1Symbol: expect.any(String),
+      t1Decimals: expect.any(String),
+      p1: expect.any(Number),
+      q1: expect.any(Number),
+      price: expect.any(Number),
+      totalSupply: expect.any(Number),
+      tvl: expect.any(Number),
+      stakedTvl: expect.any(Number),
+      apr: expect.any(Number),
+      decimals: expect.any(String),
+    };
+    const objIncentivized = {
+      address: expect.any(String),
+      stakedTokenAddress: expect.any(String),
+      stakedTokenSymbol: expect.any(String),
+      t0Address: expect.any(String),
+      t0Symbol: expect.any(String),
+      p0: expect.any(Number),
+      q0: expect.any(Number),
+      t1Address: expect.any(String),
+      t1Symbol: expect.any(String),
+      p1: expect.any(Number),
+      q1: expect.any(Number),
+      totalSupply: expect.any(Number),
+      stakedSupply: expect.any(Number),
+      decimals: expect.any(String),
+      tvl: expect.any(Number),
+      stakedTvl: expect.any(Number),
+      apr: expect.any(Number),
+      rewardTokenPrice: expect.any(Number),
+      rewardTokenSymbol: expect.any(String),
+      price: expect.any(Number),
+    };
+
     const stats = await service.getAllStats();
     expect(stats).toEqual(expect.objectContaining(objStats));
+    if (stats.pools.length > 0) {
+      expect(stats.pools[0]).toEqual(expect.objectContaining(objPools));
+    }
+    if (stats.farms.length > 0) {
+      expect(stats.farms[0]).toEqual(expect.objectContaining(objFarms));
+    }
+    if (stats.incentivizedPools.length > 0) {
+      expect(stats.incentivizedPools[0]).toEqual(
+        expect.objectContaining(objIncentivized),
+      );
+    }
   });
 
   it('should get stats for wallet', async () => {
@@ -54,9 +121,27 @@ describe('StatsService', () => {
       farms: expect.any(Array),
       incentivizedPools: expect.any(Array),
     };
+    const objGeneral = {
+      address: expect.any(String),
+      lpSymbol: expect.any(String),
+      stakedTvl: expect.any(Number),
+      pendingReward: expect.any(Number),
+      apr: expect.any(Number),
+    };
     const wallet = '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6';
     const statsWallet = await service.getStatsForWallet(wallet);
     expect(statsWallet).toEqual(expect.objectContaining(objWallet));
+    if (statsWallet.pools.length > 0) {
+      expect(statsWallet.pools[0]).toEqual(expect.objectContaining(objGeneral));
+    }
+    if (statsWallet.farms.length > 0) {
+      expect(statsWallet.farms[0]).toEqual(expect.objectContaining(objGeneral));
+    }
+    if (statsWallet.incentivizedPools.length > 0) {
+      expect(statsWallet.incentivizedPools[0]).toEqual(
+        expect.objectContaining(objGeneral),
+      );
+    }
   });
 
   it('should show invalid wallet address error code', async () => {
