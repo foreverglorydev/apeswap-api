@@ -1,8 +1,11 @@
 import { getContract } from 'src/utils/lib/web3';
 import { getBscPrices } from 'src/utils/bsc_helpers';
-import { getParameterCaseInsensitive, tokenType, incentivizedPools } from 'src/utils/helpers';
+import {
+  getParameterCaseInsensitive,
+  incentivizedPools,
+} from 'src/utils/helpers';
 
-import { MASTER_APE_ABI} from './masterApeABI';
+import { MASTER_APE_ABI } from './masterApeABI';
 import configuration from 'src/config/configuration';
 import { tvlQuery } from './stats.queries';
 import { ERC20_ABI } from './erc20Abi';
@@ -39,9 +42,11 @@ export async function getBananaRewardsPerDay(): Promise<any> {
     MASTER_APE_ABI,
     masterApeContractAddress(),
   );
-  return (((await MasterApeContract.methods.cakePerBlock().call()) / 1e18) * 86400) / 3;
+  return (
+    (((await MasterApeContract.methods.cakePerBlock().call()) / 1e18) * 86400) /
+    3
+  );
 }
-
 
 export async function getAllPrices(httpService): Promise<any> {
   const prices = await getBscPrices(httpService);
@@ -49,31 +54,48 @@ export async function getAllPrices(httpService): Promise<any> {
 }
 
 function getBananaPriceWithPoolList(poolList, prices) {
-  const poolBusd = poolList.find((pool) => pool.address === bananaBusdAddress());
+  const poolBusd = poolList.find(
+    (pool) => pool.address === bananaBusdAddress(),
+  );
   const bananaPriceUsingBusd = poolBusd.poolToken.q1 / poolBusd.poolToken.q0;
   if (prices[bnbAddress()]) {
-    const poolBnb = poolList.find((pool) => pool.address === bananaBnbAddress());
-    const bnbTvl = poolBnb.poolToken.q1 * prices[bnbAddress()].usd / 10 ** poolBnb.poolToken.decimals;
+    const poolBnb = poolList.find(
+      (pool) => pool.address === bananaBnbAddress(),
+    );
+    const bnbTvl =
+      (poolBnb.poolToken.q1 * prices[bnbAddress()].usd) /
+      10 ** poolBnb.poolToken.decimals;
     const busdTvl = poolBusd.poolToken.q1 / 10 ** poolBusd.poolToken.decimals;
-    const bananaPriceUsingBnb = poolBnb.poolToken.q1 * prices[bnbAddress()].usd / poolBnb.poolToken.q0;
+    const bananaPriceUsingBnb =
+      (poolBnb.poolToken.q1 * prices[bnbAddress()].usd) / poolBnb.poolToken.q0;
 
-    return (bananaPriceUsingBnb * bnbTvl + bananaPriceUsingBusd * busdTvl) / (bnbTvl + busdTvl);
+    return (
+      (bananaPriceUsingBnb * bnbTvl + bananaPriceUsingBusd * busdTvl) /
+      (bnbTvl + busdTvl)
+    );
   }
 
   return bananaPriceUsingBusd;
 }
 
 export async function getAllStats(httpService): Promise<any> {
-
   const query = tvlQuery();
   console.log(query);
-  const { data } = await httpService
-  .post('https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph/', { query })
-  .toPromise();
+  const {
+    data,
+  } = await httpService
+    .post(
+      'https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph/',
+      { query },
+    )
+    .toPromise();
 
   console.log(data);
 
-  const masterApeContract = getContract(MASTER_APE_ABI, masterApeContractAddress());
+  const masterApeContract = getContract(
+    MASTER_APE_ABI,
+    masterApeContractAddress(),
+  );
   const bananaContract = getContract(ERC20_ABI, bananaAddress());
   const prices = await getBscPrices(httpService);
   const tokens = {};
@@ -104,15 +126,18 @@ export async function getAllStats(httpService): Promise<any> {
     }),
   );
 
- 
-
   // If Banana price not returned from Gecko, calculating using pools
   if (!prices[bananaAddress()]) {
-    prices[bananaAddress()] = { usd: getBananaPriceWithPoolList(poolInfos, prices) };
+    prices[bananaAddress()] = {
+      usd: getBananaPriceWithPoolList(poolInfos, prices),
+    };
   }
 
-  const burntAmount = await getTokenBalanceOfAddress(bananaContract, burnAddress());
-  const totalSupply = await getTotalTokenSupply(bananaContract) - burntAmount;
+  const burntAmount = await getTokenBalanceOfAddress(
+    bananaContract,
+    burnAddress(),
+  );
+  const totalSupply = (await getTotalTokenSupply(bananaContract)) - burntAmount;
   const poolPrices = {
     bananaPrice: prices[bananaAddress()].usd,
     burntAmount,
@@ -125,7 +150,16 @@ export async function getAllStats(httpService): Promise<any> {
 
   for (let i = 0; i < poolInfos.length; i++) {
     if (poolInfos[i].poolToken) {
-      getPoolPrices(tokens, prices, poolInfos[i].poolToken, poolPrices, i, poolInfos[i].allocPoints, totalAllocPoints, rewardsPerDay);
+      getPoolPrices(
+        tokens,
+        prices,
+        poolInfos[i].poolToken,
+        poolPrices,
+        i,
+        poolInfos[i].allocPoints,
+        totalAllocPoints,
+        rewardsPerDay,
+      );
     }
   }
 
@@ -135,15 +169,42 @@ export async function getAllStats(httpService): Promise<any> {
     ),
   );
 
-  
   return poolPrices;
 }
 
-function getPoolPrices(tokens, prices, pool, poolPrices, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay) {
+function getPoolPrices(
+  tokens,
+  prices,
+  pool,
+  poolPrices,
+  poolIndex,
+  allocPoints,
+  totalAllocPoints,
+  rewardsPerDay,
+) {
   if (pool.token0 != null) {
-    poolPrices.farms.push(getFarmLPTokenPrices(tokens, prices, pool, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay));
+    poolPrices.farms.push(
+      getFarmLPTokenPrices(
+        tokens,
+        prices,
+        pool,
+        poolIndex,
+        allocPoints,
+        totalAllocPoints,
+        rewardsPerDay,
+      ),
+    );
   } else {
-    poolPrices.pools.push(getBep20Prices(prices, pool, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay));
+    poolPrices.pools.push(
+      getBep20Prices(
+        prices,
+        pool,
+        poolIndex,
+        allocPoints,
+        totalAllocPoints,
+        rewardsPerDay,
+      ),
+    );
   }
 }
 
@@ -187,7 +248,8 @@ async function getTokenInfo(tokenAddress, stakingAddress) {
     totalSupply: await contract.methods.totalSupply().call(),
     decimals,
     staked:
-      (await contract.methods.balanceOf(stakingAddress).call()) / 10 ** decimals,
+      (await contract.methods.balanceOf(stakingAddress).call()) /
+      10 ** decimals,
     tokens: [tokenAddress],
   };
 }
@@ -208,10 +270,11 @@ async function getLpInfo(tokenAddress, stakingAddress) {
     q0,
     token1,
     q1,
-    totalSupply: (await contract.methods.totalSupply().call()) / 10 ** decimals, 
+    totalSupply: (await contract.methods.totalSupply().call()) / 10 ** decimals,
     stakingAddress,
     staked:
-      (await contract.methods.balanceOf(stakingAddress).call()) / 10 ** decimals,
+      (await contract.methods.balanceOf(stakingAddress).call()) /
+      10 ** decimals,
     decimals,
     tokens: [token0, token1],
   };
@@ -251,22 +314,27 @@ async function getIncentivizedPoolInfo(poolContract, prices) {
   }
 
   const tvl = q0 * p0 + q1 * p1;
-  const totalSupply = (await lpPool.methods.totalSupply().call()) / 10 ** decimals
-  const stakedSupply = (await lpPool.methods.balanceOf(poolContract).call()) / 10 ** decimals;
-  const stakedTvl =  stakedSupply * tvl / totalSupply;
+  const totalSupply =
+    (await lpPool.methods.totalSupply().call()) / 10 ** decimals;
+  const stakedSupply =
+    (await lpPool.methods.balanceOf(poolContract).call()) / 10 ** decimals;
+  const stakedTvl = (stakedSupply * tvl) / totalSupply;
 
   const rewardToken = await pool.methods.rewardToken().call();
   const rewardTokenContract = getContract(ERC20_ABI, rewardToken);
   const rewardDecimals = await rewardTokenContract.methods.decimals().call();
-  const rewardsPerBlock = await pool.methods.rewardPerBlock().call() / 10 ** rewardDecimals;
+  const rewardsPerBlock =
+    (await pool.methods.rewardPerBlock().call()) / 10 ** rewardDecimals;
   const rewardTokenSymbol = await rewardTokenContract.methods.symbol().call();
 
-  const rewardTokenPrice = getParameterCaseInsensitive(prices, rewardToken)?.usd;
-  const apr = rewardTokenPrice * (rewardsPerBlock * 86400/ 3) * 365 / stakedTvl;
-  
+  const rewardTokenPrice = getParameterCaseInsensitive(prices, rewardToken)
+    ?.usd;
+  const apr =
+    (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
+
   const t0Symbol = await token0Contract.methods.symbol().call();
   const t1Symbol = await token1Contract.methods.symbol().call();
-  const lpSymbol = `[${t0Symbol}]-[${t1Symbol}] LP`
+  const lpSymbol = `[${t0Symbol}]-[${t1Symbol}] LP`;
 
   return {
     address: poolContract,
@@ -281,7 +349,7 @@ async function getIncentivizedPoolInfo(poolContract, prices) {
     p1,
     q1,
     totalSupply,
-    stakedSupply, 
+    stakedSupply,
     decimals,
     tvl,
     stakedTvl,
@@ -292,9 +360,16 @@ async function getIncentivizedPoolInfo(poolContract, prices) {
   };
 }
 
-
 // Given array of prices and single farm contract, return price and tvl info for farm
-function getFarmLPTokenPrices(tokens, prices, pool, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay) {
+function getFarmLPTokenPrices(
+  tokens,
+  prices,
+  pool,
+  poolIndex,
+  allocPoints,
+  totalAllocPoints,
+  rewardsPerDay,
+) {
   const t0 = getParameterCaseInsensitive(tokens, pool.token0);
   let p0 = getParameterCaseInsensitive(prices, pool.token0)?.usd;
   const t1 = getParameterCaseInsensitive(tokens, pool.token1);
@@ -320,8 +395,9 @@ function getFarmLPTokenPrices(tokens, prices, pool, poolIndex, allocPoints, tota
   const lpSymbol = `[${t0.symbol}]-[${t1.symbol}] LP`;
 
   // APR calculations
-  const poolRewardsPerDay = allocPoints / totalAllocPoints * rewardsPerDay;
-  const apr = (poolRewardsPerDay * prices[bananaAddress()].usd) / stakedTvl * 365;
+  const poolRewardsPerDay = (allocPoints / totalAllocPoints) * rewardsPerDay;
+  const apr =
+    ((poolRewardsPerDay * prices[bananaAddress()].usd) / stakedTvl) * 365;
 
   return {
     address: pool.address,
@@ -347,14 +423,22 @@ function getFarmLPTokenPrices(tokens, prices, pool, poolIndex, allocPoints, tota
 }
 
 // Given array of prices and single pool contract, return price and tvl info for pool
-function getBep20Prices(prices, pool, poolIndex, allocPoints, totalAllocPoints, rewardsPerDay) {
+function getBep20Prices(
+  prices,
+  pool,
+  poolIndex,
+  allocPoints,
+  totalAllocPoints,
+  rewardsPerDay,
+) {
   const price = getParameterCaseInsensitive(prices, pool.address)?.usd;
   const tvl = (pool.totalSupply * price) / 10 ** pool.decimals;
   const stakedTvl = pool.staked * price;
 
   // APR calculations
-  const poolRewardsPerDay = allocPoints / totalAllocPoints * rewardsPerDay;
-  const apr = (poolRewardsPerDay * prices[bananaAddress()].usd) / stakedTvl * 365;
+  const poolRewardsPerDay = (allocPoints / totalAllocPoints) * rewardsPerDay;
+  const apr =
+    ((poolRewardsPerDay * prices[bananaAddress()].usd) / stakedTvl) * 365;
 
   return {
     address: pool.address,
@@ -370,23 +454,30 @@ function getBep20Prices(prices, pool, poolIndex, allocPoints, totalAllocPoints, 
   };
 }
 
-export async function getTokenBalanceOfAddress(tokenContract, address): Promise<any> {
+export async function getTokenBalanceOfAddress(
+  tokenContract,
+  address,
+): Promise<any> {
   const decimals = await tokenContract.methods.decimals().call();
-  return await tokenContract.methods.balanceOf(address).call() / 10 ** decimals
+  return (
+    (await tokenContract.methods.balanceOf(address).call()) / 10 ** decimals
+  );
 }
 
 export async function getTotalTokenSupply(tokenContract): Promise<any> {
   const decimals = await tokenContract.methods.decimals().call();
-  return await tokenContract.methods.totalSupply().call() / 10 ** decimals
+  return (await tokenContract.methods.totalSupply().call()) / 10 ** decimals;
 }
-
 
 /**** WALLET ENDPOINT FUNCTIONS ****/
 
 // Get info given a wallet
 export async function getWalletStats(httpService, wallet): Promise<any> {
   const poolPrices = await getAllStats(httpService);
-  const masterApeContract = getContract(MASTER_APE_ABI, masterApeContractAddress());
+  const masterApeContract = getContract(
+    MASTER_APE_ABI,
+    masterApeContractAddress(),
+  );
   const bananaContract = getContract(ERC20_ABI, bananaAddress());
 
   const walletStats = {
@@ -406,26 +497,37 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
     dollarsEarnedPerYear: 0,
     bananasInWallet: await getTokenBalanceOfAddress(bananaContract, wallet),
     pendingReward: 0,
-    pools: await getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
-    farms: await getWalletStatsForFarms(wallet, poolPrices.farms, masterApeContract),
-    incentivizedPools: await getWalletStatsForIncentivizedPools(wallet, poolPrices.incentivizedPools),
+    pools: await getWalletStatsForPools(
+      wallet,
+      poolPrices.pools,
+      masterApeContract,
+    ),
+    farms: await getWalletStatsForFarms(
+      wallet,
+      poolPrices.farms,
+      masterApeContract,
+    ),
+    incentivizedPools: await getWalletStatsForIncentivizedPools(
+      wallet,
+      poolPrices.incentivizedPools,
+    ),
   };
 
   let totalApr = 0;
 
-  walletStats.pools.forEach(pool => {
+  walletStats.pools.forEach((pool) => {
     walletStats.pendingReward += pool.pendingReward;
     walletStats.tvl += pool.stakedTvl;
     totalApr += pool.stakedTvl * pool.apr;
   });
 
-  walletStats.farms.forEach(farm => {
+  walletStats.farms.forEach((farm) => {
     walletStats.pendingReward += farm.pendingReward;
     walletStats.tvl += farm.stakedTvl;
     totalApr += farm.stakedTvl * farm.apr;
   });
 
-  walletStats.incentivizedPools.forEach(pool => {
+  walletStats.incentivizedPools.forEach((pool) => {
     walletStats.pendingReward += pool.pendingReward;
     walletStats.tvl += pool.stakedTvl;
     totalApr += pool.stakedTvl * pool.apr;
@@ -433,97 +535,135 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
 
   walletStats.aggregateApr = totalApr / walletStats.tvl;
   walletStats.aggregateAprPerDay = totalApr / 365 / walletStats.tvl;
-  walletStats.aggregateAprPerWeek = totalApr * 7 / 365 / walletStats.tvl;
-  walletStats.aggregateAprPerMonth = totalApr * 30 / 365 / walletStats.tvl;
-  walletStats.bananasEarnedPerDay = walletStats.tvl * walletStats.aggregateApr / 365 / poolPrices.bananaPrice
-  walletStats.bananasEarnedPerWeek = walletStats.tvl * walletStats.aggregateApr * 7 / 365 / poolPrices.bananaPrice
-  walletStats.bananasEarnedPerMonth = walletStats.tvl * walletStats.aggregateApr * 30 / 365 / poolPrices.bananaPrice
-  walletStats.bananasEarnedPerYear = walletStats.tvl * walletStats.aggregateApr / poolPrices.bananaPrice
-  walletStats.dollarsEarnedPerDay = walletStats.tvl * walletStats.aggregateApr / 365 
-  walletStats.dollarsEarnedPerWeek = walletStats.tvl * walletStats.aggregateApr * 7 / 365 / poolPrices.bananaPrice
-  walletStats.dollarsEarnedPerMonth = walletStats.tvl * walletStats.aggregateApr * 30 / 365 / poolPrices.bananaPrice
-  walletStats.dollarsEarnedPerYear = walletStats.tvl * walletStats.aggregateApr / poolPrices.bananaPrice
-  
+  walletStats.aggregateAprPerWeek = (totalApr * 7) / 365 / walletStats.tvl;
+  walletStats.aggregateAprPerMonth = (totalApr * 30) / 365 / walletStats.tvl;
+  walletStats.bananasEarnedPerDay =
+    (walletStats.tvl * walletStats.aggregateApr) / 365 / poolPrices.bananaPrice;
+  walletStats.bananasEarnedPerWeek =
+    (walletStats.tvl * walletStats.aggregateApr * 7) /
+    365 /
+    poolPrices.bananaPrice;
+  walletStats.bananasEarnedPerMonth =
+    (walletStats.tvl * walletStats.aggregateApr * 30) /
+    365 /
+    poolPrices.bananaPrice;
+  walletStats.bananasEarnedPerYear =
+    (walletStats.tvl * walletStats.aggregateApr) / poolPrices.bananaPrice;
+  walletStats.dollarsEarnedPerDay =
+    (walletStats.tvl * walletStats.aggregateApr) / 365;
+  walletStats.dollarsEarnedPerWeek =
+    (walletStats.tvl * walletStats.aggregateApr * 7) /
+    365 /
+    poolPrices.bananaPrice;
+  walletStats.dollarsEarnedPerMonth =
+    (walletStats.tvl * walletStats.aggregateApr * 30) /
+    365 /
+    poolPrices.bananaPrice;
+  walletStats.dollarsEarnedPerYear =
+    (walletStats.tvl * walletStats.aggregateApr) / poolPrices.bananaPrice;
+
   return walletStats;
 }
 
 // Get TVL info for Pools only given a wallet
-export async function getWalletStatsForPools(wallet, pools, masterApeContract ): Promise<any> {
+export async function getWalletStatsForPools(
+  wallet,
+  pools,
+  masterApeContract,
+): Promise<any> {
   const allPools = [];
-  await Promise.all(pools.map(async pool => {
-    const userInfo = await masterApeContract.methods
-    .userInfo(pool.poolIndex, wallet)
-    .call();
-    const pendingReward = await masterApeContract.methods
-    .pendingCake(pool.poolIndex, wallet)
-    .call() / 10 ** pool.decimals;
+  await Promise.all(
+    pools.map(async (pool) => {
+      const userInfo = await masterApeContract.methods
+        .userInfo(pool.poolIndex, wallet)
+        .call();
+      const pendingReward =
+        (await masterApeContract.methods
+          .pendingCake(pool.poolIndex, wallet)
+          .call()) /
+        10 ** pool.decimals;
 
-    if (userInfo.amount != 0 || pendingReward != 0) {
-      const stakedTvl = userInfo.amount * pool.price / 10 ** pool.decimals;
-      const curr_pool = {
-        address: pool.address,
-        lpSymbol: pool.lpSymbol,
-        stakedTvl,
-        pendingReward,
-        apr: pool.apr,
+      if (userInfo.amount != 0 || pendingReward != 0) {
+        const stakedTvl = (userInfo.amount * pool.price) / 10 ** pool.decimals;
+        const curr_pool = {
+          address: pool.address,
+          lpSymbol: pool.lpSymbol,
+          stakedTvl,
+          pendingReward,
+          apr: pool.apr,
+        };
+
+        allPools.push(curr_pool);
       }
-      
-      allPools.push(curr_pool);
-    }
-
-  }));
+    }),
+  );
   return allPools;
 }
 
 // Get TVL info for Farms only given a wallet
-export async function getWalletStatsForFarms(wallet, farms, masterApeContract ): Promise<any> {
+export async function getWalletStatsForFarms(
+  wallet,
+  farms,
+  masterApeContract,
+): Promise<any> {
   const allFarms = [];
-  await Promise.all(farms.map(async farm => {
-    const userInfo = await masterApeContract.methods
-    .userInfo(farm.poolIndex, wallet)
-    .call();
-    const pendingReward = await masterApeContract.methods
-    .pendingCake(farm.poolIndex, wallet)
-    .call() / 10 ** farm.decimals;
+  await Promise.all(
+    farms.map(async (farm) => {
+      const userInfo = await masterApeContract.methods
+        .userInfo(farm.poolIndex, wallet)
+        .call();
+      const pendingReward =
+        (await masterApeContract.methods
+          .pendingCake(farm.poolIndex, wallet)
+          .call()) /
+        10 ** farm.decimals;
 
-    if (userInfo.amount != 0 || pendingReward != 0) {
-      const stakedTvl = userInfo.amount * farm.price / 10 ** farm.decimals;
+      if (userInfo.amount != 0 || pendingReward != 0) {
+        const stakedTvl = (userInfo.amount * farm.price) / 10 ** farm.decimals;
 
-      const curr_farm = {
-        address: farm.address,
-        lpSymbol: farm.lpSymbol,
-        stakedTvl,
-        pendingReward,
-        apr: farm.apr,
+        const curr_farm = {
+          address: farm.address,
+          lpSymbol: farm.lpSymbol,
+          stakedTvl,
+          pendingReward,
+          apr: farm.apr,
+        };
+
+        allFarms.push(curr_farm);
       }
-
-      allFarms.push(curr_farm);
-    }
-  }));
+    }),
+  );
   return allFarms;
 }
 
 // Get TVL info for IncentivizedPools only given a wallet
-export async function getWalletStatsForIncentivizedPools(wallet, pools): Promise<any> {
+export async function getWalletStatsForIncentivizedPools(
+  wallet,
+  pools,
+): Promise<any> {
   const allIncentivizedPools = [];
-  await Promise.all(pools.map(async incentivizedPool => {
-    const contract = getContract(SOUL_POOL_ABI, incentivizedPool.address);
-    const userInfo = await contract.methods.userInfo(wallet).call();
-    const pendingReward = await contract.methods.pendingReward(wallet).call() / 10 ** 8;
+  await Promise.all(
+    pools.map(async (incentivizedPool) => {
+      const contract = getContract(SOUL_POOL_ABI, incentivizedPool.address);
+      const userInfo = await contract.methods.userInfo(wallet).call();
+      const pendingReward =
+        (await contract.methods.pendingReward(wallet).call()) / 10 ** 8;
 
-    if (userInfo.amount != 0 || pendingReward != 0) {
-      const stakedTvl = userInfo.amount * incentivizedPool.price / 10 ** incentivizedPool.decimals;
-      const curr_pool = {
-        address: incentivizedPool.address,
-        lpSymbol: incentivizedPool.stakedTokenSymbol,
-        stakedTvl,
-        pendingReward,
-        apr: incentivizedPool.apr,
+      if (userInfo.amount != 0 || pendingReward != 0) {
+        const stakedTvl =
+          (userInfo.amount * incentivizedPool.price) /
+          10 ** incentivizedPool.decimals;
+        const curr_pool = {
+          address: incentivizedPool.address,
+          lpSymbol: incentivizedPool.stakedTokenSymbol,
+          stakedTvl,
+          pendingReward,
+          apr: incentivizedPool.apr,
+        };
+
+        allIncentivizedPools.push(curr_pool);
       }
-      
-      allIncentivizedPools.push(curr_pool);
-    }
-
-  }));
+    }),
+  );
   return allIncentivizedPools;
 }
