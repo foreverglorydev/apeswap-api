@@ -7,7 +7,6 @@ import {
 
 import { MASTER_APE_ABI } from './masterApeABI';
 import configuration from 'src/config/configuration';
-import { tvlQuery } from './stats.queries';
 import { ERC20_ABI } from './erc20Abi';
 import { LP_ABI } from './lpAbi';
 import { SOUL_POOL_ABI } from './soulPoolAbi';
@@ -79,19 +78,6 @@ function getBananaPriceWithPoolList(poolList, prices) {
 }
 
 export async function getAllStats(httpService): Promise<any> {
-  const query = tvlQuery();
-  console.log(query);
-  const {
-    data,
-  } = await httpService
-    .post(
-      'https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph/',
-      { query },
-    )
-    .toPromise();
-
-  console.log(data);
-
   const masterApeContract = getContract(
     MASTER_APE_ABI,
     masterApeContractAddress(),
@@ -140,6 +126,9 @@ export async function getAllStats(httpService): Promise<any> {
   const totalSupply = (await getTotalTokenSupply(bananaContract)) - burntAmount;
   const poolPrices = {
     bananaPrice: prices[bananaAddress()].usd,
+    tvl: 0,
+    tvlInBnb: 0,
+    totalVolume: 0,
     burntAmount,
     totalSupply,
     marketCap: totalSupply * prices[bananaAddress()].usd,
