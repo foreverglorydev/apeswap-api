@@ -78,7 +78,7 @@ function getBananaPriceWithPoolList(poolList, prices) {
 
 export async function getAllStats(httpService): Promise<any> {
   const stats = await getAllStatsFull(httpService);
-  stats.incentivizedPools.forEach(pool => {
+  stats.incentivizedPools.forEach((pool) => {
     delete pool.abi;
   });
 
@@ -293,7 +293,9 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
   if (pool.stakeTokenIsLp) {
     const stakedTokenContract = getContract(LP_ABI, pool.stakeToken);
     const reserves = await stakedTokenContract.methods.getReserves().call();
-    const stakedTokenDecimals = await stakedTokenContract.methods.decimals().call();
+    const stakedTokenDecimals = await stakedTokenContract.methods
+      .decimals()
+      .call();
     const t0Address = await stakedTokenContract.methods.token0().call();
     const t1Address = await stakedTokenContract.methods.token1().call();
 
@@ -322,7 +324,8 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
 
     const tvl = q0 * p0 + q1 * p1;
     const totalSupply =
-      (await stakedTokenContract.methods.totalSupply().call()) / 10 ** stakedTokenDecimals;
+      (await stakedTokenContract.methods.totalSupply().call()) /
+      10 ** stakedTokenDecimals;
     const stakedSupply =
       (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
       10 ** stakedTokenDecimals;
@@ -369,7 +372,7 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
       rewardTokenPrice,
       rewardTokenSymbol,
       price: tvl / totalSupply,
-      abi : pool.abi,
+      abi: pool.abi,
     };
   } else {
     const rewardContract = getContract(ERC20_ABI, pool.stakeToken);
@@ -662,10 +665,14 @@ export async function getWalletStatsForIncentivizedPools(
   const allIncentivizedPools = [];
   await Promise.all(
     pools.map(async (incentivizedPool) => {
-      const contract = getContract(incentivizedPool.abi, incentivizedPool.address);
+      const contract = getContract(
+        incentivizedPool.abi,
+        incentivizedPool.address,
+      );
       const userInfo = await contract.methods.userInfo(wallet).call();
       const pendingReward =
-        (await contract.methods.pendingReward(wallet).call()) / 10 ** incentivizedPool.rewardDecimals;
+        (await contract.methods.pendingReward(wallet).call()) /
+        10 ** incentivizedPool.rewardDecimals;
 
       if (userInfo.amount != 0 || pendingReward != 0) {
         const stakedTvl =
