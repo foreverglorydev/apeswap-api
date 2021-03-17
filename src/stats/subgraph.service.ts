@@ -12,7 +12,7 @@ export class SubgraphService {
       tvl: parseFloat(data.uniswapFactory.totalLiquidityUSD),
       tvlInBnb: parseFloat(data.uniswapFactory.totalLiquidityETH),
       totalVolume: parseFloat(data.uniswapFactory.totalVolumeUSD),
-    }
+    };
     return tvlData;
   }
 }

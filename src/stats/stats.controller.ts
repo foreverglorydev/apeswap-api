@@ -5,7 +5,10 @@ import { SubgraphService } from './subgraph.service';
 @Controller('stats')
 export class StatsController {
   //private readonly logger = new Logger(DrawingService.name);
-  constructor(private statsService: StatsService, private subgraphService: SubgraphService) {}
+  constructor(
+    private statsService: StatsService,
+    private subgraphService: SubgraphService,
+  ) {}
   @Get()
   async getAllStats() {
     const stats = await this.statsService.getAllStats();
