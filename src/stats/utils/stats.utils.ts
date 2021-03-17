@@ -77,6 +77,15 @@ function getBananaPriceWithPoolList(poolList, prices) {
 }
 
 export async function getAllStats(httpService): Promise<any> {
+  const stats = await getAllStatsFull(httpService);
+  stats.incentivizedPools.forEach(pool => {
+    delete pool.abi;
+  });
+
+  return stats;
+}
+
+export async function getAllStatsFull(httpService): Promise<any> {
   const masterApeContract = getContract(
     MASTER_APE_ABI,
     masterApeContractAddress(),
@@ -159,7 +168,6 @@ export async function getAllStats(httpService): Promise<any> {
         await getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
     ),
   );
-
   poolPrices.incentivizedPools = poolPrices.incentivizedPools.filter((x) => x); //filter null pools
 
   return poolPrices;
@@ -283,11 +291,11 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
   const poolContract = getContract(pool.abi, pool.address);
 
   if (pool.stakeTokenIsLp) {
-    const rewardContract = getContract(LP_ABI, pool.stakeToken);
-    const reserves = await rewardContract.methods.getReserves().call();
-    const decimals = await rewardContract.methods.decimals().call();
-    const t0Address = await rewardContract.methods.token0().call();
-    const t1Address = await rewardContract.methods.token1().call();
+    const stakedTokenContract = getContract(LP_ABI, pool.stakeToken);
+    const reserves = await stakedTokenContract.methods.getReserves().call();
+    const stakedTokenDecimals = await stakedTokenContract.methods.decimals().call();
+    const t0Address = await stakedTokenContract.methods.token0().call();
+    const t1Address = await stakedTokenContract.methods.token1().call();
 
     const token0Contract = getContract(ERC20_ABI, t0Address);
     const token1Contract = getContract(ERC20_ABI, t1Address);
@@ -314,10 +322,10 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
 
     const tvl = q0 * p0 + q1 * p1;
     const totalSupply =
-      (await rewardContract.methods.totalSupply().call()) / 10 ** decimals;
+      (await stakedTokenContract.methods.totalSupply().call()) / 10 ** stakedTokenDecimals;
     const stakedSupply =
-      (await rewardContract.methods.balanceOf(pool.address).call()) /
-      10 ** decimals;
+      (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
+      10 ** stakedTokenDecimals;
     const stakedTvl = (stakedSupply * tvl) / totalSupply;
 
     const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
@@ -353,16 +361,20 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
       q1,
       totalSupply,
       stakedSupply,
-      decimals,
+      rewardDecimals,
+      stakedTokenDecimals,
       tvl,
       stakedTvl,
       apr,
       rewardTokenPrice,
       rewardTokenSymbol,
       price: tvl / totalSupply,
+      abi : pool.abi,
     };
   } else {
     const rewardContract = getContract(ERC20_ABI, pool.stakeToken);
+    // TODO: add code for non-lp token staking
+    return null;
   }
 }
 
@@ -479,7 +491,7 @@ export async function getTotalTokenSupply(tokenContract): Promise<any> {
 
 // Get info given a wallet
 export async function getWalletStats(httpService, wallet): Promise<any> {
-  const poolPrices = await getAllStats(httpService);
+  const poolPrices = await getAllStatsFull(httpService);
   const masterApeContract = getContract(
     MASTER_APE_ABI,
     masterApeContractAddress(),
@@ -650,15 +662,15 @@ export async function getWalletStatsForIncentivizedPools(
   const allIncentivizedPools = [];
   await Promise.all(
     pools.map(async (incentivizedPool) => {
-      const contract = getContract(ERC20_ABI, incentivizedPool.address);
+      const contract = getContract(incentivizedPool.abi, incentivizedPool.address);
       const userInfo = await contract.methods.userInfo(wallet).call();
       const pendingReward =
-        (await contract.methods.pendingReward(wallet).call()) / 10 ** 8;
+        (await contract.methods.pendingReward(wallet).call()) / 10 ** incentivizedPool.rewardDecimals;
 
       if (userInfo.amount != 0 || pendingReward != 0) {
         const stakedTvl =
           (userInfo.amount * incentivizedPool.price) /
-          10 ** incentivizedPool.decimals;
+          10 ** incentivizedPool.stakedTokenDecimals;
         const curr_pool = {
           address: incentivizedPool.address,
           lpSymbol: incentivizedPool.stakedTokenSymbol,
