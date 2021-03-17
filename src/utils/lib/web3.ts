@@ -22,3 +22,7 @@ export const getContract = (abi: any, address: string) => {
   const web3: Web3 = getWeb3();
   return new web3.eth.Contract(abi, address);
 };
+
+export const getCurrentBlock = async () => {
+  return await web3.eth.getBlockNumber();
+};
