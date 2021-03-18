@@ -552,7 +552,6 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
   });
 
   walletStats.incentivizedPools.forEach((pool) => {
-    walletStats.pendingReward += pool.pendingReward;
     walletStats.tvl += pool.stakedTvl;
     totalApr += pool.stakedTvl * pool.apr;
   });
