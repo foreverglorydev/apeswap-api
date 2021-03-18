@@ -10,7 +10,6 @@ export class SubgraphService {
     const { data } = await getSubgraphData(this.httpService);
     const tvlData = {
       tvl: parseFloat(data.uniswapFactory.totalLiquidityUSD),
-      tvlInBnb: parseFloat(data.uniswapFactory.totalLiquidityETH),
       totalVolume: parseFloat(data.uniswapFactory.totalVolumeUSD),
     };
     return tvlData;

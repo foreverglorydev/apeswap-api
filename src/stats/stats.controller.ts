@@ -13,7 +13,10 @@ export class StatsController {
   async getAllStats() {
     const stats = await this.statsService.getAllStats();
     const tvlData = await this.subgraphService.getTVLData();
-    Object.assign(stats, tvlData);
+
+    stats.tvl += tvlData.tvl;
+    stats.totalVolume += tvlData.totalVolume;
+    
     return stats;
   }
 
