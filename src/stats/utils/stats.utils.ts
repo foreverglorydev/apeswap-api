@@ -9,6 +9,9 @@ import { MASTER_APE_ABI } from './abi/masterApeAbi';
 import configuration from 'src/config/configuration';
 import { ERC20_ABI } from './abi/erc20Abi';
 import { LP_ABI } from './abi/lpAbi';
+import { GeneralStatsI } from 'src/interfaces/stats/generalStats.interface';
+import { WalletInvalidHttpException } from '../exceptions';
+import { WalletStatsI } from 'src/interfaces/stats/walletStats.interface';
 
 // ADDRESS GETTERS
 function masterApeContractAddress(): string {
@@ -33,6 +36,41 @@ function bananaBnbAddress(): string {
 
 function burnAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.burn;
+}
+
+function masterApeContractWeb(): any {
+  return getContract(MASTER_APE_ABI, masterApeContractAddress());
+}
+
+export async function getAllStats(
+  httpService,
+  showAll = false,
+): Promise<GeneralStatsI> {
+  const {
+    totalAllocPoints,
+    poolInfos,
+    prices,
+    priceUSD,
+  } = await getPointsPoolsAndPrices(httpService);
+  const { burntAmount, totalSupply } = await getBurnAndSupply();
+  const tokens = await getTokens(poolInfos);
+
+  const poolPrices = await calculatePoolPrices(
+    priceUSD,
+    burntAmount,
+    totalSupply,
+    poolInfos,
+    tokens,
+    prices,
+    totalAllocPoints,
+  );
+
+  if (!showAll) {
+    poolPrices.incentivizedPools.forEach((pool) => {
+      delete pool.abi;
+    });
+  }
+  return poolPrices;
 }
 
 export async function getBananaRewardsPerDay(): Promise<any> {
@@ -76,27 +114,9 @@ function getBananaPriceWithPoolList(poolList, prices) {
   return bananaPriceUsingBusd;
 }
 
-export async function getAllStats(httpService): Promise<any> {
-  const stats = await getAllStatsFull(httpService);
-  stats.incentivizedPools.forEach((pool) => {
-    delete pool.abi;
-  });
+export async function getPointsPoolsAndPrices(httpService) {
+  const masterApeContract = masterApeContractWeb();
 
-  return stats;
-}
-
-export async function getAllStatsFull(httpService): Promise<any> {
-  const masterApeContract = getContract(
-    MASTER_APE_ABI,
-    masterApeContractAddress(),
-  );
-  const bananaContract = getContract(ERC20_ABI, bananaAddress());
-  const prices = await getBscPrices(httpService);
-  const tokens = {};
-  const totalAllocPoints = await masterApeContract.methods
-    .totalAllocPoint()
-    .call();
-  const rewardsPerDay = await getBananaRewardsPerDay();
   const poolCount = parseInt(
     await masterApeContract.methods.poolLength().call(),
     10,
@@ -108,6 +128,41 @@ export async function getAllStatsFull(httpService): Promise<any> {
     ),
   );
 
+  const totalAllocPoints = await masterApeContract.methods
+    .totalAllocPoint()
+    .call();
+
+  const prices = await getBscPrices(httpService);
+  // If Banana price not returned from Gecko, calculating using pools
+  if (!prices[bananaAddress()]) {
+    prices[bananaAddress()] = {
+      usd: getBananaPriceWithPoolList(poolInfos, prices),
+    };
+  }
+  return {
+    totalAllocPoints,
+    poolInfos,
+    prices,
+    priceUSD: prices[bananaAddress()].usd,
+  };
+}
+
+export async function getBurnAndSupply() {
+  const bananaContract = getContract(ERC20_ABI, bananaAddress());
+  const burntAmount = await getTokenBalanceOfAddress(
+    bananaContract,
+    burnAddress(),
+  );
+  const totalSupply = (await getTotalTokenSupply(bananaContract)) - burntAmount;
+
+  return {
+    burntAmount,
+    totalSupply,
+  };
+}
+
+export async function getTokens(poolInfos) {
+  const tokens = {};
   // eslint-disable-next-line prefer-spread
   const tokenAddresses = [].concat.apply(
     [],
@@ -120,26 +175,27 @@ export async function getAllStatsFull(httpService): Promise<any> {
     }),
   );
 
-  // If Banana price not returned from Gecko, calculating using pools
-  if (!prices[bananaAddress()]) {
-    prices[bananaAddress()] = {
-      usd: getBananaPriceWithPoolList(poolInfos, prices),
-    };
-  }
+  return tokens;
+}
 
-  const burntAmount = await getTokenBalanceOfAddress(
-    bananaContract,
-    burnAddress(),
-  );
-  const totalSupply = (await getTotalTokenSupply(bananaContract)) - burntAmount;
-  const poolPrices = {
-    bananaPrice: prices[bananaAddress()].usd,
+export async function calculatePoolPrices(
+  priceUSD,
+  burntAmount,
+  totalSupply,
+  poolInfos,
+  tokens,
+  prices,
+  totalAllocPoints,
+) {
+  const rewardsPerDay = await getBananaRewardsPerDay();
+  const poolPrices: GeneralStatsI = {
+    bananaPrice: priceUSD,
     tvl: 0,
     tvlInBnb: 0,
     totalVolume: 0,
     burntAmount,
     totalSupply,
-    marketCap: totalSupply * prices[bananaAddress()].usd,
+    marketCap: totalSupply * priceUSD,
     pools: [],
     farms: [],
     incentivizedPools: [],
@@ -493,49 +549,66 @@ export async function getTotalTokenSupply(tokenContract): Promise<any> {
 /**** WALLET ENDPOINT FUNCTIONS ****/
 
 // Get info given a wallet
-export async function getWalletStats(httpService, wallet): Promise<any> {
-  const poolPrices = await getAllStatsFull(httpService);
-  const masterApeContract = getContract(
-    MASTER_APE_ABI,
-    masterApeContractAddress(),
-  );
-  const bananaContract = getContract(ERC20_ABI, bananaAddress());
+export async function getWalletStats(
+  httpService,
+  wallet,
+): Promise<WalletStatsI> {
+  try {
+    const poolPrices = await getAllStats(httpService, true);
+    const bananaContract = getContract(ERC20_ABI, bananaAddress());
 
-  const walletStats = {
-    tvl: 0,
-    bananaPrice: poolPrices.bananaPrice,
-    aggregateApr: 0,
-    aggregateAprPerDay: 0,
-    aggregateAprPerWeek: 0,
-    aggregateAprPerMonth: 0,
-    bananasEarnedPerDay: 0,
-    bananasEarnedPerWeek: 0,
-    bananasEarnedPerMonth: 0,
-    bananasEarnedPerYear: 0,
-    dollarsEarnedPerDay: 0,
-    dollarsEarnedPerWeek: 0,
-    dollarsEarnedPerMonth: 0,
-    dollarsEarnedPerYear: 0,
-    bananasInWallet: await getTokenBalanceOfAddress(bananaContract, wallet),
-    pendingReward: 0,
-    pools: await getWalletStatsForPools(
-      wallet,
-      poolPrices.pools,
-      masterApeContract,
-    ),
-    farms: await getWalletStatsForFarms(
-      wallet,
-      poolPrices.farms,
-      masterApeContract,
-    ),
-    incentivizedPools: await getWalletStatsForIncentivizedPools(
-      wallet,
-      poolPrices.incentivizedPools,
-    ),
-  };
+    let walletStats: WalletStatsI = {
+      tvl: 0,
+      bananaPrice: poolPrices.bananaPrice,
+      aggregateApr: 0,
+      aggregateAprPerDay: 0,
+      aggregateAprPerWeek: 0,
+      aggregateAprPerMonth: 0,
+      bananasEarnedPerDay: 0,
+      bananasEarnedPerWeek: 0,
+      bananasEarnedPerMonth: 0,
+      bananasEarnedPerYear: 0,
+      dollarsEarnedPerDay: 0,
+      dollarsEarnedPerWeek: 0,
+      dollarsEarnedPerMonth: 0,
+      dollarsEarnedPerYear: 0,
+      bananasInWallet: await getTokenBalanceOfAddress(bananaContract, wallet),
+      pendingReward: 0,
+    };
 
+    walletStats = await calculateWalletStats(walletStats, poolPrices, wallet);
+
+    return walletStats;
+  } catch (error) {
+    if (error.code == 'INVALID_ARGUMENT')
+      throw new WalletInvalidHttpException();
+
+    throw new Error(error.code);
+  }
+}
+
+export async function calculateWalletStats(
+  walletStats: WalletStatsI,
+  poolPrices,
+  wallet,
+) {
+  const masterApeContract = masterApeContractWeb();
   let totalApr = 0;
 
+  walletStats.pools = await getWalletStatsForPools(
+    wallet,
+    poolPrices.pools,
+    masterApeContract,
+  );
+  walletStats.farms = await getWalletStatsForFarms(
+    wallet,
+    poolPrices.farms,
+    masterApeContract,
+  );
+  walletStats.incentivizedPools = await getWalletStatsForIncentivizedPools(
+    wallet,
+    poolPrices.incentivizedPools,
+  );
   walletStats.pools.forEach((pool) => {
     walletStats.pendingReward += pool.pendingReward;
     walletStats.tvl += pool.stakedTvl;
@@ -585,7 +658,6 @@ export async function getWalletStats(httpService, wallet): Promise<any> {
 
   return walletStats;
 }
-
 // Get TVL info for Pools only given a wallet
 export async function getWalletStatsForPools(
   wallet,

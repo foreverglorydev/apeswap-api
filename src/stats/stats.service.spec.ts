@@ -1,5 +1,6 @@
 import { HttpModule } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { WalletInvalidHttpException } from './exceptions';
 import { StatsService } from './stats.service';
 
 describe('StatsService', () => {
@@ -62,6 +63,7 @@ describe('StatsService', () => {
       decimals: expect.any(String),
     };
     const objIncentivized = {
+      name: expect.any(String),
       address: expect.any(String),
       stakedTokenAddress: expect.any(String),
       stakedTokenSymbol: expect.any(String),
@@ -75,7 +77,8 @@ describe('StatsService', () => {
       q1: expect.any(Number),
       totalSupply: expect.any(Number),
       stakedSupply: expect.any(Number),
-      decimals: expect.any(String),
+      rewardDecimals: expect.any(String),
+      stakedTokenDecimals: expect.any(String),
       tvl: expect.any(Number),
       stakedTvl: expect.any(Number),
       apr: expect.any(Number),
@@ -146,12 +149,15 @@ describe('StatsService', () => {
 
   it('should show invalid wallet address error code', async () => {
     const objCodeError = {
-      code: expect.any(Number),
-      msg: expect.any(String),
+      error: expect.any(String),
+      message: expect.any(String),
     };
-    const wallet = '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da';
-    const statsWallet = await service.getStatsForWallet(wallet);
-
-    expect(statsWallet).toEqual(expect.objectContaining(objCodeError));
+    try {
+      const wallet = '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da';
+      await service.getStatsForWallet(wallet);
+      //fail test if enter here
+    } catch (e) {
+      expect(e.response).toEqual(expect.objectContaining(objCodeError));
+    }
   });
 });
