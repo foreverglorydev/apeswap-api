@@ -225,7 +225,7 @@ export async function calculatePoolPrices(
   );
   poolPrices.incentivizedPools = poolPrices.incentivizedPools.filter((x) => x); //filter null pools
 
-  poolPrices.pools.forEach(pool => {
+  poolPrices.pools.forEach((pool) => {
     poolPrices.tvl += pool.stakedTvl;
   });
 

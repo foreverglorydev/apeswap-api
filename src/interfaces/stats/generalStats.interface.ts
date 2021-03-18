@@ -7,8 +7,8 @@ export interface GeneralStatsI {
   readonly burntAmount: number;
   readonly totalSupply: number;
   readonly marketCap: number;
-  readonly tvl: number;
-  readonly tvlInBnb: number;
+  tvl: number;
+  readonly tvlInBnb?: number;
   readonly totalVolume: number;
   pools: PoolI[];
   farms: FarmI[];
