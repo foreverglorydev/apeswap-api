@@ -135,7 +135,6 @@ export async function getAllStatsFull(httpService): Promise<any> {
   const poolPrices = {
     bananaPrice: prices[bananaAddress()].usd,
     tvl: 0,
-    tvlInBnb: 0,
     totalVolume: 0,
     burntAmount,
     totalSupply,
@@ -169,6 +168,10 @@ export async function getAllStatsFull(httpService): Promise<any> {
     ),
   );
   poolPrices.incentivizedPools = poolPrices.incentivizedPools.filter((x) => x); //filter null pools
+
+  poolPrices.pools.forEach(pool => {
+    poolPrices.tvl += pool.stakedTvl;
+  });
 
   return poolPrices;
 }
