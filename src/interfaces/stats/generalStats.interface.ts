@@ -1,8 +1,8 @@
-import { FarmI } from './farm.interface';
-import { IncentivizedPoolI } from './incentivizedPool.interface';
-import { PoolI } from './pool.interface';
+import { FarmStats } from './farm.interface';
+import { IncentivizedPoolStats } from './incentivizedPool.interface';
+import { PoolStats } from './pool.interface';
 
-export interface GeneralStatsI {
+export interface GeneralStats {
   readonly bananaPrice: number;
   readonly burntAmount: number;
   readonly totalSupply: number;
@@ -10,7 +10,7 @@ export interface GeneralStatsI {
   tvl: number;
   readonly tvlInBnb?: number;
   readonly totalVolume: number;
-  pools: PoolI[];
-  farms: FarmI[];
-  incentivizedPools: IncentivizedPoolI[];
+  pools: PoolStats[];
+  farms: FarmStats[];
+  incentivizedPools: IncentivizedPoolStats[];
 }

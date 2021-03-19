@@ -1,4 +1,4 @@
-export interface PoolI {
+export interface PoolStats {
   readonly address: string;
   readonly apr: number;
   readonly decimals: string;

@@ -1,4 +1,4 @@
-import { HttpModule } from '@nestjs/common';
+import { HttpException, HttpModule } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { WalletInvalidHttpException } from './exceptions';
 import { StatsService } from './stats.service';
@@ -148,16 +148,11 @@ describe('StatsService', () => {
   });
 
   it('should show invalid wallet address error code', async () => {
-    const objCodeError = {
-      error: expect.any(String),
-      message: expect.any(String),
-    };
-    try {
-      const wallet = '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da';
-      await service.getStatsForWallet(wallet);
-      //fail test if enter here
-    } catch (e) {
-      expect(e.response).toEqual(expect.objectContaining(objCodeError));
-    }
+    const messageError = 'Wallet Invalid';
+    const wallet = '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da';
+
+    await expect(service.getStatsForWallet(wallet)).rejects.toThrow(
+      new HttpException(messageError, 400),
+    );
   });
 });

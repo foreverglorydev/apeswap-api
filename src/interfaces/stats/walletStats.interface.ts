@@ -1,6 +1,6 @@
-import { LiteStatsI } from './liteStats.interface';
+import { LiteStats } from './liteStats.interface';
 
-export interface WalletStatsI {
+export interface WalletStats {
   tvl: number;
   readonly bananaPrice: number;
   aggregateApr: number;
@@ -17,7 +17,7 @@ export interface WalletStatsI {
   dollarsEarnedPerYear: number;
   readonly bananasInWallet: number;
   pendingReward: number;
-  pools?: LiteStatsI[];
-  farms?: LiteStatsI[];
-  incentivizedPools?: LiteStatsI[];
+  pools?: LiteStats[];
+  farms?: LiteStats[];
+  incentivizedPools?: LiteStats[];
 }

@@ -1,4 +1,4 @@
-export interface IncentivizedPoolI {
+export interface IncentivizedPoolStats {
   readonly address: string;
   readonly stakedTokenAddress: string;
   readonly stakedTokenSymbol: string;

@@ -9,9 +9,9 @@ import { MASTER_APE_ABI } from './abi/masterApeAbi';
 import configuration from 'src/config/configuration';
 import { ERC20_ABI } from './abi/erc20Abi';
 import { LP_ABI } from './abi/lpAbi';
-import { GeneralStatsI } from 'src/interfaces/stats/generalStats.interface';
+import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { WalletInvalidHttpException } from '../exceptions';
-import { WalletStatsI } from 'src/interfaces/stats/walletStats.interface';
+import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 
 // ADDRESS GETTERS
 function masterApeContractAddress(): string {
@@ -45,7 +45,7 @@ function masterApeContractWeb(): any {
 export async function getAllStats(
   httpService,
   showAll = false,
-): Promise<GeneralStatsI> {
+): Promise<GeneralStats> {
   const {
     totalAllocPoints,
     poolInfos,
@@ -188,7 +188,7 @@ export async function calculatePoolPrices(
   totalAllocPoints,
 ) {
   const rewardsPerDay = await getBananaRewardsPerDay();
-  const poolPrices: GeneralStatsI = {
+  const poolPrices: GeneralStats = {
     bananaPrice: priceUSD,
     tvl: 0,
     totalVolume: 0,
@@ -555,12 +555,12 @@ export async function getTotalTokenSupply(tokenContract): Promise<any> {
 export async function getWalletStats(
   httpService,
   wallet,
-): Promise<WalletStatsI> {
+): Promise<WalletStats> {
   try {
     const poolPrices = await getAllStats(httpService, true);
     const bananaContract = getContract(ERC20_ABI, bananaAddress());
 
-    let walletStats: WalletStatsI = {
+    let walletStats: WalletStats = {
       tvl: 0,
       bananaPrice: poolPrices.bananaPrice,
       aggregateApr: 0,
@@ -591,7 +591,7 @@ export async function getWalletStats(
 }
 
 export async function calculateWalletStats(
-  walletStats: WalletStatsI,
+  walletStats: WalletStats,
   poolPrices,
   wallet,
 ) {

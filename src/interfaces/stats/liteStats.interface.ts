@@ -1,4 +1,4 @@
-export interface LiteStatsI {
+export interface LiteStats {
   readonly address: string;
   readonly lpSymbol: string;
   readonly stakedTvl: number;
