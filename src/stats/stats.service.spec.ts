@@ -34,7 +34,6 @@ describe('StatsService', () => {
       apr: expect.any(Number),
       decimals: expect.any(String),
       lpSymbol: expect.any(String),
-      name: expect.any(String),
       poolIndex: expect.any(Number),
       price: expect.any(Number),
       staked: expect.any(Number),
@@ -43,7 +42,7 @@ describe('StatsService', () => {
     };
     const objFarms = {
       address: expect.any(String),
-      lpSymbol: expect.any(String),
+      name: expect.any(String),
       poolIndex: expect.any(Number),
       t0Address: expect.any(String),
       t0Symbol: expect.any(String),
@@ -66,7 +65,6 @@ describe('StatsService', () => {
       name: expect.any(String),
       address: expect.any(String),
       stakedTokenAddress: expect.any(String),
-      stakedTokenSymbol: expect.any(String),
       t0Address: expect.any(String),
       t0Symbol: expect.any(String),
       p0: expect.any(Number),
@@ -126,7 +124,7 @@ describe('StatsService', () => {
     };
     const objGeneral = {
       address: expect.any(String),
-      lpSymbol: expect.any(String),
+      name: expect.any(String),
       stakedTvl: expect.any(Number),
       pendingReward: expect.any(Number),
       apr: expect.any(Number),

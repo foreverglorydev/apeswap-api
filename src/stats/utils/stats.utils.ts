@@ -323,8 +323,6 @@ async function getLpInfo(tokenAddress, stakingAddress) {
   const token0 = await contract.methods.token0().call();
   const token1 = await contract.methods.token1().call();
   return {
-    lpSymbol: await contract.methods.symbol().call(),
-    name: await contract.methods.name().call(),
     address: tokenAddress,
     token0,
     q0,
@@ -406,13 +404,11 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
 
     const t0Symbol = await token0Contract.methods.symbol().call();
     const t1Symbol = await token1Contract.methods.symbol().call();
-    const lpSymbol = `[${t0Symbol}]-[${t1Symbol}] LP`;
 
     return {
-      name: pool.name,
+      name: `[${t0Symbol}]-[${t1Symbol}] LP`,
       address: pool.address,
       stakedTokenAddress: pool.stakeToken,
-      stakedTokenSymbol: lpSymbol,
       t0Address,
       t0Symbol,
       p0,
@@ -472,7 +468,6 @@ function getFarmLPTokenPrices(
   const price = tvl / pool.totalSupply;
   prices[pool.address] = { usd: price };
   const stakedTvl = pool.staked * price;
-  const lpSymbol = `[${t0.symbol}]-[${t1.symbol}] LP`;
 
   // APR calculations
   const poolRewardsPerDay = (allocPoints / totalAllocPoints) * rewardsPerDay;
@@ -481,7 +476,7 @@ function getFarmLPTokenPrices(
 
   return {
     address: pool.address,
-    lpSymbol,
+    name: `[${t0.symbol}]-[${t1.symbol}] LP`,
     poolIndex,
     t0Address: t0.address,
     t0Symbol: t0.symbol,
@@ -524,7 +519,6 @@ function getBep20Prices(
     address: pool.address,
     lpSymbol: pool.symbol,
     poolIndex: poolIndex,
-    name: pool.name,
     price,
     tvl,
     stakedTvl,
@@ -612,6 +606,7 @@ export async function calculateWalletStats(
     wallet,
     poolPrices.incentivizedPools,
   );
+
   walletStats.pools.forEach((pool) => {
     walletStats.pendingReward += pool.pendingReward;
     walletStats.tvl += pool.stakedTvl;
@@ -682,7 +677,7 @@ export async function getWalletStatsForPools(
         const stakedTvl = (userInfo.amount * pool.price) / 10 ** pool.decimals;
         const curr_pool = {
           address: pool.address,
-          lpSymbol: pool.lpSymbol,
+          name: pool.lpSymbol,
           stakedTvl,
           pendingReward,
           apr: pool.apr,
@@ -718,7 +713,7 @@ export async function getWalletStatsForFarms(
 
         const curr_farm = {
           address: farm.address,
-          lpSymbol: farm.lpSymbol,
+          name: farm.name,
           stakedTvl,
           pendingReward,
           apr: farm.apr,
@@ -754,7 +749,7 @@ export async function getWalletStatsForIncentivizedPools(
           10 ** incentivizedPool.stakedTokenDecimals;
         const curr_pool = {
           address: incentivizedPool.address,
-          lpSymbol: incentivizedPool.stakedTokenSymbol,
+          name: incentivizedPool.name,
           stakedTvl,
           pendingReward,
           apr: incentivizedPool.apr,

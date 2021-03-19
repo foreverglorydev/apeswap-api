@@ -1,6 +1,6 @@
 export interface FarmI {
   readonly address: string;
-  readonly lpSymbol: string;
+  readonly name: string;
   readonly poolIndex: number;
   readonly t0Address: string;
   readonly t0Symbol: string;

@@ -3,7 +3,6 @@ export interface PoolI {
   readonly apr: number;
   readonly decimals: string;
   readonly lpSymbol: string;
-  readonly name: string;
   readonly poolIndex: number;
   readonly price: number;
   readonly staked: number;
