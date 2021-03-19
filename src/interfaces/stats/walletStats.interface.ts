@@ -16,7 +16,7 @@ export interface WalletStatsI {
   dollarsEarnedPerMonth: number;
   dollarsEarnedPerYear: number;
   readonly bananasInWallet: number;
-  pendingReward: number;
+  pendingRewardUsd: number;
   pools?: LiteStatsI[];
   farms?: LiteStatsI[];
   incentivizedPools?: LiteStatsI[];

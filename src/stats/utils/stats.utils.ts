@@ -493,6 +493,8 @@ function getFarmLPTokenPrices(
     tvl,
     stakedTvl,
     apr,
+    rewardTokenPrice: getParameterCaseInsensitive(prices, bananaAddress())?.usd,
+    rewardTokenSymbol: "BANANA",
     decimals: pool.decimals,
   };
 }
@@ -524,6 +526,8 @@ function getBep20Prices(
     stakedTvl,
     staked: pool.staked,
     apr,
+    rewardTokenPrice: getParameterCaseInsensitive(prices, bananaAddress())?.usd,
+    rewardTokenSymbol: "BANANA",
     decimals: pool.decimals,
   };
 }
@@ -570,7 +574,7 @@ export async function getWalletStats(
       dollarsEarnedPerMonth: 0,
       dollarsEarnedPerYear: 0,
       bananasInWallet: await getTokenBalanceOfAddress(bananaContract, wallet),
-      pendingReward: 0,
+      pendingRewardUsd: 0,
     };
 
     walletStats = await calculateWalletStats(walletStats, poolPrices, wallet);
@@ -608,20 +612,21 @@ export async function calculateWalletStats(
   );
 
   walletStats.pools.forEach((pool) => {
-    walletStats.pendingReward += pool.pendingReward;
+    walletStats.pendingRewardUsd += pool.pendingRewardUsd;
     walletStats.tvl += pool.stakedTvl;
     totalApr += pool.stakedTvl * pool.apr;
   });
 
   walletStats.farms.forEach((farm) => {
-    walletStats.pendingReward += farm.pendingReward;
+    walletStats.pendingRewardUsd += farm.pendingRewardUsd;
     walletStats.tvl += farm.stakedTvl;
     totalApr += farm.stakedTvl * farm.apr;
   });
 
-  walletStats.incentivizedPools.forEach((pool) => {
-    walletStats.tvl += pool.stakedTvl;
-    totalApr += pool.stakedTvl * pool.apr;
+  walletStats.incentivizedPools.forEach((incentivizedPool) => {
+    walletStats.pendingRewardUsd += incentivizedPool.pendingRewardUsd;
+    walletStats.tvl += incentivizedPool.stakedTvl;
+    totalApr += incentivizedPool.stakedTvl * incentivizedPool.apr;
   });
 
   walletStats.aggregateApr = totalApr / walletStats.tvl;
@@ -680,6 +685,7 @@ export async function getWalletStatsForPools(
           name: pool.lpSymbol,
           stakedTvl,
           pendingReward,
+          pendingRewardUsd: pendingReward * pool.rewardTokenPrice,
           apr: pool.apr,
         };
 
@@ -716,6 +722,7 @@ export async function getWalletStatsForFarms(
           name: farm.name,
           stakedTvl,
           pendingReward,
+          pendingRewardUsd: pendingReward * farm.rewardTokenPrice,
           apr: farm.apr,
         };
 
@@ -752,6 +759,7 @@ export async function getWalletStatsForIncentivizedPools(
           name: incentivizedPool.name,
           stakedTvl,
           pendingReward,
+          pendingRewardUsd: pendingReward * incentivizedPool.rewardTokenPrice,
           apr: incentivizedPool.apr,
         };
 

@@ -117,7 +117,7 @@ describe('StatsService', () => {
       dollarsEarnedPerMonth: expect.any(Number),
       dollarsEarnedPerYear: expect.any(Number),
       bananasInWallet: expect.any(Number),
-      pendingReward: expect.any(Number),
+      pendingRewardUsd: expect.any(Number),
       pools: expect.any(Array),
       farms: expect.any(Array),
       incentivizedPools: expect.any(Array),
@@ -127,6 +127,7 @@ describe('StatsService', () => {
       name: expect.any(String),
       stakedTvl: expect.any(Number),
       pendingReward: expect.any(Number),
+      pendingRewardUsd: expect.any(Number),
       apr: expect.any(Number),
     };
     const wallet = '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6';
