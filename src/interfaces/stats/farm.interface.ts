@@ -1,6 +1,6 @@
 export interface FarmStats {
   readonly address: string;
-  readonly lpSymbol: string;
+  readonly name: string;
   readonly poolIndex: number;
   readonly t0Address: string;
   readonly t0Symbol: string;
@@ -13,6 +13,8 @@ export interface FarmStats {
   readonly p1: number;
   readonly q1: number;
   readonly price: number;
+  readonly rewardTokenPrice: number,
+  readonly rewardTokenSymbol: string,
   readonly totalSupply: number;
   readonly tvl: number;
   readonly stakedTvl: number;

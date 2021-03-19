@@ -3,9 +3,10 @@ export interface PoolStats {
   readonly apr: number;
   readonly decimals: string;
   readonly lpSymbol: string;
-  readonly name: string;
   readonly poolIndex: number;
   readonly price: number;
+  readonly rewardTokenPrice: number,
+  readonly rewardTokenSymbol: string,
   readonly staked: number;
   readonly stakedTvl: number;
   readonly tvl: number;
