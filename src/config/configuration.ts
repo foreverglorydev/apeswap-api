@@ -3,7 +3,7 @@ export default () => ({
   chainId: process.env.CHAIN_ID || 97,
   97: {
     lottery: {
-      address: '0xbcbcfF994AF1f5B1F51D68A7322C86be18243b5B',
+      address: '0xF06557e0a4C0aBe314035cB196141Ca303Cb91D0',
       adminAddress: '0xb5e1Ec9861D7c1C99cB3d79dd602cC6122F0d7dc',
       adminKey: process.env.LOTTERY_ADMIN_KEY,
     },
@@ -15,7 +15,7 @@ export default () => ({
   },
   56: {
     lottery: {
-      address: '0xbcbcfF994AF1f5B1F51D68A7322C86be18243b5B',
+      address: '0xF06557e0a4C0aBe314035cB196141Ca303Cb91D0',
       adminAddress: '0xb5e1Ec9861D7c1C99cB3d79dd602cC6122F0d7dc',
       adminKey: process.env.LOTTERY_ADMIN_KEY,
     },
