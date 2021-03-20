@@ -1,4 +1,4 @@
-export const NUTS_BANANA_ABI = [
+export const BEP20_REWARD_APE_ABI = [
   {
     inputs: [
       { internalType: 'contract IBEP20', name: '_stakeToken', type: 'address' },

@@ -1,5 +1,4 @@
-import { SOUL_POOL_ABI } from 'src/stats/utils/abi/soulBananaPoolAbi';
-import { NUTS_BANANA_ABI } from 'src/stats/utils/abi/nutsBananaPoolAbi';
+import { BEP20_REWARD_APE_ABI } from 'src/stats/utils/abi/bep20RewardApeAbi';
 
 const chunk = (arr, n) =>
   arr.length ? [arr.slice(0, n), ...chunk(arr.slice(n), n)] : [];
@@ -51,7 +50,7 @@ export const incentivizedPools = [
     rewardPerBlock: 135800000000,
     startBlock: 5511250,
     endBlock: 5604850,
-    abi: SOUL_POOL_ABI,
+    abi: BEP20_REWARD_APE_ABI,
   },
   {
     name: 'SOUL/BANANA LP -> SOUL Reward Pool',
@@ -61,8 +60,8 @@ export const incentivizedPools = [
     rewardToken: '0x67d012F731c23F0313CEA1186d0121779c77fcFE',
     rewardPerBlock: 39600000000,
     startBlock: 5602450,
-    endBlock: 5804050,
-    abi: SOUL_POOL_ABI,
+    endBlock: 58570500,
+    abi: BEP20_REWARD_APE_ABI,
   },
   {
     name: 'NUTS/BANANA LP -> NUTS Reward Pool',
@@ -73,7 +72,7 @@ export const incentivizedPools = [
     rewardPerBlock: 86805555560000000,
     startBlock: 5629403,
     endBlock: 5658203,
-    abi: NUTS_BANANA_ABI,
+    abi: BEP20_REWARD_APE_ABI,
   },
   {
     name: 'NUTS/BANANA LP -> BANANA Reward Pool',
@@ -84,7 +83,7 @@ export const incentivizedPools = [
     rewardPerBlock: 144652777800000000,
     startBlock: 5658203,
     endBlock: 5687003,
-    abi: NUTS_BANANA_ABI,
+    abi: BEP20_REWARD_APE_ABI,
   },
   {
     name: 'CRX/BANANA LP -> CRX Reward Pool',
@@ -95,7 +94,7 @@ export const incentivizedPools = [
     rewardPerBlock: 2604166666667000,
     startBlock: 5682212,
     endBlock: 5826212,
-    abi: NUTS_BANANA_ABI,
+    abi: BEP20_REWARD_APE_ABI,
   },
   {
     name: 'NAUT/BNB LP -> NAUT Reward Pool',
@@ -106,7 +105,7 @@ export const incentivizedPools = [
     rewardPerBlock: '28935185',
     startingBlock: 5720710,
     endingBlock: 6584710,
-    abi: NUTS_BANANA_ABI,
+    abi: BEP20_REWARD_APE_ABI,
   },
   {
     name: 'NUTS/BANANA LP -> NUTZ Reward Pool',
@@ -117,7 +116,18 @@ export const incentivizedPools = [
     rewardPerBlock: '24965277777778000',
     startingBlock: 5744527,
     endingBlock: 5946127,
-    abi: NUTS_BANANA_ABI,
+    abi: BEP20_REWARD_APE_ABI,
+  },
+  {
+    name: 'HPS/BANANA LP -> HPS Reward Pool',
+    address: '0x9c64Cec2Ad86E918929665cF9AADf91cd755fEf1',
+    stakeToken: '0x268f002A3B8d2faC2aA2bA6D4B90d519ca0d1d46',
+    stakeTokenIsLp: true,
+    rewardToken: '0xeDa21B525Ac789EaB1a08ef2404dd8505FfB973D',
+    rewardPerBlock: '14880952380952000',
+    startingBlock: 5850334,
+    endingBlock: 6253534,
+    abi: BEP20_REWARD_APE_ABI,
   },
 ];
 
