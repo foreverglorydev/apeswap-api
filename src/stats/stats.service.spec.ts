@@ -108,10 +108,6 @@ describe('StatsService', () => {
       aggregateAprPerDay: expect.any(Number),
       aggregateAprPerWeek: expect.any(Number),
       aggregateAprPerMonth: expect.any(Number),
-      bananasEarnedPerDay: expect.any(Number),
-      bananasEarnedPerWeek: expect.any(Number),
-      bananasEarnedPerMonth: expect.any(Number),
-      bananasEarnedPerYear: expect.any(Number),
       dollarsEarnedPerDay: expect.any(Number),
       dollarsEarnedPerWeek: expect.any(Number),
       dollarsEarnedPerMonth: expect.any(Number),
@@ -129,6 +125,14 @@ describe('StatsService', () => {
       pendingReward: expect.any(Number),
       pendingRewardUsd: expect.any(Number),
       apr: expect.any(Number),
+      dollarsEarnedPerDay: expect.any(Number),
+      dollarsEarnedPerWeek: expect.any(Number),
+      dollarsEarnedPerMonth: expect.any(Number),
+      dollarsEarnedPerYear: expect.any(Number),
+      tokensEarnedPerDay: expect.any(Number),
+      tokensEarnedPerWeek: expect.any(Number),
+      tokensEarnedPerMonth: expect.any(Number),
+      tokensEarnedPerYear: expect.any(Number),
     };
     const wallet = '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6';
     const statsWallet = await service.getStatsForWallet(wallet);

@@ -7,10 +7,6 @@ export interface WalletStats {
   aggregateAprPerDay: number;
   aggregateAprPerWeek: number;
   aggregateAprPerMonth: number;
-  bananasEarnedPerDay: number;
-  bananasEarnedPerWeek: number;
-  bananasEarnedPerMonth: number;
-  bananasEarnedPerYear: number;
   dollarsEarnedPerDay: number;
   dollarsEarnedPerWeek: number;
   dollarsEarnedPerMonth: number;

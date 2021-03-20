@@ -569,10 +569,6 @@ export async function getWalletStats(
       aggregateAprPerDay: 0,
       aggregateAprPerWeek: 0,
       aggregateAprPerMonth: 0,
-      bananasEarnedPerDay: 0,
-      bananasEarnedPerWeek: 0,
-      bananasEarnedPerMonth: 0,
-      bananasEarnedPerYear: 0,
       dollarsEarnedPerDay: 0,
       dollarsEarnedPerWeek: 0,
       dollarsEarnedPerMonth: 0,
@@ -617,50 +613,38 @@ export async function calculateWalletStats(
 
   walletStats.pools.forEach((pool) => {
     walletStats.pendingRewardUsd += pool.pendingRewardUsd;
+    walletStats.dollarsEarnedPerDay += pool.dollarsEarnedPerDay;
+    walletStats.dollarsEarnedPerWeek += pool.dollarsEarnedPerWeek;
+    walletStats.dollarsEarnedPerMonth += pool.dollarsEarnedPerMonth;
+    walletStats.dollarsEarnedPerYear += pool.dollarsEarnedPerYear;
     walletStats.tvl += pool.stakedTvl;
     totalApr += pool.stakedTvl * pool.apr;
   });
 
   walletStats.farms.forEach((farm) => {
     walletStats.pendingRewardUsd += farm.pendingRewardUsd;
+    walletStats.dollarsEarnedPerDay += farm.dollarsEarnedPerDay;
+    walletStats.dollarsEarnedPerWeek += farm.dollarsEarnedPerWeek;
+    walletStats.dollarsEarnedPerMonth += farm.dollarsEarnedPerMonth;
+    walletStats.dollarsEarnedPerYear += farm.dollarsEarnedPerYear;
     walletStats.tvl += farm.stakedTvl;
     totalApr += farm.stakedTvl * farm.apr;
   });
 
   walletStats.incentivizedPools.forEach((incentivizedPool) => {
     walletStats.pendingRewardUsd += incentivizedPool.pendingRewardUsd;
+    walletStats.dollarsEarnedPerDay += incentivizedPool.dollarsEarnedPerDay;
+    walletStats.dollarsEarnedPerWeek += incentivizedPool.dollarsEarnedPerWeek;
+    walletStats.dollarsEarnedPerMonth += incentivizedPool.dollarsEarnedPerMonth;
+    walletStats.dollarsEarnedPerYear += incentivizedPool.dollarsEarnedPerYear;
     walletStats.tvl += incentivizedPool.stakedTvl;
     totalApr += incentivizedPool.stakedTvl * incentivizedPool.apr;
   });
 
   walletStats.aggregateApr = totalApr / walletStats.tvl;
-  walletStats.aggregateAprPerDay = totalApr / 365 / walletStats.tvl;
-  walletStats.aggregateAprPerWeek = (totalApr * 7) / 365 / walletStats.tvl;
-  walletStats.aggregateAprPerMonth = (totalApr * 30) / 365 / walletStats.tvl;
-  walletStats.bananasEarnedPerDay =
-    (walletStats.tvl * walletStats.aggregateApr) / 365 / poolPrices.bananaPrice;
-  walletStats.bananasEarnedPerWeek =
-    (walletStats.tvl * walletStats.aggregateApr * 7) /
-    365 /
-    poolPrices.bananaPrice;
-  walletStats.bananasEarnedPerMonth =
-    (walletStats.tvl * walletStats.aggregateApr * 30) /
-    365 /
-    poolPrices.bananaPrice;
-  walletStats.bananasEarnedPerYear =
-    (walletStats.tvl * walletStats.aggregateApr) / poolPrices.bananaPrice;
-  walletStats.dollarsEarnedPerDay =
-    (walletStats.tvl * walletStats.aggregateApr) / 365;
-  walletStats.dollarsEarnedPerWeek =
-    (walletStats.tvl * walletStats.aggregateApr * 7) /
-    365 /
-    poolPrices.bananaPrice;
-  walletStats.dollarsEarnedPerMonth =
-    (walletStats.tvl * walletStats.aggregateApr * 30) /
-    365 /
-    poolPrices.bananaPrice;
-  walletStats.dollarsEarnedPerYear =
-    (walletStats.tvl * walletStats.aggregateApr) / poolPrices.bananaPrice;
+  walletStats.aggregateAprPerDay = walletStats.aggregateApr / 365 ;
+  walletStats.aggregateAprPerWeek = (walletStats.aggregateApr * 7) / 365;
+  walletStats.aggregateAprPerMonth = (walletStats.aggregateApr * 30) / 365 ;
 
   return walletStats;
 }
@@ -684,6 +668,8 @@ export async function getWalletStatsForPools(
 
       if (userInfo.amount != 0 || pendingReward != 0) {
         const stakedTvl = (userInfo.amount * pool.price) / 10 ** pool.decimals;
+        const dollarsEarnedPerDay = stakedTvl * pool.apr / 365;
+        const tokensEarnedPerDay = dollarsEarnedPerDay / pool.rewardTokenPrice;
         const curr_pool = {
           address: pool.address,
           name: pool.lpSymbol,
@@ -691,6 +677,14 @@ export async function getWalletStatsForPools(
           pendingReward,
           pendingRewardUsd: pendingReward * pool.rewardTokenPrice,
           apr: pool.apr,
+          dollarsEarnedPerDay,
+          dollarsEarnedPerWeek: dollarsEarnedPerDay * 7,
+          dollarsEarnedPerMonth: dollarsEarnedPerDay * 30,
+          dollarsEarnedPerYear: dollarsEarnedPerDay * 365,
+          tokensEarnedPerDay,
+          tokensEarnedPerWeek: tokensEarnedPerDay * 7,
+          tokensEarnedPerMonth: tokensEarnedPerDay * 30,
+          tokensEarnedPerYear: tokensEarnedPerDay * 365,
         };
 
         allPools.push(curr_pool);
@@ -720,7 +714,8 @@ export async function getWalletStatsForFarms(
 
       if (userInfo.amount != 0 || pendingReward != 0) {
         const stakedTvl = (userInfo.amount * farm.price) / 10 ** farm.decimals;
-
+        const dollarsEarnedPerDay = stakedTvl * farm.apr / 365;
+        const tokensEarnedPerDay = dollarsEarnedPerDay / farm.rewardTokenPrice;
         const curr_farm = {
           address: farm.address,
           name: farm.name,
@@ -728,6 +723,14 @@ export async function getWalletStatsForFarms(
           pendingReward,
           pendingRewardUsd: pendingReward * farm.rewardTokenPrice,
           apr: farm.apr,
+          dollarsEarnedPerDay,
+          dollarsEarnedPerWeek: dollarsEarnedPerDay * 7,
+          dollarsEarnedPerMonth: dollarsEarnedPerDay * 30,
+          dollarsEarnedPerYear: dollarsEarnedPerDay * 365,
+          tokensEarnedPerDay,
+          tokensEarnedPerWeek: tokensEarnedPerDay * 7,
+          tokensEarnedPerMonth: tokensEarnedPerDay * 30,
+          tokensEarnedPerYear: tokensEarnedPerDay * 365,
         };
 
         allFarms.push(curr_farm);
@@ -758,6 +761,8 @@ export async function getWalletStatsForIncentivizedPools(
         const stakedTvl =
           (userInfo.amount * incentivizedPool.price) /
           10 ** incentivizedPool.stakedTokenDecimals;
+        const dollarsEarnedPerDay = stakedTvl * incentivizedPool.apr / 365;
+        const tokensEarnedPerDay = dollarsEarnedPerDay / incentivizedPool.rewardTokenPrice;
         const curr_pool = {
           address: incentivizedPool.address,
           name: incentivizedPool.name,
@@ -765,6 +770,14 @@ export async function getWalletStatsForIncentivizedPools(
           pendingReward,
           pendingRewardUsd: pendingReward * incentivizedPool.rewardTokenPrice,
           apr: incentivizedPool.apr,
+          dollarsEarnedPerDay,
+          dollarsEarnedPerWeek: dollarsEarnedPerDay * 7,
+          dollarsEarnedPerMonth: dollarsEarnedPerDay * 30,
+          dollarsEarnedPerYear: dollarsEarnedPerDay * 365,
+          tokensEarnedPerDay,
+          tokensEarnedPerWeek: tokensEarnedPerDay * 7,
+          tokensEarnedPerMonth: tokensEarnedPerDay * 30,
+          tokensEarnedPerYear: tokensEarnedPerDay * 365,
         };
 
         allIncentivizedPools.push(curr_pool);
