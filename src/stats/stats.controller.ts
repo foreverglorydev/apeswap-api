@@ -16,7 +16,7 @@ export class StatsController {
 
     stats.tvl += tvlData.tvl;
     stats.totalVolume += tvlData.totalVolume;
-    
+
     return stats;
   }
 

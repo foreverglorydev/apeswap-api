@@ -642,9 +642,9 @@ export async function calculateWalletStats(
   });
 
   walletStats.aggregateApr = totalApr / walletStats.tvl;
-  walletStats.aggregateAprPerDay = walletStats.aggregateApr / 365 ;
+  walletStats.aggregateAprPerDay = walletStats.aggregateApr / 365;
   walletStats.aggregateAprPerWeek = (walletStats.aggregateApr * 7) / 365;
-  walletStats.aggregateAprPerMonth = (walletStats.aggregateApr * 30) / 365 ;
+  walletStats.aggregateAprPerMonth = (walletStats.aggregateApr * 30) / 365;
 
   return walletStats;
 }
@@ -668,7 +668,7 @@ export async function getWalletStatsForPools(
 
       if (userInfo.amount != 0 || pendingReward != 0) {
         const stakedTvl = (userInfo.amount * pool.price) / 10 ** pool.decimals;
-        const dollarsEarnedPerDay = stakedTvl * pool.apr / 365;
+        const dollarsEarnedPerDay = (stakedTvl * pool.apr) / 365;
         const tokensEarnedPerDay = dollarsEarnedPerDay / pool.rewardTokenPrice;
         const curr_pool = {
           address: pool.address,
@@ -714,7 +714,7 @@ export async function getWalletStatsForFarms(
 
       if (userInfo.amount != 0 || pendingReward != 0) {
         const stakedTvl = (userInfo.amount * farm.price) / 10 ** farm.decimals;
-        const dollarsEarnedPerDay = stakedTvl * farm.apr / 365;
+        const dollarsEarnedPerDay = (stakedTvl * farm.apr) / 365;
         const tokensEarnedPerDay = dollarsEarnedPerDay / farm.rewardTokenPrice;
         const curr_farm = {
           address: farm.address,
@@ -761,8 +761,9 @@ export async function getWalletStatsForIncentivizedPools(
         const stakedTvl =
           (userInfo.amount * incentivizedPool.price) /
           10 ** incentivizedPool.stakedTokenDecimals;
-        const dollarsEarnedPerDay = stakedTvl * incentivizedPool.apr / 365;
-        const tokensEarnedPerDay = dollarsEarnedPerDay / incentivizedPool.rewardTokenPrice;
+        const dollarsEarnedPerDay = (stakedTvl * incentivizedPool.apr) / 365;
+        const tokensEarnedPerDay =
+          dollarsEarnedPerDay / incentivizedPool.rewardTokenPrice;
         const curr_pool = {
           address: incentivizedPool.address,
           name: incentivizedPool.name,

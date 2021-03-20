@@ -13,8 +13,8 @@ export interface FarmStats {
   readonly p1: number;
   readonly q1: number;
   readonly price: number;
-  readonly rewardTokenPrice: number,
-  readonly rewardTokenSymbol: string,
+  readonly rewardTokenPrice: number;
+  readonly rewardTokenSymbol: string;
   readonly totalSupply: number;
   readonly tvl: number;
   readonly stakedTvl: number;
