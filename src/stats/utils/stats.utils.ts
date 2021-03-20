@@ -52,15 +52,10 @@ export async function getAllStats(
     prices,
     priceUSD,
   } = await getPointsPoolsAndPrices(httpService);
-  const { burntAmount, totalSupply } = await getBurnAndSupply();
-  const tokens = await getTokens(poolInfos);
 
   const poolPrices = await calculatePoolPrices(
     priceUSD,
-    burntAmount,
-    totalSupply,
     poolInfos,
-    tokens,
     prices,
     totalAllocPoints,
   );
@@ -180,14 +175,20 @@ export async function getTokens(poolInfos) {
 
 export async function calculatePoolPrices(
   priceUSD,
-  burntAmount,
-  totalSupply,
   poolInfos,
-  tokens,
   prices,
   totalAllocPoints,
 ) {
-  const rewardsPerDay = await getBananaRewardsPerDay();
+  const [
+    rewardsPerDay,
+    tokens,
+    { burntAmount, totalSupply },
+  ] = await Promise.all([
+    await getBananaRewardsPerDay(),
+    await getTokens(poolInfos),
+    await getBurnAndSupply(),
+  ]);
+
   const poolPrices: GeneralStats = {
     bananaPrice: priceUSD,
     tvl: 0,
@@ -215,8 +216,17 @@ export async function calculatePoolPrices(
     }
   }
 
-  const currentBlockNumber = await getCurrentBlock();
+  await mappingIncetivizedPools(poolPrices, prices);
 
+  poolPrices.pools.forEach((pool) => {
+    poolPrices.tvl += pool.stakedTvl;
+  });
+
+  return poolPrices;
+}
+
+async function mappingIncetivizedPools(poolPrices, prices) {
+  const currentBlockNumber = await getCurrentBlock();
   poolPrices.incentivizedPools = await Promise.all(
     incentivizedPools.map(
       async (pool) =>
@@ -224,12 +234,6 @@ export async function calculatePoolPrices(
     ),
   );
   poolPrices.incentivizedPools = poolPrices.incentivizedPools.filter((x) => x); //filter null pools
-
-  poolPrices.pools.forEach((pool) => {
-    poolPrices.tvl += pool.stakedTvl;
-  });
-
-  return poolPrices;
 }
 
 function getPoolPrices(
@@ -494,7 +498,7 @@ function getFarmLPTokenPrices(
     stakedTvl,
     apr,
     rewardTokenPrice: getParameterCaseInsensitive(prices, bananaAddress())?.usd,
-    rewardTokenSymbol: "BANANA",
+    rewardTokenSymbol: 'BANANA',
     decimals: pool.decimals,
   };
 }
@@ -527,7 +531,7 @@ function getBep20Prices(
     staked: pool.staked,
     apr,
     rewardTokenPrice: getParameterCaseInsensitive(prices, bananaAddress())?.usd,
-    rewardTokenSymbol: "BANANA",
+    rewardTokenSymbol: 'BANANA',
     decimals: pool.decimals,
   };
 }
