@@ -571,8 +571,13 @@ export async function getWalletStats(
       dollarsEarnedPerWeek: 0,
       dollarsEarnedPerMonth: 0,
       dollarsEarnedPerYear: 0,
+      bananasEarnedPerDay: 0,
+      bananasEarnedPerWeek: 0,
+      bananasEarnedPerMonth: 0,
+      bananasEarnedPerYear: 0,
       bananasInWallet: await getTokenBalanceOfAddress(bananaContract, wallet),
       pendingRewardUsd: 0,
+      pendingRewardBanana: 0,
     };
 
     walletStats = await calculateWalletStats(walletStats, poolPrices, wallet);
@@ -611,20 +616,30 @@ export async function calculateWalletStats(
 
   walletStats.pools.forEach((pool) => {
     walletStats.pendingRewardUsd += pool.pendingRewardUsd;
+    walletStats.pendingRewardBanana += pool.pendingReward;
     walletStats.dollarsEarnedPerDay += pool.dollarsEarnedPerDay;
     walletStats.dollarsEarnedPerWeek += pool.dollarsEarnedPerWeek;
     walletStats.dollarsEarnedPerMonth += pool.dollarsEarnedPerMonth;
     walletStats.dollarsEarnedPerYear += pool.dollarsEarnedPerYear;
+    walletStats.bananasEarnedPerDay += pool.tokensEarnedPerDay;
+    walletStats.bananasEarnedPerWeek += pool.tokensEarnedPerWeek;
+    walletStats.bananasEarnedPerMonth += pool.tokensEarnedPerMonth;
+    walletStats.bananasEarnedPerYear += pool.tokensEarnedPerYear;
     walletStats.tvl += pool.stakedTvl;
     totalApr += pool.stakedTvl * pool.apr;
   });
 
   walletStats.farms.forEach((farm) => {
     walletStats.pendingRewardUsd += farm.pendingRewardUsd;
+    walletStats.pendingRewardBanana += farm.pendingReward;
     walletStats.dollarsEarnedPerDay += farm.dollarsEarnedPerDay;
     walletStats.dollarsEarnedPerWeek += farm.dollarsEarnedPerWeek;
     walletStats.dollarsEarnedPerMonth += farm.dollarsEarnedPerMonth;
     walletStats.dollarsEarnedPerYear += farm.dollarsEarnedPerYear;
+    walletStats.bananasEarnedPerDay += farm.tokensEarnedPerDay;
+    walletStats.bananasEarnedPerWeek += farm.tokensEarnedPerWeek;
+    walletStats.bananasEarnedPerMonth += farm.tokensEarnedPerMonth;
+    walletStats.bananasEarnedPerYear += farm.tokensEarnedPerYear;
     walletStats.tvl += farm.stakedTvl;
     totalApr += farm.stakedTvl * farm.apr;
   });

@@ -11,10 +11,15 @@ export interface WalletStats {
   dollarsEarnedPerWeek: number;
   dollarsEarnedPerMonth: number;
   dollarsEarnedPerYear: number;
+  bananasEarnedPerDay: number;
+  bananasEarnedPerWeek: number;
+  bananasEarnedPerMonth: number;
+  bananasEarnedPerYear: number;
   readonly bananasInWallet: number;
   pendingReward?: number;
   pools?: LiteStats[];
   farms?: LiteStats[];
   incentivizedPools?: LiteStats[];
   pendingRewardUsd: number;
+  pendingRewardBanana: number;
 }
