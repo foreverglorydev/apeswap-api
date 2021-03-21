@@ -1,9 +1,7 @@
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
 import { getBscPrices } from 'src/utils/bsc_helpers';
-import {
-  getParameterCaseInsensitive,
-  incentivizedPools,
-} from 'src/utils/helpers';
+import { getParameterCaseInsensitive } from 'src/utils/helpers';
+import { incentivizedPools } from 'src/utils/incentivizedPools';
 
 import { MASTER_APE_ABI } from './abi/masterApeAbi';
 import configuration from 'src/config/configuration';
