@@ -100,4 +100,15 @@ export const incentivizedPools = [
     endingBlock: 6253534,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    name: 'BRICK/BANANA LP -> BRICK Reward Pool',
+    address: '0x6B7254AdfCa2178B7065b4B57fDc452c405DFC8A',
+    stakeToken: '0x51A9771708d0471A0E592e8feBB2C6b868e3d99B',
+    stakeTokenIsLp: true,
+    rewardToken: '0xc4DaA5a9f2B832eD0f9Bc579662883cD53EA9d61',
+    rewardPerBlock: '2976190476190476000',
+    startingBlock: 5878788,
+    endingBlock: 6080388,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
