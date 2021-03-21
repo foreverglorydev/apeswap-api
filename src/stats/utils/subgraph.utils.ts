@@ -1,7 +1,7 @@
-import { tvlQuery } from './subgraph.queries';
+import { liquidityQuery } from './subgraph.queries';
 
 export async function getSubgraphData(httpService): Promise<any> {
-  const query = tvlQuery();
+  const query = liquidityQuery();
   const {
     data,
   } = await httpService

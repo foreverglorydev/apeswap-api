@@ -5,6 +5,7 @@ const chunk = (arr, n) =>
 
 export async function lookUpPrices(httpService, token_array) {
   const prices = {};
+  const pricePromises = [];
 
   for (const id_chunk of chunk(token_array, 50)) {
     const ids = id_chunk.map((x) => x.id).join('%2C');
@@ -12,14 +13,21 @@ export async function lookUpPrices(httpService, token_array) {
       'https://api.coingecko.com/api/v3/simple/price?ids=' +
       ids +
       '&vs_currencies=usd';
-    const response = await httpService.get(url).toPromise();
-    const data = response.data;
-    for (const token of token_array) {
-      if (data[token.id]) {
-        prices[token.contract] = data[token.id];
+    pricePromises.push(httpService.get(url).toPromise());
+  }
+
+  Promise.all(pricePromises).then((priceArray) => {
+    console.log(priceArray[0].data);
+    for (let i = 0; i < priceArray.length; i++) {
+      const data = priceArray[i].data;
+      for (const token of token_array) {
+        if (data[token.id]) {
+          prices[token.contract] = data[token.id];
+        }
       }
     }
-  }
+  });
+
   return prices;
 }
 
