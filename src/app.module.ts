@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PairsModule } from './pairs/pairs.module';
 import { LotteryModule } from './lottery/lottery.module';
+import { StatsModule } from './stats/stats.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -19,6 +20,7 @@ import configuration from './config/configuration';
     MongooseModule.forRoot(process.env.MONGO_URL, { useCreateIndex: true }),
     PairsModule,
     LotteryModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
