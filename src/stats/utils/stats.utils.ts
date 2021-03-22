@@ -618,13 +618,7 @@ export async function calculateWalletStats(
     walletStats.pendingRewardUsd += pool.pendingRewardUsd;
     walletStats.pendingRewardBanana += pool.pendingReward;
     walletStats.dollarsEarnedPerDay += pool.dollarsEarnedPerDay;
-    walletStats.dollarsEarnedPerWeek += pool.dollarsEarnedPerWeek;
-    walletStats.dollarsEarnedPerMonth += pool.dollarsEarnedPerMonth;
-    walletStats.dollarsEarnedPerYear += pool.dollarsEarnedPerYear;
     walletStats.bananasEarnedPerDay += pool.tokensEarnedPerDay;
-    walletStats.bananasEarnedPerWeek += pool.tokensEarnedPerWeek;
-    walletStats.bananasEarnedPerMonth += pool.tokensEarnedPerMonth;
-    walletStats.bananasEarnedPerYear += pool.tokensEarnedPerYear;
     walletStats.tvl += pool.stakedTvl;
     totalApr += pool.stakedTvl * pool.apr;
   });
@@ -633,13 +627,7 @@ export async function calculateWalletStats(
     walletStats.pendingRewardUsd += farm.pendingRewardUsd;
     walletStats.pendingRewardBanana += farm.pendingReward;
     walletStats.dollarsEarnedPerDay += farm.dollarsEarnedPerDay;
-    walletStats.dollarsEarnedPerWeek += farm.dollarsEarnedPerWeek;
-    walletStats.dollarsEarnedPerMonth += farm.dollarsEarnedPerMonth;
-    walletStats.dollarsEarnedPerYear += farm.dollarsEarnedPerYear;
     walletStats.bananasEarnedPerDay += farm.tokensEarnedPerDay;
-    walletStats.bananasEarnedPerWeek += farm.tokensEarnedPerWeek;
-    walletStats.bananasEarnedPerMonth += farm.tokensEarnedPerMonth;
-    walletStats.bananasEarnedPerYear += farm.tokensEarnedPerYear;
     walletStats.tvl += farm.stakedTvl;
     totalApr += farm.stakedTvl * farm.apr;
   });
@@ -647,9 +635,6 @@ export async function calculateWalletStats(
   walletStats.incentivizedPools.forEach((incentivizedPool) => {
     walletStats.pendingRewardUsd += incentivizedPool.pendingRewardUsd;
     walletStats.dollarsEarnedPerDay += incentivizedPool.dollarsEarnedPerDay;
-    walletStats.dollarsEarnedPerWeek += incentivizedPool.dollarsEarnedPerWeek;
-    walletStats.dollarsEarnedPerMonth += incentivizedPool.dollarsEarnedPerMonth;
-    walletStats.dollarsEarnedPerYear += incentivizedPool.dollarsEarnedPerYear;
     walletStats.tvl += incentivizedPool.stakedTvl;
     totalApr += incentivizedPool.stakedTvl * incentivizedPool.apr;
   });
@@ -658,6 +643,14 @@ export async function calculateWalletStats(
   walletStats.aggregateAprPerDay = walletStats.aggregateApr / 365;
   walletStats.aggregateAprPerWeek = (walletStats.aggregateApr * 7) / 365;
   walletStats.aggregateAprPerMonth = (walletStats.aggregateApr * 30) / 365;
+
+  walletStats.dollarsEarnedPerWeek = walletStats.dollarsEarnedPerDay * 7;
+  walletStats.dollarsEarnedPerMonth = walletStats.dollarsEarnedPerDay * 30;
+  walletStats.dollarsEarnedPerYear = walletStats.dollarsEarnedPerDay * 365;
+
+  walletStats.bananasEarnedPerWeek = walletStats.bananasEarnedPerDay * 7;
+  walletStats.bananasEarnedPerMonth = walletStats.bananasEarnedPerDay * 30;
+  walletStats.bananasEarnedPerYear = walletStats.bananasEarnedPerDay * 365;
 
   return walletStats;
 }
