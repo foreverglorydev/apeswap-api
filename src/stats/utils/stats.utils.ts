@@ -686,6 +686,7 @@ export async function getWalletStatsForPools(
         const curr_pool = {
           address: pool.address,
           name: pool.lpSymbol,
+          rewardTokenSymbol: pool.rewardTokenSymbol,
           stakedTvl,
           pendingReward,
           pendingRewardUsd: pendingReward * pool.rewardTokenPrice,
@@ -780,6 +781,7 @@ export async function getWalletStatsForIncentivizedPools(
         const curr_pool = {
           address: incentivizedPool.address,
           name: incentivizedPool.name,
+          rewardTokenSymbol: incentivizedPool.rewardTokenSymbol,
           stakedTvl,
           pendingReward,
           pendingRewardUsd: pendingReward * incentivizedPool.rewardTokenPrice,
