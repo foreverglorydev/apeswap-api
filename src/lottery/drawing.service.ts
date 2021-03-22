@@ -17,7 +17,7 @@ export class DrawingService {
     private drawModel: Model<DrawDocument>,
   ) {}
 
-  lotteryDrawHoursUtc = [2, 8, 14, 20];
+  lotteryDrawHoursUtc = [2, 8, 14, 20, 23];
   isDrawing = false;
   isReset = true;
   web3 = getWeb3();
@@ -69,7 +69,7 @@ export class DrawingService {
 
   @Cron('20 * * * * *')
   async process() {
-    const latestDraw = await this.drawModel.findOne().sort({ created_at: -1 });
+    const latestDraw = await this.drawModel.findOne().sort({ drawTime: -1 });
     const latestDrawHours = latestDraw?.drawTime.getUTCHours();
     const drawed = await this.lottery.methods.drawed().call();
     const drawingPhase = await this.lottery.methods.drawingPhase().call();

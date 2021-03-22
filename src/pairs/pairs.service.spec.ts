@@ -7,7 +7,7 @@ import { Candle, CandleSchema } from './schema/candle.schema';
 import { PairHistory, PairHistorySchema } from './schema/pair-history.schema';
 import { Pair, PairSchema } from './schema/pair.schema';
 
-describe('PairsService', () => {
+describe.skip('PairsService', () => {
   let service: PairsService;
 
   beforeEach(async () => {
