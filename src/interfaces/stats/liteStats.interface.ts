@@ -5,6 +5,9 @@ export interface LiteStats {
   readonly pendingReward: number;
   readonly pendingRewardUsd: number;
   readonly apr: number;
+  readonly aprPerDay: number;
+  readonly aprPerWeek: number;
+  readonly aprPerMonth: number;
   readonly dollarsEarnedPerDay: number;
   readonly dollarsEarnedPerWeek: number;
   readonly dollarsEarnedPerMonth: number;
