@@ -9,7 +9,7 @@ export interface GeneralStats {
   readonly marketCap: number;
   tvl: number;
   readonly tvlInBnb?: number;
-  readonly totalVolume: number;
+  totalVolume: number;
   pools: PoolStats[];
   farms: FarmStats[];
   incentivizedPools: IncentivizedPoolStats[];
