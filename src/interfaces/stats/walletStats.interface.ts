@@ -2,7 +2,7 @@ import { LiteStats } from './liteStats.interface';
 
 export interface WalletStats {
   tvl: number;
-  readonly bananaPrice: number;
+  bananaPrice: number;
   aggregateApr: number;
   aggregateAprPerDay: number;
   aggregateAprPerWeek: number;
@@ -15,7 +15,7 @@ export interface WalletStats {
   bananasEarnedPerWeek: number;
   bananasEarnedPerMonth: number;
   bananasEarnedPerYear: number;
-  readonly bananasInWallet: number;
+  bananasInWallet: number;
   pendingReward?: number;
   pools?: LiteStats[];
   farms?: LiteStats[];

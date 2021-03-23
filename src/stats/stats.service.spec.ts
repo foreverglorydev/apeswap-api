@@ -1,6 +1,5 @@
 import { HttpException, HttpModule } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { WalletInvalidHttpException } from './exceptions';
 import { StatsService } from './stats.service';
 
 describe('StatsService', () => {
@@ -118,7 +117,7 @@ describe('StatsService', () => {
       bananasEarnedPerYear: expect.any(Number),
       bananasInWallet: expect.any(Number),
       pendingRewardUsd: expect.any(Number),
-      pendingRewardBananas: expect.any(Number),
+      pendingRewardBanana: expect.any(Number),
       pools: expect.any(Array),
       farms: expect.any(Array),
       incentivizedPools: expect.any(Array),
@@ -139,7 +138,7 @@ describe('StatsService', () => {
       tokensEarnedPerMonth: expect.any(Number),
       tokensEarnedPerYear: expect.any(Number),
     };
-    const wallet = '0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6';
+    const wallet = '0xe5EdeA54596B385C3c8dFd5010C3Cf892d547Acb';
     const statsWallet = await service.getStatsForWallet(wallet);
     expect(statsWallet).toEqual(expect.objectContaining(objWallet));
     if (statsWallet.pools.length > 0) {

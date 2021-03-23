@@ -6,6 +6,8 @@ import {
   Param,
   UseInterceptors,
 } from '@nestjs/common';
+import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
+import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { StatsService } from './stats.service';
 import { SubgraphService } from './subgraph.service';
 
@@ -18,19 +20,15 @@ export class StatsController {
     private subgraphService: SubgraphService,
   ) {}
   @Get()
-  async getAllStats() {
+  async getAllStats(): Promise<GeneralStats> {
     this.logger.debug('Called GET /stats');
-    const stats = await this.statsService.getAllStats();
-    const tvlData = await this.subgraphService.getTVLData();
-
-    stats.tvl += tvlData.tvl;
-    stats.totalVolume += tvlData.totalVolume;
-
-    return stats;
+    return await this.statsService.getAllStats();
   }
 
   @Get(':wallet')
-  async getStatsForWallet(@Param('wallet') wallet: string) {
+  async getStatsForWallet(
+    @Param('wallet') wallet: string,
+  ): Promise<WalletStats> {
     this.logger.debug('Called GET /stats/:wallet');
     return this.statsService.getStatsForWallet(wallet);
   }

@@ -12,11 +12,11 @@ import { WalletInvalidHttpException } from '../exceptions';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 
 // ADDRESS GETTERS
-function masterApeContractAddress(): string {
+export function masterApeContractAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.masterApe;
 }
 
-function bananaAddress(): string {
+export function bananaAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.banana;
 }
 
@@ -32,11 +32,11 @@ function bananaBnbAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.bananaBnb;
 }
 
-function burnAddress(): string {
+export function burnAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.burn;
 }
 
-function masterApeContractWeb(): any {
+export function masterApeContractWeb(): any {
   return getContract(MASTER_APE_ABI, masterApeContractAddress());
 }
 
@@ -82,7 +82,7 @@ export async function getAllPrices(httpService): Promise<any> {
   return prices;
 }
 
-function getBananaPriceWithPoolList(poolList, prices) {
+export function getBananaPriceWithPoolList(poolList, prices) {
   const poolBusd = poolList.find(
     (pool) => pool.address === bananaBusdAddress(),
   );
@@ -234,7 +234,7 @@ async function mappingIncetivizedPools(poolPrices, prices) {
   poolPrices.incentivizedPools = poolPrices.incentivizedPools.filter((x) => x); //filter null pools
 }
 
-function getPoolPrices(
+export function getPoolPrices(
   tokens,
   prices,
   pool,
@@ -245,28 +245,28 @@ function getPoolPrices(
   rewardsPerDay,
 ) {
   if (pool.token0 != null) {
-    poolPrices.farms.push(
-      getFarmLPTokenPrices(
+    poolPrices.farms.push({
+      ...{ poolIndex: poolIndex },
+      ...getFarmLPTokenPrices(
         tokens,
         prices,
         pool,
-        poolIndex,
         allocPoints,
         totalAllocPoints,
         rewardsPerDay,
       ),
-    );
+    });
   } else {
-    poolPrices.pools.push(
-      getBep20Prices(
+    poolPrices.pools.push({
+      ...{ poolIndex: poolIndex },
+      ...getBep20Prices(
         prices,
         pool,
-        poolIndex,
         allocPoints,
         totalAllocPoints,
         rewardsPerDay,
       ),
-    );
+    });
   }
 }
 
@@ -443,7 +443,6 @@ function getFarmLPTokenPrices(
   tokens,
   prices,
   pool,
-  poolIndex,
   allocPoints,
   totalAllocPoints,
   rewardsPerDay,
@@ -479,7 +478,6 @@ function getFarmLPTokenPrices(
   return {
     address: pool.address,
     name: `[${t0.symbol}]-[${t1.symbol}] LP`,
-    poolIndex,
     t0Address: t0.address,
     t0Symbol: t0.symbol,
     t0Decimals: t0.decimals,
@@ -505,7 +503,6 @@ function getFarmLPTokenPrices(
 function getBep20Prices(
   prices,
   pool,
-  poolIndex,
   allocPoints,
   totalAllocPoints,
   rewardsPerDay,
@@ -522,7 +519,6 @@ function getBep20Prices(
   return {
     address: pool.address,
     lpSymbol: pool.symbol,
-    poolIndex: poolIndex,
     price,
     tvl,
     stakedTvl,
@@ -586,7 +582,7 @@ export async function getWalletStats(
   } catch (error) {
     if (error.code == 'INVALID_ARGUMENT')
       throw new WalletInvalidHttpException();
-
+    console.log(error);
     throw new Error(error.code);
   }
 }
