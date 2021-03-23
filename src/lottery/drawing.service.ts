@@ -69,6 +69,7 @@ export class DrawingService {
 
   @Cron('20 * * * * *')
   async process() {
+    if (this.chainId == 56) return;
     const latestDraw = await this.drawModel.findOne().sort({ drawTime: -1 });
     const latestDrawHours = latestDraw?.drawTime.getUTCHours();
     const drawed = await this.lottery.methods.drawed().call();
