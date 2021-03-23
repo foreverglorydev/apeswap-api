@@ -432,9 +432,51 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
       abi: pool.abi,
     };
   } else {
-    const rewardContract = getContract(ERC20_ABI, pool.stakeToken);
-    // TODO: add code for non-lp token staking
-    return null;
+    const stakedTokenContract = getContract(ERC20_ABI, pool.stakeToken);
+    const name = await stakedTokenContract.methods.symbol().call()
+    const price = getParameterCaseInsensitive(prices, pool.stakeToken)?.usd;
+    const stakedTokenDecimals = await stakedTokenContract.methods
+      .decimals()
+      .call();
+    const totalSupply =
+      (await stakedTokenContract.methods.totalSupply().call()) /
+      10 ** stakedTokenDecimals;
+    const stakedSupply =
+      (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
+      10 ** stakedTokenDecimals;
+    const tvl = totalSupply * price;
+    const stakedTvl = (stakedSupply * tvl) / totalSupply;
+
+    const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
+    const rewardDecimals = await rewardTokenContract.methods.decimals().call();
+    const rewardsPerBlock =
+      (await poolContract.methods.rewardPerBlock().call()) /
+      10 ** rewardDecimals;
+    const rewardTokenSymbol = await rewardTokenContract.methods.symbol().call();
+
+    const rewardTokenPrice = getParameterCaseInsensitive(
+      prices,
+      pool.rewardToken,
+    )?.usd;
+    const apr =
+      (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
+
+    return {
+      name,
+      address: pool.address,
+      stakedTokenAddress: pool.stakeToken,
+      totalSupply,
+      stakedSupply,
+      rewardDecimals,
+      stakedTokenDecimals,
+      tvl,
+      stakedTvl,
+      apr,
+      rewardTokenPrice,
+      rewardTokenSymbol,
+      price,
+      abi: pool.abi,
+    };
   }
 }
 
