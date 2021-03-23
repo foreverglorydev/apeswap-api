@@ -6,7 +6,7 @@ import { StatsController } from './stats.controller';
 @Module({
   imports: [
     CacheModule.register({
-      ttl: 15,
+      ttl: 45,
     }),
     HttpModule,
   ],

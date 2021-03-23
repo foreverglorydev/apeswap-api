@@ -3,6 +3,7 @@ import { getParameterCaseInsensitive } from 'src/utils/helpers';
 
 import { MASTER_APE_ABI } from './abi/masterApeAbi';
 import configuration from 'src/config/configuration';
+import { BEP20_REWARD_APE_ABI } from './abi/bep20RewardApeAbi';
 
 // ADDRESS GETTERS
 export function masterApeContractAddress(): string {
@@ -288,7 +289,7 @@ export async function getWalletStatsForIncentivizedPools(
   await Promise.all(
     pools.map(async (incentivizedPool) => {
       const contract = getContract(
-        incentivizedPool.abi,
+        BEP20_REWARD_APE_ABI,
         incentivizedPool.address,
       );
       const userInfo = await contract.methods.userInfo(wallet).call();
