@@ -18,8 +18,6 @@ import {
   getWalletStatsForPools,
   getWalletStatsForFarms,
   getWalletStatsForIncentivizedPools,
-  getWalletStats,
-  getAllStats,
 } from './utils/stats.utils';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { WalletInvalidHttpException } from './exceptions/wallet-invalid.execption';
