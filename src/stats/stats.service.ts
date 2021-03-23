@@ -59,8 +59,8 @@ export class StatsService {
       };
 
       const [poolPrices, bananasInWallet] = await Promise.all([
-        await this.calculateStats(),
-        await this.getTokenBalanceOfAddress(bananaContract, wallet),
+        this.calculateStats(),
+        this.getTokenBalanceOfAddress(bananaContract, wallet),
       ]);
 
       walletStats.bananaPrice = poolPrices.bananaPrice;
@@ -96,11 +96,11 @@ export class StatsService {
     );
 
     const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
-      await masterApeContract.methods.totalAllocPoint().call(),
-      await getBscPrices(this.httpService),
-      await ((((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
+      masterApeContract.methods.totalAllocPoint().call(),
+      getBscPrices(this.httpService),
+      (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
         86400) /
-        3),
+        3,
     ]);
 
     // If Banana price not returned from Gecko, calculating using pools
@@ -112,8 +112,8 @@ export class StatsService {
     const priceUSD = prices[bananaAddress()].usd;
 
     const [tokens, { burntAmount, totalSupply }] = await Promise.all([
-      await this.getTokens(poolInfos),
-      await this.getBurnAndSupply(),
+      this.getTokens(poolInfos),
+      this.getBurnAndSupply(),
     ]);
 
     const poolPrices: GeneralStats = {
@@ -146,8 +146,8 @@ export class StatsService {
       poolPrices.tvl += pool.stakedTvl;
     });
     await Promise.all([
-      await this.mappingIncetivizedPools(poolPrices, prices),
-      await this.getTVLData(poolPrices),
+      this.mappingIncetivizedPools(poolPrices, prices),
+      this.getTVLData(poolPrices),
     ]);
 
     return poolPrices;
@@ -173,10 +173,10 @@ export class StatsService {
   async getLpInfo(tokenAddress, stakingAddress) {
     const contract = getContract(LP_ABI, tokenAddress);
     const [reserves, decimals, token0, token1] = await Promise.all([
-      await contract.methods.getReserves().call(),
-      await contract.methods.decimals().call(),
-      await contract.methods.token0().call(),
-      await contract.methods.token1().call(),
+      contract.methods.getReserves().call(),
+      contract.methods.decimals().call(),
+      contract.methods.token0().call(),
+      contract.methods.token1().call(),
     ]);
     const [totalSupply, staked] = await Promise.all([
       (await contract.methods.totalSupply().call()) / 10 ** decimals,
@@ -213,12 +213,12 @@ export class StatsService {
     }
 
     const contract = getContract(ERC20_ABI, tokenAddress);
-    const [name, symbol, totalSupply] = await Promise.all([
-      await contract.methods.name().call(),
-      await contract.methods.symbol().call(),
-      await contract.methods.totalSupply().call(),
+    const [name, symbol, totalSupply, decimals] = await Promise.all([
+      contract.methods.name().call(),
+      contract.methods.symbol().call(),
+      contract.methods.totalSupply().call(),
+      contract.methods.decimals().call(),
     ]);
-    const decimals = await contract.methods.decimals().call();
 
     return {
       address: tokenAddress,
@@ -298,10 +298,10 @@ export class StatsService {
         t0Address,
         t1Address,
       ] = await Promise.all([
-        await stakedTokenContract.methods.getReserves().call(),
-        await stakedTokenContract.methods.decimals().call(),
-        await stakedTokenContract.methods.token0().call(),
-        await stakedTokenContract.methods.token1().call(),
+        stakedTokenContract.methods.getReserves().call(),
+        stakedTokenContract.methods.decimals().call(),
+        stakedTokenContract.methods.token0().call(),
+        stakedTokenContract.methods.token1().call(),
       ]);
 
       const token0Contract = getContract(ERC20_ABI, t0Address);
@@ -321,17 +321,17 @@ export class StatsService {
         t0Symbol,
         t1Symbol,
       ] = await Promise.all([
-        await token0Contract.methods.decimals().call(),
-        await token1Contract.methods.decimals().call(),
+        token0Contract.methods.decimals().call(),
+        token1Contract.methods.decimals().call(),
         (await stakedTokenContract.methods.totalSupply().call()) /
           10 ** stakedTokenDecimals,
         (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
           10 ** stakedTokenDecimals,
         (await poolContract.methods.rewardPerBlock().call()) /
           10 ** rewardDecimals,
-        await rewardTokenContract.methods.symbol().call(),
-        await token0Contract.methods.symbol().call(),
-        await token1Contract.methods.symbol().call(),
+        rewardTokenContract.methods.symbol().call(),
+        token0Contract.methods.symbol().call(),
+        token1Contract.methods.symbol().call(),
       ]);
 
       const q0 = reserves._reserve0 / 10 ** token0decimals;
@@ -408,12 +408,9 @@ export class StatsService {
     let totalApr = 0;
 
     const [pools, farms, incentivezed] = await Promise.all([
-      await getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
-      await getWalletStatsForFarms(wallet, poolPrices.farms, masterApeContract),
-      await getWalletStatsForIncentivizedPools(
-        wallet,
-        poolPrices.incentivizedPools,
-      ),
+      getWalletStatsForPools(wallet, poolPrices.pools, masterApeContract),
+      getWalletStatsForFarms(wallet, poolPrices.farms, masterApeContract),
+      getWalletStatsForIncentivizedPools(wallet, poolPrices.incentivizedPools),
     ]);
     walletStats.pools = pools;
     walletStats.farms = farms;

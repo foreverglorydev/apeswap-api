@@ -36,9 +36,9 @@ export default () => ({
       burn: '0x000000000000000000000000000000000000dead',
     },
     appNodes: [
-      'https://bsc-dataseed1.binance.org:443',
-      'https://bsc-dataseed1.binance.org:443',
-      'https://bsc-dataseed1.binance.org:443',
+      'https://bsc-dataseed.binance.org:443',
+      'https://bsc-dataseed.binance.org:443',
+      'https://bsc-dataseed.binance.org:443',
     ],
   },
 });

@@ -14,7 +14,7 @@ export async function lookUpPrices(httpService, token_array) {
     pricePromises.push(httpService.get(url).toPromise());
   }
 
-  Promise.all(pricePromises).then((priceArray) => {
+  await Promise.all(pricePromises).then((priceArray) => {
     for (let i = 0; i < priceArray.length; i++) {
       const data = priceArray[i].data;
       for (const token of token_array) {
