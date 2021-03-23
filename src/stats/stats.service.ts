@@ -98,9 +98,7 @@ export class StatsService {
     const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
       masterApeContract.methods.totalAllocPoint().call(),
       getBscPrices(this.httpService),
-      (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
-        86400) /
-        3,
+      ((masterApeContract.methods.cakePerBlock().call() / 1e18) * 86400) / 3,
     ]);
 
     // If Banana price not returned from Gecko, calculating using pools
@@ -179,9 +177,8 @@ export class StatsService {
       contract.methods.token1().call(),
     ]);
     const [totalSupply, staked] = await Promise.all([
-      (await contract.methods.totalSupply().call()) / 10 ** decimals,
-      (await contract.methods.balanceOf(stakingAddress).call()) /
-        10 ** decimals,
+      contract.methods.totalSupply().call() / 10 ** decimals,
+      contract.methods.balanceOf(stakingAddress).call() / 10 ** decimals,
     ]);
     const q0 = reserves._reserve0;
     const q1 = reserves._reserve1;
@@ -239,9 +236,8 @@ export class StatsService {
     const decimals = await bananaContract.methods.decimals().call();
 
     const [burntAmount, totalSupply] = await Promise.all([
-      (await bananaContract.methods.balanceOf(burnAddress()).call()) /
-        10 ** decimals,
-      (await bananaContract.methods.totalSupply().call()) / 10 ** decimals,
+      bananaContract.methods.balanceOf(burnAddress()).call() / 10 ** decimals,
+      bananaContract.methods.totalSupply().call() / 10 ** decimals,
     ]);
     return {
       burntAmount,
@@ -292,24 +288,24 @@ export class StatsService {
 
     if (pool.stakeTokenIsLp) {
       const stakedTokenContract = getContract(LP_ABI, pool.stakeToken);
+      const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
+
       const [
         reserves,
         stakedTokenDecimals,
         t0Address,
         t1Address,
+        rewardDecimals,
       ] = await Promise.all([
         stakedTokenContract.methods.getReserves().call(),
         stakedTokenContract.methods.decimals().call(),
         stakedTokenContract.methods.token0().call(),
         stakedTokenContract.methods.token1().call(),
+        rewardTokenContract.methods.decimals().call(),
       ]);
 
       const token0Contract = getContract(ERC20_ABI, t0Address);
       const token1Contract = getContract(ERC20_ABI, t1Address);
-      const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
-      const rewardDecimals = await rewardTokenContract.methods
-        .decimals()
-        .call();
 
       const [
         token0decimals,
@@ -323,12 +319,11 @@ export class StatsService {
       ] = await Promise.all([
         token0Contract.methods.decimals().call(),
         token1Contract.methods.decimals().call(),
-        (await stakedTokenContract.methods.totalSupply().call()) /
+        stakedTokenContract.methods.totalSupply().call() /
           10 ** stakedTokenDecimals,
-        (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
+        stakedTokenContract.methods.balanceOf(pool.address).call() /
           10 ** stakedTokenDecimals,
-        (await poolContract.methods.rewardPerBlock().call()) /
-          10 ** rewardDecimals,
+        poolContract.methods.rewardPerBlock().call() / 10 ** rewardDecimals,
         rewardTokenContract.methods.symbol().call(),
         token0Contract.methods.symbol().call(),
         token1Contract.methods.symbol().call(),
