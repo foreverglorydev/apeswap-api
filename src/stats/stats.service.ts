@@ -98,7 +98,9 @@ export class StatsService {
     const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
       masterApeContract.methods.totalAllocPoint().call(),
       getBscPrices(this.httpService),
-      ((masterApeContract.methods.cakePerBlock().call() / 1e18) * 86400) / 3,
+      (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
+        86400) /
+        3,
     ]);
 
     // If Banana price not returned from Gecko, calculating using pools
@@ -177,8 +179,9 @@ export class StatsService {
       contract.methods.token1().call(),
     ]);
     const [totalSupply, staked] = await Promise.all([
-      contract.methods.totalSupply().call() / 10 ** decimals,
-      contract.methods.balanceOf(stakingAddress).call() / 10 ** decimals,
+      (await contract.methods.totalSupply().call()) / 10 ** decimals,
+      (await contract.methods.balanceOf(stakingAddress).call()) /
+        10 ** decimals,
     ]);
     const q0 = reserves._reserve0;
     const q1 = reserves._reserve1;
@@ -236,8 +239,9 @@ export class StatsService {
     const decimals = await bananaContract.methods.decimals().call();
 
     const [burntAmount, totalSupply] = await Promise.all([
-      bananaContract.methods.balanceOf(burnAddress()).call() / 10 ** decimals,
-      bananaContract.methods.totalSupply().call() / 10 ** decimals,
+      (await bananaContract.methods.balanceOf(burnAddress()).call()) /
+        10 ** decimals,
+      (await bananaContract.methods.totalSupply().call()) / 10 ** decimals,
     ]);
     return {
       burntAmount,
@@ -289,7 +293,6 @@ export class StatsService {
     if (pool.stakeTokenIsLp) {
       const stakedTokenContract = getContract(LP_ABI, pool.stakeToken);
       const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
-
       const [
         reserves,
         stakedTokenDecimals,
@@ -319,11 +322,12 @@ export class StatsService {
       ] = await Promise.all([
         token0Contract.methods.decimals().call(),
         token1Contract.methods.decimals().call(),
-        stakedTokenContract.methods.totalSupply().call() /
+        (await stakedTokenContract.methods.totalSupply().call()) /
           10 ** stakedTokenDecimals,
-        stakedTokenContract.methods.balanceOf(pool.address).call() /
+        (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
           10 ** stakedTokenDecimals,
-        poolContract.methods.rewardPerBlock().call() / 10 ** rewardDecimals,
+        (await poolContract.methods.rewardPerBlock().call()) /
+          10 ** rewardDecimals,
         rewardTokenContract.methods.symbol().call(),
         token0Contract.methods.symbol().call(),
         token1Contract.methods.symbol().call(),
