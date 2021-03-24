@@ -2,6 +2,7 @@ import { CacheModule, Module, HttpModule } from '@nestjs/common';
 import { StatsService } from './stats.service';
 import { SubgraphService } from './subgraph.service';
 import { StatsController } from './stats.controller';
+import { PriceService } from './price.service';
 
 @Module({
   imports: [
@@ -10,7 +11,7 @@ import { StatsController } from './stats.controller';
     }),
     HttpModule,
   ],
-  providers: [StatsService, SubgraphService],
+  providers: [StatsService, SubgraphService, PriceService],
   controllers: [StatsController],
 })
 export class StatsModule {}

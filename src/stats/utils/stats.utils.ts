@@ -1,5 +1,4 @@
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
-import { getBscPrices } from 'src/utils/bsc_helpers';
 import { getParameterCaseInsensitive } from 'src/utils/helpers';
 import { incentivizedPools } from 'src/utils/incentivizedPools';
 
@@ -42,14 +41,14 @@ function masterApeContractWeb(): any {
 
 export async function getAllStats(
   httpService,
+  prices,
   showAll = false,
 ): Promise<GeneralStats> {
   const {
     totalAllocPoints,
     poolInfos,
-    prices,
     priceUSD,
-  } = await getPointsPoolsAndPrices(httpService);
+  } = await getPointsPoolsAndPrices(httpService, prices);
 
   const poolPrices = await calculatePoolPrices(
     priceUSD,
@@ -77,11 +76,6 @@ export async function getBananaRewardsPerDay(): Promise<any> {
   );
 }
 
-export async function getAllPrices(httpService): Promise<any> {
-  const prices = await getBscPrices(httpService);
-  return prices;
-}
-
 function getBananaPriceWithPoolList(poolList, prices) {
   const poolBusd = poolList.find(
     (pool) => pool.address === bananaBusdAddress(),
@@ -107,7 +101,7 @@ function getBananaPriceWithPoolList(poolList, prices) {
   return bananaPriceUsingBusd;
 }
 
-export async function getPointsPoolsAndPrices(httpService) {
+export async function getPointsPoolsAndPrices(httpService, prices) {
   const masterApeContract = masterApeContractWeb();
 
   const poolCount = parseInt(
@@ -125,7 +119,6 @@ export async function getPointsPoolsAndPrices(httpService) {
     .totalAllocPoint()
     .call();
 
-  const prices = await getBscPrices(httpService);
   // If Banana price not returned from Gecko, calculating using pools
   if (!prices[bananaAddress()]) {
     prices[bananaAddress()] = {
@@ -135,7 +128,6 @@ export async function getPointsPoolsAndPrices(httpService) {
   return {
     totalAllocPoints,
     poolInfos,
-    prices,
     priceUSD: prices[bananaAddress()].usd,
   };
 }
@@ -433,7 +425,7 @@ async function getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
     };
   } else {
     const stakedTokenContract = getContract(ERC20_ABI, pool.stakeToken);
-    const name = await stakedTokenContract.methods.symbol().call()
+    const name = await stakedTokenContract.methods.symbol().call();
     const price = getParameterCaseInsensitive(prices, pool.stakeToken)?.usd;
     const stakedTokenDecimals = await stakedTokenContract.methods
       .decimals()
@@ -597,9 +589,10 @@ export async function getTotalTokenSupply(tokenContract): Promise<any> {
 export async function getWalletStats(
   httpService,
   wallet,
+  prices,
 ): Promise<WalletStats> {
   try {
-    const poolPrices = await getAllStats(httpService, true);
+    const poolPrices = await getAllStats(httpService, prices, true);
     const bananaContract = getContract(ERC20_ABI, bananaAddress());
 
     let walletStats: WalletStats = {
@@ -726,8 +719,8 @@ export async function getWalletStatsForPools(
           pendingRewardUsd: pendingReward * pool.rewardTokenPrice,
           apr: pool.apr,
           aprPerDay: pool.apr / 365,
-          aprPerWeek: pool.apr * 7 / 365,
-          aprPerMonth: pool.apr * 30 / 365,
+          aprPerWeek: (pool.apr * 7) / 365,
+          aprPerMonth: (pool.apr * 30) / 365,
           dollarsEarnedPerDay,
           dollarsEarnedPerWeek: dollarsEarnedPerDay * 7,
           dollarsEarnedPerMonth: dollarsEarnedPerDay * 30,
@@ -775,8 +768,8 @@ export async function getWalletStatsForFarms(
           pendingRewardUsd: pendingReward * farm.rewardTokenPrice,
           apr: farm.apr,
           aprPerDay: farm.apr / 365,
-          aprPerWeek: farm.apr * 7 / 365,
-          aprPerMonth: farm.apr * 30 / 365,
+          aprPerWeek: (farm.apr * 7) / 365,
+          aprPerMonth: (farm.apr * 30) / 365,
           dollarsEarnedPerDay,
           dollarsEarnedPerWeek: dollarsEarnedPerDay * 7,
           dollarsEarnedPerMonth: dollarsEarnedPerDay * 30,
@@ -826,8 +819,8 @@ export async function getWalletStatsForIncentivizedPools(
           pendingRewardUsd: pendingReward * incentivizedPool.rewardTokenPrice,
           apr: incentivizedPool.apr,
           aprPerDay: incentivizedPool.apr / 365,
-          aprPerWeek: incentivizedPool.apr * 7 / 365,
-          aprPerMonth: incentivizedPool.apr * 30 / 365,
+          aprPerWeek: (incentivizedPool.apr * 7) / 365,
+          aprPerMonth: (incentivizedPool.apr * 30) / 365,
           dollarsEarnedPerDay,
           dollarsEarnedPerWeek: dollarsEarnedPerDay * 7,
           dollarsEarnedPerMonth: dollarsEarnedPerDay * 30,
