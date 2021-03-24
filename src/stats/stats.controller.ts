@@ -26,10 +26,9 @@ export class StatsController {
   }
 
   @Get(':wallet')
-  async getStatsForWallet(
-    @Param('wallet') wallet: string,
-  ): Promise<WalletStats> {
+  async getStatsForWallet(@Param('wallet') wallet: string): Promise<any> {
     this.logger.debug('Called GET /stats/:wallet');
-    return this.statsService.getStatsForWallet(wallet);
+    return [];
+    // return this.statsService.getStatsForWallet(wallet);
   }
 }
