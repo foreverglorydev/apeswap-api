@@ -17,7 +17,7 @@ export class DrawingService {
     private drawModel: Model<DrawDocument>,
   ) {}
 
-  lotteryDrawHoursUtc = [18, 22];
+  lotteryDrawHoursUtc = [18, 19, 20, 21, 22, 23, 24];
   isDrawing = false;
   isReset = true;
   web3 = getWeb3();
@@ -92,7 +92,7 @@ export class DrawingService {
         await this.draw();
         return 'draw';
       }
-    } else if (drawed && latestDrawHours + 1 === currentHour) {
+    } else if (drawed && latestDrawHours === currentHour) {
       this.logger.log('Resetting');
       await this.reset();
       return 'reset';
