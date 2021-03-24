@@ -1,6 +1,12 @@
-import { Injectable, HttpService } from '@nestjs/common';
+import {
+  Injectable,
+  HttpService,
+  Inject,
+  CACHE_MANAGER,
+  Logger,
+} from '@nestjs/common';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
-
+import { Cache } from 'cache-manager';
 import { getBscPrices } from 'src/utils/bsc_helpers';
 import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
@@ -24,7 +30,12 @@ import { WalletInvalidHttpException } from './exceptions/wallet-invalid.execptio
 
 @Injectable()
 export class StatsService {
-  constructor(private httpService: HttpService) {}
+  private readonly logger = new Logger(StatsService.name);
+
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private httpService: HttpService,
+  ) {}
 
   async getAllStats(): Promise<GeneralStats> {
     const poolPrices: GeneralStats = await this.calculateStats();
@@ -82,6 +93,12 @@ export class StatsService {
   }
 
   async calculateStats() {
+    const cachedValue = await this.cacheManager.get('calculateStats');
+    if (cachedValue) {
+      this.logger.log('Hit calculateStats() cache');
+      return cachedValue as GeneralStats;
+    }
+
     const masterApeContract = masterApeContractWeb();
 
     const poolCount = parseInt(
@@ -149,6 +166,8 @@ export class StatsService {
       this.mappingIncetivizedPools(poolPrices, prices),
       this.getTVLData(poolPrices),
     ]);
+
+    await this.cacheManager.set('calculateStats', poolPrices, { ttl: 300 });
 
     return poolPrices;
   }
