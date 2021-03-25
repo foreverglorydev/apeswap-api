@@ -79,7 +79,7 @@ export class StatsService {
     return true;
   }
 
-  async getAllStats(): Promise<any> {
+  async getAllStats(): Promise<GeneralStats> {
     const poolPrices: GeneralStats = await this.verifyCalculateStats();
     poolPrices.incentivizedPools.forEach((pool) => {
       delete pool.abi;
@@ -223,7 +223,8 @@ export class StatsService {
     await this.cacheManager.set('calculateStats', poolPrices, { ttl: 300 });
     this.logger.log('Remove last stats');
     await this.cleanStats();
-    this.createGeneralStats(poolPrices);
+    await this.createGeneralStats(poolPrices);
+
     return poolPrices;
   }
 
