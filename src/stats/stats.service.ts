@@ -74,9 +74,13 @@ export class StatsService {
     const diff = now - lastCreatedAt;
     const time = 300000; //3 minutos
 
-    if (diff > time) return null;
+    if (diff > time) {
+      await this.updateCreatedAtStats();
+      this.calculateStats();
+    }
 
-    return true;
+    const generalStats: any = await this.findOne();
+    return generalStats;
   }
 
   async getAllStats(): Promise<GeneralStats> {
@@ -140,14 +144,8 @@ export class StatsService {
       this.logger.log('Hit calculateStats() cache');
       return cachedValue as GeneralStats;
     }
-    const infoStats = await this.verifyStats();
-    this.logger.log(`infostats is ${infoStats}`);
-    if (infoStats == null) {
-      await this.updateCreatedAtStats();
-      this.calculateStats();
-    }
 
-    const generalStats: any = await this.findOne();
+    const generalStats: any = await this.verifyStats();
     return generalStats;
   }
 
