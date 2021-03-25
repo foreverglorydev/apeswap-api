@@ -67,24 +67,20 @@ export class StatsService {
 
   async verifyStats() {
     const now = Date.now();
-    const stat: any = await this.findOne();
-    if (!stat) return null;
+    const stats: any = await this.findOne();
+    if (!stats) return null;
 
-    const lastCreatedAt = new Date(stat.createdAt).getTime();
+    const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
     const time = 300000; //3 minutos
 
-    if (diff > time) {
-      await this.updateCreatedAtStats();
-      this.calculateStats();
-    }
+    if (diff > time) return null;
 
-    const generalStats: any = await this.findOne();
-    return generalStats;
+    return stats;
   }
 
   async getAllStats(): Promise<GeneralStats> {
-    const poolPrices: GeneralStats = await this.verifyCalculateStats();
+    const poolPrices: GeneralStats = await this.getCalculateStats();
     poolPrices.incentivizedPools.forEach((pool) => {
       delete pool.abi;
     });
@@ -116,7 +112,7 @@ export class StatsService {
       };
 
       const [poolPrices, bananasInWallet] = await Promise.all([
-        this.verifyCalculateStats(),
+        this.getCalculateStats(),
         this.getTokenBalanceOfAddress(bananaContract, wallet),
       ]);
 
@@ -138,14 +134,19 @@ export class StatsService {
     }
   }
 
-  async verifyCalculateStats() {
+  async getCalculateStats() {
     const cachedValue = await this.cacheManager.get('calculateStats');
     if (cachedValue) {
       this.logger.log('Hit calculateStats() cache');
       return cachedValue as GeneralStats;
     }
 
-    const generalStats: any = await this.verifyStats();
+    const infoStats = await this.verifyStats();
+    if (infoStats) return infoStats;
+
+    await this.updateCreatedAtStats();
+    this.calculateStats();
+    const generalStats: any = await this.findOne();
     return generalStats;
   }
 
