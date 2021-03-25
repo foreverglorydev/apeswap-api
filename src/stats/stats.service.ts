@@ -32,6 +32,7 @@ import { Cron } from '@nestjs/schedule';
 @Injectable()
 export class StatsService {
   private readonly logger = new Logger(StatsService.name);
+  private readonly chainId = parseInt(process.env.CHAIN_ID);
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -41,6 +42,7 @@ export class StatsService {
 
   @Cron('0 50 * * * *')
   async loadDefistation() {
+    if (this.chainId !== 56) return; // Only run on mainet
     try {
       this.logger.log('Loading Defistation');
       const statData = await this.getDefistationStats();
