@@ -32,11 +32,11 @@ export class SubgraphService {
 
   async getTodayData(): Promise<any> {
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setDate(yesterday.getDate() - 2);
     const yTimestamp = Math.round(yesterday.getTime() / 1000);
     const nowTimestamp = Math.round(new Date().getTime() / 1000);
     const { apeswapDayDatas } = await this.getDayData(yTimestamp, nowTimestamp);
-    return apeswapDayDatas[0];
+    return apeswapDayDatas[1] || apeswapDayDatas[0];
   }
 
   async getDailySummary() {

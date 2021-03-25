@@ -36,7 +36,7 @@ export const pairsQuery = `{
 
 export function dayData(skip: number, startTime: number, endTime: number) {
   return `{
-    apeswapDayDatas: uniswapDayDatas(first: 1000, skip: ${skip}, where: { date_gt: ${startTime}, date_lt: ${endTime} }, orderBy: date, orderDirection: asc) {
+    apeswapDayDatas: uniswapDayDatas(first: 1000, skip: ${skip}, where: { date_gt: ${startTime}, date_lt: ${endTime} }, orderBy: date, orderDirection: desc) {
       id
       date
       totalVolumeUSD

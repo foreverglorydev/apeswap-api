@@ -13,7 +13,6 @@ import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
 import { incentivizedPools } from 'src/utils/incentivizedPools';
 import { getParameterCaseInsensitive } from 'src/utils/helpers';
-import { getSubgraphData } from './utils/subgraph.utils';
 import {
   masterApeContractWeb,
   bananaAddress,
@@ -27,6 +26,8 @@ import {
 } from './utils/stats.utils';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { WalletInvalidHttpException } from './exceptions/wallet-invalid.execption';
+import { SubgraphService } from './subgraph.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class StatsService {
@@ -35,7 +36,57 @@ export class StatsService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private httpService: HttpService,
+    private subgraphService: SubgraphService,
   ) {}
+
+  @Cron('0 50 * * * *')
+  async loadDefistation() {
+    try {
+      this.logger.log('Loading Defistation');
+      const statData = await this.getDefistationStats();
+      const data = { test: true, bnb: 0, ...statData };
+      console.log(data);
+      const result = await this.httpService
+        .post('https://api.defistation.io/dataProvider/tvl', data, {
+          auth: {
+            username: process.env.DEFISTATION_USER,
+            password: process.env.DEFISTATION_PASSWORD,
+          },
+        })
+        .toPromise();
+      return result.data;
+    } catch (e) {
+      this.logger.error('Something went wrong loading defistation');
+      this.logger.error(e);
+      if (e.response) {
+        this.logger.error(e.response.data);
+      }
+    }
+  }
+
+  async getDefistation() {
+    const { data } = await this.httpService
+      .get('https://api.defistation.io/dataProvider/tvl', {
+        auth: {
+          username: process.env.DEFISTATION_USER,
+          password: process.env.DEFISTATION_PASSWORD,
+        },
+      })
+      .toPromise();
+    console.log(data);
+    return data;
+  }
+
+  async getDefistationStats(): Promise<any> {
+    const [allStats, summary] = await Promise.all([
+      this.getAllStats(),
+      this.subgraphService.getDailySummary(),
+    ]);
+    const { tvl, pools, farms, incentivizedPools } = allStats;
+    const { volume, pairs } = summary;
+    const data = { pools, farms, incentivizedPools, pairs };
+    return { tvl, volume: parseInt(volume), data };
+  }
 
   async getAllStats(): Promise<GeneralStats> {
     const poolPrices: GeneralStats = await this.calculateStats();
@@ -409,9 +460,9 @@ export class StatsService {
   }
 
   async getTVLData(poolPrices): Promise<any> {
-    const { data } = await getSubgraphData(this.httpService);
-    poolPrices.tvl += parseFloat(data.uniswapFactory.totalLiquidityUSD);
-    poolPrices.totalVolume += parseFloat(data.uniswapFactory.totalVolumeUSD);
+    const { tvl, totalVolume } = await this.subgraphService.getTVLData();
+    poolPrices.tvl += tvl;
+    poolPrices.totalVolume += totalVolume;
   }
 
   async getTokenBalanceOfAddress(tokenContract, address): Promise<any> {
