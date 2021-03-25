@@ -75,7 +75,7 @@ export class StatsService {
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
-    const time = 300000; //3 minutos
+    const time = 300000; // 5 minutes
 
     if (diff > time) return null;
 
@@ -270,7 +270,7 @@ export class StatsService {
       this.getTVLData(poolPrices),
     ]);
 
-    await this.cacheManager.set('calculateStats', poolPrices, { ttl: 300 });
+    await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
     this.logger.log('Remove last stats');
     await this.cleanStats();
     await this.createGeneralStats(poolPrices);
