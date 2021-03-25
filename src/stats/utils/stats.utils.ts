@@ -305,6 +305,7 @@ export async function getWalletStatsForIncentivizedPools(
         const tokensEarnedPerDay =
           dollarsEarnedPerDay / incentivizedPool.rewardTokenPrice;
         const curr_pool = {
+          id: incentivizedPool.sousId,
           address: incentivizedPool.address,
           name: incentivizedPool.name,
           rewardTokenSymbol: incentivizedPool.rewardTokenSymbol,

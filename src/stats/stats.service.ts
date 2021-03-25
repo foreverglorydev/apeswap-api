@@ -432,6 +432,7 @@ export class StatsService {
         (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
 
       return {
+        id: pool.sousId,
         name: `[${t0Symbol}]-[${t1Symbol}] LP`,
         address: pool.address,
         stakedTokenAddress: pool.stakeToken,
