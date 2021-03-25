@@ -47,7 +47,6 @@ export class StatsService {
       this.logger.log('Loading Defistation');
       const statData = await this.getDefistationStats();
       const data = { test: true, bnb: 0, ...statData };
-      console.log(data);
       const result = await this.httpService
         .post('https://api.defistation.io/dataProvider/tvl', data, {
           auth: {
@@ -75,7 +74,6 @@ export class StatsService {
         },
       })
       .toPromise();
-    console.log(data);
     return data;
   }
 
