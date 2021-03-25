@@ -5,6 +5,7 @@ import {
   CACHE_MANAGER,
   Logger,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { Cache } from 'cache-manager';
 import { getBscPrices } from 'src/utils/bsc_helpers';
@@ -13,7 +14,6 @@ import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
 import { incentivizedPools } from 'src/utils/incentivizedPools';
 import { getParameterCaseInsensitive } from 'src/utils/helpers';
-import { getSubgraphData } from './utils/subgraph.utils';
 import {
   masterApeContractWeb,
   bananaAddress,
@@ -27,18 +27,111 @@ import {
 } from './utils/stats.utils';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { WalletInvalidHttpException } from './exceptions/wallet-invalid.execption';
+import { Model } from 'mongoose';
+import {
+  GeneralStats as GeneralStatsDB,
+  GeneralStatsDocument,
+} from './schema/generalStats.schema';
+import { SubgraphService } from './subgraph.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class StatsService {
   private readonly logger = new Logger(StatsService.name);
+  private readonly chainId = parseInt(process.env.CHAIN_ID);
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private httpService: HttpService,
+    @InjectModel(GeneralStatsDB.name)
+    private generalStatsModel: Model<GeneralStatsDocument>,
+    private subgraphService: SubgraphService,
   ) {}
 
+  createGeneralStats(stats) {
+    return this.generalStatsModel.create(stats);
+  }
+  findOne() {
+    return this.generalStatsModel.findOne();
+  }
+  updateCreatedAtStats() {
+    return this.generalStatsModel.updateOne(
+      {},
+      {
+        $currentDate: {
+          createdAt: true,
+        },
+      },
+    );
+  }
+  cleanStats() {
+    return this.generalStatsModel.deleteMany();
+  }
+
+  async verifyStats() {
+    const now = Date.now();
+    const stats: any = await this.findOne();
+    if (!stats) return null;
+
+    const lastCreatedAt = new Date(stats.createdAt).getTime();
+    const diff = now - lastCreatedAt;
+    const time = 300000; // 5 minutes
+
+    if (diff > time) return null;
+
+    return stats;
+  }
+
+  @Cron('0 50 * * * *')
+  async loadDefistation() {
+    if (this.chainId !== 56) return; // Only run on mainet
+    try {
+      this.logger.log('Loading Defistation');
+      const statData = await this.getDefistationStats();
+      const data = { test: true, bnb: 0, ...statData };
+      const result = await this.httpService
+        .post('https://api.defistation.io/dataProvider/tvl', data, {
+          auth: {
+            username: process.env.DEFISTATION_USER,
+            password: process.env.DEFISTATION_PASSWORD,
+          },
+        })
+        .toPromise();
+      return result.data;
+    } catch (e) {
+      this.logger.error('Something went wrong loading defistation');
+      this.logger.error(e);
+      if (e.response) {
+        this.logger.error(e.response.data);
+      }
+    }
+  }
+
+  async getDefistation() {
+    const { data } = await this.httpService
+      .get('https://api.defistation.io/dataProvider/tvl', {
+        auth: {
+          username: process.env.DEFISTATION_USER,
+          password: process.env.DEFISTATION_PASSWORD,
+        },
+      })
+      .toPromise();
+    return data;
+  }
+
+  async getDefistationStats(): Promise<any> {
+    const [allStats, summary] = await Promise.all([
+      this.getAllStats(),
+      this.subgraphService.getDailySummary(),
+    ]);
+    const { tvl, pools, farms, incentivizedPools } = allStats;
+    const { volume, pairs } = summary;
+    const data = { pools, farms, incentivizedPools, pairs };
+    return { tvl, volume: parseInt(volume), data };
+  }
+
   async getAllStats(): Promise<GeneralStats> {
-    const poolPrices: GeneralStats = await this.calculateStats();
+    const poolPrices: GeneralStats = await this.getCalculateStats();
     poolPrices.incentivizedPools.forEach((pool) => {
       delete pool.abi;
     });
@@ -70,7 +163,7 @@ export class StatsService {
       };
 
       const [poolPrices, bananasInWallet] = await Promise.all([
-        this.calculateStats(),
+        this.getCalculateStats(),
         this.getTokenBalanceOfAddress(bananaContract, wallet),
       ]);
 
@@ -92,13 +185,23 @@ export class StatsService {
     }
   }
 
-  async calculateStats() {
+  async getCalculateStats() {
     const cachedValue = await this.cacheManager.get('calculateStats');
     if (cachedValue) {
       this.logger.log('Hit calculateStats() cache');
       return cachedValue as GeneralStats;
     }
 
+    const infoStats = await this.verifyStats();
+    if (infoStats) return infoStats;
+
+    await this.updateCreatedAtStats();
+    this.calculateStats();
+    const generalStats: any = await this.findOne();
+    return generalStats;
+  }
+
+  async calculateStats() {
     const masterApeContract = masterApeContractWeb();
 
     const poolCount = parseInt(
@@ -167,7 +270,10 @@ export class StatsService {
       this.getTVLData(poolPrices),
     ]);
 
-    await this.cacheManager.set('calculateStats', poolPrices, { ttl: 300 });
+    await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
+    this.logger.log('Remove last stats');
+    await this.cleanStats();
+    await this.createGeneralStats(poolPrices);
 
     return poolPrices;
   }
@@ -381,6 +487,7 @@ export class StatsService {
         (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
 
       return {
+        id: pool.sousId,
         name: `[${t0Symbol}]-[${t1Symbol}] LP`,
         address: pool.address,
         stakedTokenAddress: pool.stakeToken,
@@ -409,9 +516,9 @@ export class StatsService {
   }
 
   async getTVLData(poolPrices): Promise<any> {
-    const { data } = await getSubgraphData(this.httpService);
-    poolPrices.tvl += parseFloat(data.uniswapFactory.totalLiquidityUSD);
-    poolPrices.totalVolume += parseFloat(data.uniswapFactory.totalVolumeUSD);
+    const { tvl, totalVolume } = await this.subgraphService.getTVLData();
+    poolPrices.tvl += tvl;
+    poolPrices.totalVolume += totalVolume;
   }
 
   async getTokenBalanceOfAddress(tokenContract, address): Promise<any> {

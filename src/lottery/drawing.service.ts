@@ -17,7 +17,7 @@ export class DrawingService {
     private drawModel: Model<DrawDocument>,
   ) {}
 
-  lotteryDrawHoursUtc = [2, 8, 14, 20, 23];
+  lotteryDrawHoursUtc = [1, 23];
   isDrawing = false;
   isReset = true;
   web3 = getWeb3();
@@ -40,7 +40,7 @@ export class DrawingService {
       if (aDiff == bDiff) {
         return a > b ? a : b;
       } else {
-        return bDiff < aDiff ? b : a;
+        return aDiff > bDiff ? a : b;
       }
     });
   }
@@ -67,14 +67,20 @@ export class DrawingService {
     return millisTimeOfNextDraw;
   }
 
+  // Runs every 20 seconds
   @Cron('20 * * * * *')
   async process() {
     if (this.chainId == 56) return;
     const latestDraw = await this.drawModel.findOne().sort({ drawTime: -1 });
     const latestDrawHours = latestDraw?.drawTime.getUTCHours();
+    const latestDrawMinutes = latestDraw?.drawTime.getUTCMinutes();
+    const latestDrawDay = latestDraw?.drawTime.getUTCDay();
     const drawed = await this.lottery.methods.drawed().call();
     const drawingPhase = await this.lottery.methods.drawingPhase().call();
-    const currentHour = new Date().getUTCHours();
+    const currentDate = new Date();
+    const currentMinutes = currentDate.getUTCMinutes();
+    const currentHour = currentDate.getUTCHours();
+    const currentDay = currentDate.getUTCDay();
     const nextLottery = this.getClosestLotteryHour(currentHour);
     this.logger.log(
       `Processing lottery currentHour ${currentHour} latest draw: ${latestDrawHours} next draw: ${nextLottery}`,
@@ -82,7 +88,8 @@ export class DrawingService {
     if (
       !drawed &&
       currentHour === nextLottery &&
-      latestDrawHours !== nextLottery
+      latestDrawHours !== nextLottery &&
+      currentDay != latestDrawDay
     ) {
       this.logger.log('Drawing');
       if (currentHour === nextLottery) {
@@ -92,7 +99,11 @@ export class DrawingService {
         await this.draw();
         return 'draw';
       }
-    } else if (drawed && latestDrawHours + 1 === currentHour) {
+    } else if (
+      drawed &&
+      latestDrawHours === currentHour &&
+      currentMinutes + 15 >= latestDrawMinutes
+    ) {
       this.logger.log('Resetting');
       await this.reset();
       return 'reset';
