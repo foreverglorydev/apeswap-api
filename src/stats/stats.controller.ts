@@ -25,6 +25,18 @@ export class StatsController {
     return await this.statsService.getAllStats();
   }
 
+  @Get('/overall')
+  async getOverallStats(): Promise<GeneralStats> {
+    this.logger.debug('Called GET /stats/overall');
+    return this.statsService.getDefistationStats();
+  }
+
+  @Get('/get')
+  async get(): Promise<any> {
+    this.logger.debug('Called GET /stats/get');
+    return this.statsService.getDefistation();
+  }
+
   @Get(':wallet')
   async getStatsForWallet(@Param('wallet') wallet: string): Promise<any> {
     this.logger.debug('Called GET /stats/:wallet');
