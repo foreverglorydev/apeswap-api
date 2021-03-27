@@ -88,8 +88,8 @@ export class DrawingService {
     if (
       !drawed &&
       currentHour === nextLottery &&
-      latestDrawHours !== nextLottery &&
-      currentDay != latestDrawDay
+      ((latestDrawHours === nextLottery && currentDay != latestDrawDay) ||
+        latestDrawHours !== nextLottery)
     ) {
       this.logger.log('Drawing');
       if (currentHour === nextLottery) {
