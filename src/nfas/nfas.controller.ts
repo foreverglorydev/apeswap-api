@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Logger } from '@nestjs/common';
+import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
 import { Nfa } from './interfaces/nfas.interface';
 import { NfasService } from './nfas.service';
 
@@ -8,17 +8,18 @@ export class NfasController {
   constructor(private nfasService: NfasService) {}
 
   @Get()
-  async getAllNfas(): Promise<Nfa[]> {
+  async getAllNfas(@Query() query): Promise<Nfa[]> {
     this.logger.debug('Called GET /nfas');
-    return await this.nfasService.getAllNfas();
+    return await this.nfasService.getAllNfas(query);
   }
 
   @Get('address/:address')
   async getNfasByAddress(
     @Param('address') address: string,
+    @Query() query,
   ): Promise<Nfa[] | null> {
     this.logger.debug('Called GET /nfas/address/:address');
-    return await this.nfasService.getNfasByAddress(address);
+    return await this.nfasService.getNfasByAddress(address, query);
   }
 
   @Get(':index')

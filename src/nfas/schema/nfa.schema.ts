@@ -18,12 +18,6 @@ export class Nfa {
   @Prop({ required: true })
   uri: string;
 
-  @Prop({ required: true })
-  hats?: Date;
-
-  @Prop({ required: true })
-  rarityScore: string;
-
   @Prop({ default: 1 })
   public?: boolean;
 
@@ -33,7 +27,7 @@ export class Nfa {
   @Prop({ type: Types.ObjectId, required: true })
   attributes?: NfaAttribute;
 
-  @Prop()
+  @Prop({ default: '' })
   address: string;
 }
 
