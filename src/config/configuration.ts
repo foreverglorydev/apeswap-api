@@ -1,5 +1,6 @@
 export default () => ({
   mongo_uri: process.env.MONGO_URL,
+  environment: process.env.NODE_ENV,
   chainId: process.env.CHAIN_ID || 97,
   97: {
     lottery: {
@@ -23,7 +24,7 @@ export default () => ({
   },
   56: {
     lottery: {
-      address: '0x76BEeD97B881BD8AE50f5C39afd7677d4F995f8F',
+      address: '0x451bCf562A4d747da3455bBAFACe988d56dA6D83',
       adminAddress: '0xCaE366497aC10De7f1faeBBf496E7dBD7764C6b3',
       adminKey: process.env.LOTTERY_ADMIN_KEY,
     },
