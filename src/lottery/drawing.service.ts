@@ -103,11 +103,7 @@ export class DrawingService {
         await this.draw();
         return 'draw';
       }
-    } else if (
-      drawed &&
-      latestDrawHours === currentHour &&
-      currentMinutes + 10 >= latestDrawMinutes
-    ) {
+    } else if (drawed && latestDrawHours === currentHour) {
       this.logger.log('Resetting');
       await this.reset();
       return 'reset';
