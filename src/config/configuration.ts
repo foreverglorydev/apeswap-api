@@ -1,9 +1,10 @@
 export default () => ({
   mongo_uri: process.env.MONGO_URL,
+  environment: process.env.NODE_ENV,
   chainId: process.env.CHAIN_ID || 97,
   97: {
     lottery: {
-      address: '0xF06557e0a4C0aBe314035cB196141Ca303Cb91D0',
+      address: '0xe42Ff4758C37ccC3A54004b176384477bbBe70D6',
       adminAddress: '0xb5e1Ec9861D7c1C99cB3d79dd602cC6122F0d7dc',
       adminKey: process.env.LOTTERY_ADMIN_KEY,
     },
@@ -23,8 +24,8 @@ export default () => ({
   },
   56: {
     lottery: {
-      address: '0xF06557e0a4C0aBe314035cB196141Ca303Cb91D0',
-      adminAddress: '0xb5e1Ec9861D7c1C99cB3d79dd602cC6122F0d7dc',
+      address: '0x451bCf562A4d747da3455bBAFACe988d56dA6D83',
+      adminAddress: '0xCaE366497aC10De7f1faeBBf496E7dBD7764C6b3',
       adminKey: process.env.LOTTERY_ADMIN_KEY,
     },
     contracts: {
