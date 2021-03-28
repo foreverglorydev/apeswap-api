@@ -63,6 +63,26 @@ export class LotteryController {
     }
   }
 
+  @Get('config')
+  async config() {
+    try {
+      return this.lotteryService.getConfig();
+    } catch (e) {
+      this.logger.error(e);
+      return 'error';
+    }
+  }
+
+  @Get('next')
+  async nextDraw() {
+    try {
+      return this.drawingService.getNextLotteryDrawTime();
+    } catch (e) {
+      this.logger.error(e);
+      return 'error';
+    }
+  }
+
   @UseInterceptors(CacheInterceptor)
   @Get(':id')
   getLottery(@Param('id') id: number) {

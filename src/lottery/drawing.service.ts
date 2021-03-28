@@ -4,6 +4,7 @@ import { Cron } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { getWeb3 } from 'src/utils/lib/web3';
+import { LotteryService } from './lottery.service';
 import { Draw, DrawDocument } from './schema/draw.schema';
 import { getIssueIndex, getLotteryContract } from './utils/lottery.utils';
 
@@ -13,11 +14,11 @@ export class DrawingService {
 
   constructor(
     private configService: ChainConfigService,
+    private lotteryService: LotteryService,
     @InjectModel(Draw.name)
     private drawModel: Model<DrawDocument>,
   ) {}
 
-  lotteryDrawHoursUtc = [19, 20];
   isDrawing = false;
   isReset = true;
   web3 = getWeb3();
@@ -27,13 +28,15 @@ export class DrawingService {
   chainId = this.configService.chainId;
   lottery = getLotteryContract();
 
-  getClosestLotteryHour(currentHour) {
-    if (
-      currentHour >
-      this.lotteryDrawHoursUtc[this.lotteryDrawHoursUtc.length - 1]
-    )
-      return this.lotteryDrawHoursUtc[0];
-    return this.lotteryDrawHoursUtc.reduce((a, b) => {
+  async getDrawHours() {
+    const { drawHours } = await this.lotteryService.getConfig();
+    return drawHours;
+  }
+
+  async getClosestLotteryHour(currentHour) {
+    const drawHours = await this.getDrawHours();
+    if (currentHour > drawHours[drawHours.length - 1]) return drawHours[0];
+    return drawHours.reduce((a, b) => {
       const aDiff = Math.abs(a - currentHour);
       const bDiff = Math.abs(b - currentHour);
 
@@ -45,14 +48,15 @@ export class DrawingService {
     });
   }
 
-  getNextLotteryDrawTime() {
+  async getNextLotteryDrawTime() {
     const date = new Date();
     const currentHour = date.getUTCHours();
-    const nextLotteryHour = this.getClosestLotteryHour(currentHour);
-    // next lottery is tomorrow if the next lottery is at 2am UTC...
-    // ...and current time is between 02:00am & 23:59pm UTC
+    const currentMin = date.getUTCMinutes();
+    const nextLotteryHour = await this.getClosestLotteryHour(currentHour);
     const nextLotteryIsTomorrow =
-      nextLotteryHour === 2 && currentHour >= 2 && currentHour <= 23;
+      (currentHour === nextLotteryHour && currentMin >= 10) ||
+      currentHour > nextLotteryHour;
+
     let millisTimeOfNextDraw;
 
     if (nextLotteryIsTomorrow) {
@@ -64,7 +68,7 @@ export class DrawingService {
       millisTimeOfNextDraw = date.setUTCHours(nextLotteryHour, 0, 0, 0);
     }
 
-    return millisTimeOfNextDraw;
+    return { millisTimeOfNextDraw };
   }
 
   // Runs every 20 seconds
@@ -81,7 +85,7 @@ export class DrawingService {
     const currentMinutes = currentDate.getUTCMinutes();
     const currentHour = currentDate.getUTCHours();
     const currentDay = currentDate.getUTCDay();
-    const nextLottery = this.getClosestLotteryHour(currentHour);
+    const nextLottery = await this.getClosestLotteryHour(currentHour);
     this.logger.log(
       `Processing lottery currentHour ${currentHour} latest draw: ${latestDrawHours} next draw: ${nextLottery}`,
     );
@@ -102,7 +106,7 @@ export class DrawingService {
     } else if (
       drawed &&
       latestDrawHours === currentHour &&
-      currentMinutes + 15 >= latestDrawMinutes
+      currentMinutes + 10 >= latestDrawMinutes
     ) {
       this.logger.log('Resetting');
       await this.reset();

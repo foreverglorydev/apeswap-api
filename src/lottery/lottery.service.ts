@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { ceilDecimal } from 'src/utils/math';
+import {
+  LotteryConfig,
+  LotteryConfigDocument,
+} from './schema/lotteryConfig.schema';
 import { generateLotteryDate } from './utils/lottery.date';
 import {
   computeLotteries,
@@ -17,9 +23,20 @@ import {
 
 @Injectable()
 export class LotteryService {
-  constructor(private configService: ChainConfigService) {}
+  constructor(
+    private configService: ChainConfigService,
+    @InjectModel(LotteryConfig.name)
+    private lotteryConfigModel: Model<LotteryConfigDocument>,
+  ) {}
 
   lotteryContract = this.configService.get<string>(`lottery.address`);
+
+  async getConfig() {
+    const config = await this.lotteryConfigModel
+      .findOne()
+      .sort({ createdAt: -1 });
+    return config;
+  }
 
   async getLottery(
     lotteryNumber: number,
