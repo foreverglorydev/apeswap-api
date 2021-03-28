@@ -17,7 +17,7 @@ export class DrawingService {
     private drawModel: Model<DrawDocument>,
   ) {}
 
-  lotteryDrawHoursUtc = [1, 23];
+  lotteryDrawHoursUtc = [0, 1, 2, 3];
   isDrawing = false;
   isReset = true;
   web3 = getWeb3();
@@ -40,7 +40,7 @@ export class DrawingService {
       if (aDiff == bDiff) {
         return a > b ? a : b;
       } else {
-        return aDiff > bDiff ? a : b;
+        return bDiff < aDiff ? b : a;
       }
     });
   }
@@ -88,8 +88,8 @@ export class DrawingService {
     if (
       !drawed &&
       currentHour === nextLottery &&
-      latestDrawHours !== nextLottery &&
-      currentDay != latestDrawDay
+      ((latestDrawHours === nextLottery && currentDay != latestDrawDay) ||
+        latestDrawHours !== nextLottery)
     ) {
       this.logger.log('Drawing');
       if (currentHour === nextLottery) {
