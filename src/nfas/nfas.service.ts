@@ -1,6 +1,8 @@
 import { HttpService, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { NfaSaleDto } from './dto/nfaSale.dto';
+import { NfaIdInvalidHttpException } from './exceptions';
 import { Nfa, NfaDocument } from './schema/nfa.schema';
 
 @Injectable()
@@ -11,14 +13,15 @@ export class NfasService {
     private nfaModel: Model<NfaDocument>,
   ) {}
   async fetchNafs(filter) {
-    return this.nfaModel.find(filter);
+    return this.nfaModel.find(filter).populate('history');
   }
-  async getNafs(filter) {
-    return this.nfaModel.findOne(filter);
+  async getNfa(filter) {
+    return this.nfaModel.findOne(filter).populate('history');
   }
-
+  async getNfaById(id) {
+    return this.nfaModel.findById(id);
+  }
   async getAllNfas(query): Promise<Nfa[]> {
-    //await this.initData();
     const filter = this.mappingFilter(query);
     return await this.fetchNafs(filter);
   }
@@ -27,9 +30,21 @@ export class NfasService {
     return await this.fetchNafs({ ...{ address: address }, ...filter });
   }
   async getNfasByIndex(index: number): Promise<Nfa> {
-    return await this.getNafs({ index: index });
+    return await this.getNfa({ index: index });
   }
+  async nfaSale(nfaSale: NfaSaleDto): Promise<any> {
+    const nfa = await this.getNfaById(nfaSale.id);
+    if (!nfa) throw new NfaIdInvalidHttpException();
+    const dataUpdate = {
+      address: nfaSale.to,
+      $push: {
+        history: { ...{ date: Date.now().toString() }, ...nfaSale },
+      },
+    };
+    if (!nfaSale.to || nfaSale.to == '') delete dataUpdate.address;
 
+    await nfa.updateOne(dataUpdate);
+  }
   mappingFilter(query) {
     const filter = {
       sale: 1,

@@ -1,4 +1,13 @@
-import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Logger,
+  Post,
+  Body,
+} from '@nestjs/common';
+import { NfaSaleDto } from './dto/nfaSale.dto';
 import { Nfa } from './interfaces/nfas.interface';
 import { NfasService } from './nfas.service';
 
@@ -26,5 +35,11 @@ export class NfasController {
   async getNfasByIndex(@Param('index') index: number): Promise<Nfa | null> {
     this.logger.debug('Called GET /nfas/:index');
     return await this.nfasService.getNfasByIndex(index);
+  }
+
+  @Post('sale')
+  async nfaSale(@Body() nfaSale: NfaSaleDto) {
+    await this.nfasService.nfaSale(nfaSale);
+    return nfaSale;
   }
 }

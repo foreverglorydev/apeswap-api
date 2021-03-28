@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { NfaSaleDto } from '../dto/nfaSale.dto';
 import { NfaAttribute } from '../interfaces/nfaAttribute.interface';
 
 export type NfaDocument = Nfa & Document;
@@ -29,6 +30,9 @@ export class Nfa {
 
   @Prop({ default: '' })
   address: string;
+
+  @Prop({ type: Types.DocumentArray })
+  history?: NfaSaleDto[];
 }
 
 export const NfaSchema = SchemaFactory.createForClass(Nfa);
