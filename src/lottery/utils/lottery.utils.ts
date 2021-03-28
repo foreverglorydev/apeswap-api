@@ -1,5 +1,5 @@
 import { PromisifyBatchRequest } from 'src/utils/lib/PromiseBatchRequest';
-import { ratesV2, ratesV1, rates, Rates } from './lottery.config';
+import { rates, Rates } from './lottery.config';
 import { getContract } from 'src/utils/lib/web3';
 
 import lotteryABI from './lottery.json';
@@ -31,6 +31,7 @@ export interface SingleLottery {
   poolMatch2: number;
   poolMatch1: number | null;
   burned: number;
+  rollover: number;
   contractLink: string;
 }
 
@@ -135,12 +136,6 @@ export const getTicketPrice = (index: number): number => {
  * @param index
  */
 export const getRates = (index: number): Rates => {
-  if (index >= 0 && index <= 205) {
-    return ratesV1;
-  } else if ((index >= 206 && index <= 348) || index >= 356) {
-    return ratesV2;
-  }
-
   return rates;
 };
 

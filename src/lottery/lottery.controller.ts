@@ -1,4 +1,12 @@
-import { Controller, Get, Logger, Param, Query } from '@nestjs/common';
+import {
+  CacheInterceptor,
+  Controller,
+  Get,
+  Logger,
+  Param,
+  Query,
+  UseInterceptors,
+} from '@nestjs/common';
 import { DrawingService } from './drawing.service';
 import { LotteryService } from './lottery.service';
 
@@ -10,11 +18,13 @@ export class LotteryController {
     private drawingService: DrawingService,
   ) {}
 
+  @UseInterceptors(CacheInterceptor)
   @Get()
   getLotteries(@Query() { pageSize, page }) {
     return this.lotteryService.getLotteries(pageSize, page);
   }
 
+  @UseInterceptors(CacheInterceptor)
   @Get('history')
   getLotteryHistory() {
     return this.lotteryService.getLotteryHistory();
@@ -53,6 +63,7 @@ export class LotteryController {
     }
   }
 
+  @UseInterceptors(CacheInterceptor)
   @Get(':id')
   getLottery(@Param('id') id: number) {
     return this.lotteryService.getLottery(id);
