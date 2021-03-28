@@ -17,7 +17,7 @@ export class DrawingService {
     private drawModel: Model<DrawDocument>,
   ) {}
 
-  lotteryDrawHoursUtc = [0, 1, 2, 3, 4];
+  lotteryDrawHoursUtc = [19, 20];
   isDrawing = false;
   isReset = true;
   web3 = getWeb3();
