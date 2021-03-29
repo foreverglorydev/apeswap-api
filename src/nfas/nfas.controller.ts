@@ -42,4 +42,10 @@ export class NfasController {
     await this.nfasService.nfaSale(nfaSale);
     return nfaSale;
   }
+
+  @Post('init')
+  async initData(): Promise<Nfa[] | null> {
+    this.logger.debug('Called GET /nfas/init');
+    return await this.nfasService.initData();
+  }
 }

@@ -13,10 +13,10 @@ export class NfasService {
     private nfaModel: Model<NfaDocument>,
   ) {}
   async fetchNafs(filter) {
-    return this.nfaModel.find(filter).populate('history');
+    return this.nfaModel.find(filter);
   }
   async getNfa(filter) {
-    return this.nfaModel.findOne(filter).populate('history');
+    return this.nfaModel.findOne(filter);
   }
   async getNfaById(id) {
     return this.nfaModel.findById(id);
@@ -58,9 +58,15 @@ export class NfasService {
   }
 
   async initData() {
+    const allData = await this.fetchNafs({});
+    if (allData.length > 0)
+      return {
+        info:
+          'Ya hay información en la BD, limpia la BD para ingresar la nueva información',
+      };
+
     const url = 'https://apeswap-nfa-apis.herokuapp.com/nfas';
     const { data } = await this.httpService.get(url).toPromise();
-    //console.log(data);
     await this.nfaModel.insertMany(data);
     return data;
   }
