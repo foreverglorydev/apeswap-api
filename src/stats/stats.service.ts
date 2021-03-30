@@ -511,8 +511,61 @@ export class StatsService {
         price: tvl / totalSupply,
         abi: pool.abi,
       };
+    } else {
+      const stakedTokenContract = getContract(ERC20_ABI, pool.stakeToken);
+      const stakedTokenPrice = getParameterCaseInsensitive(
+        prices,
+        pool.stakeToken,
+      )?.usd;
+      const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
+      const [
+        name,
+        stakedTokenDecimals,
+        rewardDecimals,
+        rewardTokenSymbol,
+      ] = await Promise.all([
+        stakedTokenContract.methods.symbol().call(),
+        stakedTokenContract.methods.decimals().call(),
+        rewardTokenContract.methods.decimals().call(),
+        rewardTokenContract.methods.symbol().call(),
+      ]);
+
+      const [totalSupply, stakedSupply, rewardsPerBlock] = await Promise.all([
+        (await stakedTokenContract.methods.totalSupply().call()) /
+          10 ** stakedTokenDecimals,
+        (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
+          10 ** stakedTokenDecimals,
+        (await poolContract.methods.rewardPerBlock().call()) /
+          10 ** rewardDecimals,
+      ]);
+
+      const tvl = totalSupply * stakedTokenPrice;
+      const stakedTvl = (stakedSupply * tvl) / totalSupply;
+      const rewardTokenPrice = getParameterCaseInsensitive(
+        prices,
+        pool.rewardToken,
+      )?.usd;
+      const apr =
+        (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
+
+      return {
+        id: pool.sousId,
+        name,
+        address: pool.address,
+        stakedTokenAddress: pool.stakeToken,
+        totalSupply,
+        stakedSupply,
+        rewardDecimals,
+        stakedTokenDecimals,
+        tvl,
+        stakedTvl,
+        apr,
+        rewardTokenPrice,
+        rewardTokenSymbol,
+        price: stakedTokenPrice,
+        abi: pool.abi,
+      };
     }
-    return null;
   }
 
   async getTVLData(poolPrices): Promise<any> {
