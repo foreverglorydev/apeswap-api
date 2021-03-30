@@ -210,8 +210,8 @@ export class StatsService {
     );
 
     const poolInfos = await Promise.all(
-      [...Array(poolCount).keys()].map(
-        async (x) => this.getPoolInfo(masterApeContract, x),
+      [...Array(poolCount).keys()].map(async (x) =>
+        this.getPoolInfo(masterApeContract, x),
       ),
     );
 
@@ -307,9 +307,8 @@ export class StatsService {
       contract.methods.totalSupply().call(),
       contract.methods.balanceOf(stakingAddress).call(),
     ]);
-
-    totalSupply /= (10 ** decimals);
-    staked /= (10 ** decimals);
+    totalSupply /= 10 ** decimals;
+    staked /= 10 ** decimals;
 
     const q0 = reserves._reserve0;
     const q1 = reserves._reserve1;
@@ -399,9 +398,8 @@ export class StatsService {
   async mappingIncetivizedPools(poolPrices, prices) {
     const currentBlockNumber = await getCurrentBlock();
     poolPrices.incentivizedPools = await Promise.all(
-      incentivizedPools.map(
-        async (pool) =>
-          this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
+      incentivizedPools.map(async (pool) =>
+        this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
       ),
     );
     poolPrices.incentivizedPools = poolPrices.incentivizedPools.filter(
