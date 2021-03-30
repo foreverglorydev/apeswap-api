@@ -8,7 +8,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { Cache } from 'cache-manager';
-import { getBscPrices } from 'src/utils/bsc_helpers';
+import { PriceService } from './price.service';
 import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
@@ -46,6 +46,7 @@ export class StatsService {
     @InjectModel(GeneralStatsDB.name)
     private generalStatsModel: Model<GeneralStatsDocument>,
     private subgraphService: SubgraphService,
+    private priceService: PriceService,
   ) {}
 
   createGeneralStats(stats) {
@@ -217,7 +218,7 @@ export class StatsService {
 
     const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
       masterApeContract.methods.totalAllocPoint().call(),
-      getBscPrices(this.httpService),
+      this.priceService.getTokenPrices(),
       (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
         86400) /
         3,

@@ -1,6 +1,7 @@
 import { CacheModule, Module, HttpModule } from '@nestjs/common';
 import { StatsService } from './stats.service';
 import { SubgraphService } from './subgraph.service';
+import { PriceService } from './price.service';
 import { StatsController } from './stats.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
@@ -15,7 +16,7 @@ import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
       { name: GeneralStats.name, schema: GeneralStatsSchema },
     ]),
   ],
-  providers: [StatsService, SubgraphService],
+  providers: [StatsService, SubgraphService, PriceService],
   controllers: [StatsController],
 })
 export class StatsModule {}

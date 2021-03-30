@@ -1,6 +1,4 @@
-import { lookUpPrices } from 'src/utils/helpers';
-
-const bscTokens = [
+export const coinGeckoTokens = [
   {
     id: 'wbnb',
     symbol: 'wbnb',
@@ -37,7 +35,3 @@ const bscTokens = [
     contract: '0x947950BcC74888a40Ffa2593C5798F11Fc9124C4',
   },
 ];
-
-export async function getBscPrices(httpService) {
-  return await lookUpPrices(httpService, bscTokens);
-}
