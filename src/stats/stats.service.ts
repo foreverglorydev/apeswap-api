@@ -211,7 +211,7 @@ export class StatsService {
 
     const poolInfos = await Promise.all(
       [...Array(poolCount).keys()].map(
-        async (x) => await this.getPoolInfo(masterApeContract, x),
+        async (x) => this.getPoolInfo(masterApeContract, x),
       ),
     );
 
@@ -303,11 +303,14 @@ export class StatsService {
       contract.methods.token0().call(),
       contract.methods.token1().call(),
     ]);
-    const [totalSupply, staked] = await Promise.all([
-      (await contract.methods.totalSupply().call()) / 10 ** decimals,
-      (await contract.methods.balanceOf(stakingAddress).call()) /
-        10 ** decimals,
+    let [totalSupply, staked] = await Promise.all([
+      contract.methods.totalSupply().call(),
+      contract.methods.balanceOf(stakingAddress).call(),
     ]);
+
+    totalSupply /= (10 ** decimals);
+    staked /= (10 ** decimals);
+
     const q0 = reserves._reserve0;
     const q1 = reserves._reserve1;
     return {
@@ -364,13 +367,13 @@ export class StatsService {
     const decimals = await bananaContract.methods.decimals().call();
 
     const [burntAmount, totalSupply] = await Promise.all([
-      (await bananaContract.methods.balanceOf(burnAddress()).call()) /
-        10 ** decimals,
-      (await bananaContract.methods.totalSupply().call()) / 10 ** decimals,
+      bananaContract.methods.balanceOf(burnAddress()).call(),
+      bananaContract.methods.totalSupply().call(),
     ]);
+
     return {
-      burntAmount,
-      totalSupply,
+      burntAmount: burntAmount / 10 ** decimals,
+      totalSupply: totalSupply / 10 ** decimals,
     };
   }
 
@@ -398,7 +401,7 @@ export class StatsService {
     poolPrices.incentivizedPools = await Promise.all(
       incentivizedPools.map(
         async (pool) =>
-          await this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
+          this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
       ),
     );
     poolPrices.incentivizedPools = poolPrices.incentivizedPools.filter(
