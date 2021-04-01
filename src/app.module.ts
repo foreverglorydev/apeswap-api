@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { PairsModule } from './pairs/pairs.module';
 import { LotteryModule } from './lottery/lottery.module';
 import { StatsModule } from './stats/stats.module';
+import { NfasModule } from './nfas/nfas.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -21,6 +22,7 @@ import configuration from './config/configuration';
     PairsModule,
     LotteryModule,
     StatsModule,
+    NfasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
