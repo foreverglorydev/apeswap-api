@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { ceilDecimal } from 'src/utils/math';
+import {
+  LotteryConfig,
+  LotteryConfigDocument,
+} from './schema/lotteryConfig.schema';
 import { generateLotteryDate } from './utils/lottery.date';
 import {
   computeLotteries,
@@ -17,9 +23,20 @@ import {
 
 @Injectable()
 export class LotteryService {
-  constructor(private configService: ChainConfigService) {}
+  constructor(
+    private configService: ChainConfigService,
+    @InjectModel(LotteryConfig.name)
+    private lotteryConfigModel: Model<LotteryConfigDocument>,
+  ) {}
 
   lotteryContract = this.configService.get<string>(`lottery.address`);
+
+  async getConfig() {
+    const config = await this.lotteryConfigModel
+      .findOne()
+      .sort({ createdAt: -1 });
+    return config;
+  }
 
   async getLottery(
     lotteryNumber: number,
@@ -61,6 +78,7 @@ export class LotteryService {
       lotteryNumbers: numbers1.map((x) => Number(x)),
       poolSize: ceilDecimal(poolSize, 2),
       burned: ceilDecimal((poolSize / 100) * ratesToUse.burn, 2),
+      rollover: ceilDecimal((poolSize / 100) * ratesToUse.rollover, 2),
       contractLink: `https://bscscan.com/address/${this.lotteryContract}`,
       jackpotTicket: numbers2[1] / ticketPrice,
       match3Ticket: numbers2[2] / ticketPrice,
