@@ -133,7 +133,8 @@ export const incentivizedPools = [
     endingBlock: 11390295,
     abi: BEP20_REWARD_APE_ABI,
   },
-  {
+
+  /* {
     sousId: 13,
     name: 'BANANA -> JDI Reward Pool',
     address: '0x72C8750af0744282E065F0dF3F73460A3764c624',
@@ -144,5 +145,5 @@ export const incentivizedPools = [
     startingBlock: 6401695,
     endingBlock: 9860695,
     abi: BEP20_REWARD_APE_ABI,
-  },
+  }, */
 ];
