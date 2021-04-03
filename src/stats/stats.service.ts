@@ -13,7 +13,10 @@ import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
 import { incentivizedPools } from 'src/utils/incentivizedPools';
-import { getParameterCaseInsensitive } from 'src/utils/helpers';
+import {
+  getParameterCaseInsensitive,
+  createLpPairName,
+} from 'src/utils/helpers';
 import {
   masterApeContractWeb,
   bananaAddress,
@@ -490,7 +493,7 @@ export class StatsService {
 
       return {
         id: pool.sousId,
-        name: `[${t0Symbol}]-[${t1Symbol}] LP`,
+        name: createLpPairName(t0Symbol, t1Symbol),
         address: pool.address,
         stakedTokenAddress: pool.stakeToken,
         t0Address,
