@@ -129,7 +129,7 @@ export const getIssueIndex = async (): Promise<
 };
 
 export const getTicketPrice = (index: number): number => {
-  return 5;
+  return 10;
 };
 
 /**
