@@ -54,7 +54,7 @@ export class DrawingService {
     const currentMin = date.getUTCMinutes();
     const nextLotteryHour = await this.getClosestLotteryHour(currentHour);
     const nextLotteryIsTomorrow =
-      (currentHour === nextLotteryHour && currentMin >= 10) ||
+      (currentHour === nextLotteryHour && currentMin >= 2) ||
       currentHour > nextLotteryHour;
 
     let millisTimeOfNextDraw;
@@ -103,7 +103,7 @@ export class DrawingService {
         await this.draw();
         return 'draw';
       }
-    } else if (drawed && latestDrawHours === currentHour) {
+    } else if (drawed && latestDrawHours + 1 === currentHour) {
       this.logger.log('Resetting');
       await this.reset();
       return 'reset';
