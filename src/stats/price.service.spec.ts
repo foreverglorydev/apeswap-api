@@ -18,8 +18,12 @@ describe('PriceService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should be able to getTokenPrices', async () => {
+  it('should have getTokenPrices return an object with each address having usd as property', async () => {
     const { prices } = await service.getTokenPrices();
     expect(prices).toBeDefined;
+    for (const key in prices) {
+      // for each token in prices
+      expect(Object.keys(prices[key])).toEqual(['usd']); //it should contain the property 'usd'
+    }
   });
 });
