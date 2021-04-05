@@ -1,4 +1,6 @@
 import { Injectable, HttpService } from '@nestjs/common';
+import chunk from 'lodash.chunk';
+
 @Injectable()
 export class PriceService {
   constructor(private httpService: HttpService) {}
@@ -12,7 +14,7 @@ export class PriceService {
     const prices = {};
     const pricePromises = [];
 
-    for (const id_chunk of this.chunk(this.coinGeckoTokens, 50)) {
+    for (const id_chunk of chunk(this.coinGeckoTokens, 50)) {
       const ids = id_chunk.map((x) => x.id).join('%2C');
       const url =
         'https://api.coingecko.com/api/v3/simple/price?ids=' +
@@ -33,10 +35,6 @@ export class PriceService {
     });
 
     return prices;
-  }
-
-  chunk(arr, n) {
-    return arr.length ? [arr.slice(0, n), ...this.chunk(arr.slice(n), n)] : [];
   }
 
   coinGeckoTokens = [
