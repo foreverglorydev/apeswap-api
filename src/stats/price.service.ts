@@ -11,7 +11,7 @@ export class PriceService {
   async getCoinGeckoPrices(httpService) {
     const prices = {};
     const pricePromises = [];
-  
+
     for (const id_chunk of this.chunk(this.coinGeckoTokens, 50)) {
       const ids = id_chunk.map((x) => x.id).join('%2C');
       const url =
@@ -20,7 +20,7 @@ export class PriceService {
         '&vs_currencies=usd';
       pricePromises.push(httpService.get(url).toPromise());
     }
-  
+
     Promise.all(pricePromises).then((priceArray) => {
       for (let i = 0; i < priceArray.length; i++) {
         const data = priceArray[i].data;
@@ -31,7 +31,7 @@ export class PriceService {
         }
       }
     });
-  
+
     return prices;
   }
 
@@ -81,10 +81,4 @@ export class PriceService {
       contract: '0xd944f1d1e9d5f9bb90b62f9d45e447d989580782',
     },
   ];
-  
 }
-
-
-
-
-
