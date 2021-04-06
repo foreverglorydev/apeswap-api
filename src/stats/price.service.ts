@@ -6,11 +6,11 @@ export class PriceService {
   constructor(private httpService: HttpService) {}
 
   async getTokenPrices(): Promise<any> {
-    const prices = await this.getCoinGeckoPrices(this.httpService);
+    const prices = await this.getCoinGeckoPrices();
     return prices;
   }
 
-  async getCoinGeckoPrices(httpService) {
+  async getCoinGeckoPrices() {
     const prices = {};
     const pricePromises = [];
 
@@ -20,7 +20,7 @@ export class PriceService {
         'https://api.coingecko.com/api/v3/simple/price?ids=' +
         ids +
         '&vs_currencies=usd';
-      pricePromises.push(httpService.get(url).toPromise());
+      pricePromises.push(this.httpService.get(url).toPromise());
     }
 
     Promise.all(pricePromises).then((priceArray) => {
