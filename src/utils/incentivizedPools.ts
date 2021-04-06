@@ -144,7 +144,7 @@ export const incentivizedPools = [
     startingBlock: 6346011,
     endingBlock: 7210011,
     abi: BEP20_REWARD_APE_ABI,
-  }
+  },
 
   /* {
     sousId: 13,
