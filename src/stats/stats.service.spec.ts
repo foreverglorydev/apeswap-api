@@ -61,17 +61,10 @@ describe('StatsService', () => {
       decimals: expect.any(String),
     };
     const objIncentivized = {
+      id: expect.any(String),
       name: expect.any(String),
       address: expect.any(String),
       stakedTokenAddress: expect.any(String),
-      t0Address: expect.any(String),
-      t0Symbol: expect.any(String),
-      p0: expect.any(Number),
-      q0: expect.any(Number),
-      t1Address: expect.any(String),
-      t1Symbol: expect.any(String),
-      p1: expect.any(Number),
-      q1: expect.any(Number),
       totalSupply: expect.any(Number),
       stakedSupply: expect.any(Number),
       rewardDecimals: expect.any(String),
