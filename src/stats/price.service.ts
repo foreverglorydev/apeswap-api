@@ -1,5 +1,5 @@
 import { Injectable, HttpService } from '@nestjs/common';
-import chunk from 'lodash.chunk';
+import { chunk } from 'lodash';
 
 @Injectable()
 export class PriceService {
