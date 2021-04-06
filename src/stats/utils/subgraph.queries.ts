@@ -47,3 +47,17 @@ export function dayData(skip: number, startTime: number, endTime: number) {
     }
   }`;
 }
+
+export const allPricesQuery = `{
+  tokens {
+    id
+    symbol
+    name
+    derivedBNB: derivedETH
+    tokenDayData(orderBy: date orderDirection: desc, first: 1) {
+      id
+      dailyTxns
+      priceUSD
+    }
+  }
+}`;

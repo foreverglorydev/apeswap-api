@@ -1,13 +1,14 @@
 import { HttpModule } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PriceService } from './price.service';
+import { SubgraphService } from './subgraph.service';
 
 describe('PriceService', () => {
   let service: PriceService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule],
+      imports: [HttpModule, SubgraphService],
       providers: [PriceService],
     }).compile();
 

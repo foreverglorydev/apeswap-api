@@ -1,5 +1,5 @@
 import { Injectable, HttpService } from '@nestjs/common';
-import { dayData, pairsQuery, liquidityQuery } from './utils/subgraph.queries';
+import { dayData, pairsQuery, liquidityQuery, allPricesQuery } from './utils/subgraph.queries';
 
 @Injectable()
 export class SubgraphService {
@@ -48,6 +48,11 @@ export class SubgraphService {
       tvl: tvlData.tvl,
       pairs: pairData.pairs,
     };
+  }
+
+  async getAllPriceData() {
+    const { data } = await this.querySubraph(allPricesQuery);
+    return data.tokens;
   }
 
   async querySubraph(query): Promise<any> {
