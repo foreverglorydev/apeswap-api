@@ -1,5 +1,10 @@
 import { Injectable, HttpService } from '@nestjs/common';
-import { dayData, pairsQuery, liquidityQuery, allPricesQuery } from './utils/subgraph.queries';
+import {
+  dayData,
+  pairsQuery,
+  liquidityQuery,
+  allPricesQuery,
+} from './utils/subgraph.queries';
 
 @Injectable()
 export class SubgraphService {

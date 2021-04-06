@@ -4,7 +4,10 @@ import { SubgraphService } from './subgraph.service';
 
 @Injectable()
 export class PriceService {
-  constructor(private httpService: HttpService, private subgraphService: SubgraphService,) {}
+  constructor(
+    private httpService: HttpService,
+    private subgraphService: SubgraphService,
+  ) {}
 
   async getTokenPrices(): Promise<any> {
     //const prices = await this.getCoinGeckoPrices(); // old coinGeckoPrice price feed
@@ -14,8 +17,8 @@ export class PriceService {
     for (let i = 0; i < data.length; i++) {
       if (data[i].tokenDayData.length > 0) {
         prices[data[i].id] = {
-          usd: data[i].tokenDayData[0].priceUSD
-        }
+          usd: data[i].tokenDayData[0].priceUSD,
+        };
       }
     }
     console.log(prices);

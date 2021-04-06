@@ -58,7 +58,7 @@ describe('SubgraphService', () => {
     expect(summary.volume).toBeDefined;
     expect(summary.pairs).toBeDefined;
   });
-  
+
   it('should be get all price data', async () => {
     const objPrice = {
       derivedBNB: expect.any(String),
@@ -79,7 +79,9 @@ describe('SubgraphService', () => {
     if (priceData.length > 0) {
       expect(priceData[0]).toEqual(expect.objectContaining(objPrice));
       if (priceData[0].tokenDayData.length > 0) {
-        expect(priceData[0].tokenDayData[0]).toEqual(expect.objectContaining(tokenDayData));
+        expect(priceData[0].tokenDayData[0]).toEqual(
+          expect.objectContaining(tokenDayData),
+        );
       }
     }
   });

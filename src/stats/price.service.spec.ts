@@ -8,8 +8,8 @@ describe('PriceService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule, SubgraphService],
-      providers: [PriceService],
+      imports: [HttpModule],
+      providers: [PriceService, SubgraphService],
     }).compile();
 
     service = module.get<PriceService>(PriceService);

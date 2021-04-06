@@ -135,11 +135,16 @@ export class StatsService {
   }
 
   async getAllStats(): Promise<GeneralStats> {
-    const poolPrices: GeneralStats = await this.getCalculateStats();
-    poolPrices.incentivizedPools.forEach((pool) => {
-      delete pool.abi;
-    });
-    return poolPrices;
+    try {
+      const poolPrices: GeneralStats = await this.calculateStats();
+      poolPrices.incentivizedPools.forEach((pool) => {
+        delete pool.abi;
+      });
+      return poolPrices;
+    } catch (e) {
+      this.logger.error('Something went wrong calculating stats');
+      console.log(e);
+    }
   }
 
   async getStatsForWallet(wallet): Promise<WalletStats> {
@@ -517,6 +522,7 @@ export class StatsService {
         abi: pool.abi,
       };
     } else {
+      console.log('Here');
       const stakedTokenContract = getContract(ERC20_ABI, pool.stakeToken);
       const stakedTokenPrice = getParameterCaseInsensitive(
         prices,
@@ -535,6 +541,7 @@ export class StatsService {
         rewardTokenContract.methods.symbol().call(),
       ]);
 
+      console.log('Here2');
       const [totalSupply, stakedSupply, rewardsPerBlock] = await Promise.all([
         (await stakedTokenContract.methods.totalSupply().call()) /
           10 ** stakedTokenDecimals,
@@ -544,6 +551,7 @@ export class StatsService {
           10 ** rewardDecimals,
       ]);
 
+      console.log('Here3');
       const tvl = totalSupply * stakedTokenPrice;
       const stakedTvl = (stakedSupply * tvl) / totalSupply;
       const rewardTokenPrice = getParameterCaseInsensitive(
@@ -553,10 +561,12 @@ export class StatsService {
       const apr =
         (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
 
+      console.log('Here');
       return {
         id: pool.sousId,
         name,
         address: pool.address,
+        rewardTokenAddress: pool.rewardToken,
         stakedTokenAddress: pool.stakeToken,
         totalSupply,
         stakedSupply,
