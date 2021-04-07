@@ -136,7 +136,7 @@ export class StatsService {
 
   async getAllStats(): Promise<GeneralStats> {
     try {
-      const poolPrices: GeneralStats = await this.calculateStats();
+      const poolPrices: GeneralStats = await this.getCalculateStats();
       poolPrices.incentivizedPools.forEach((pool) => {
         delete pool.abi;
       });
