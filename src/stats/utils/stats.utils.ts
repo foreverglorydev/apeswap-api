@@ -1,5 +1,8 @@
 import { getContract } from 'src/utils/lib/web3';
-import { getParameterCaseInsensitive } from 'src/utils/helpers';
+import {
+  getParameterCaseInsensitive,
+  createLpPairName,
+} from 'src/utils/helpers';
 
 import { MASTER_APE_ABI } from './abi/masterApeAbi';
 import configuration from 'src/config/configuration';
@@ -134,7 +137,7 @@ function getFarmLPTokenPrices(
 
   return {
     address: pool.address,
-    name: `[${t0.symbol}]-[${t1.symbol}] LP`,
+    name: createLpPairName(t0.symbol, t1.symbol),
     t0Address: t0.address,
     t0Symbol: t0.symbol,
     t0Decimals: t0.decimals,

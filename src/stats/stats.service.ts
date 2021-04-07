@@ -8,12 +8,15 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { Cache } from 'cache-manager';
-import { getBscPrices } from 'src/utils/bsc_helpers';
+import { PriceService } from './price.service';
 import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
 import { incentivizedPools } from 'src/utils/incentivizedPools';
-import { getParameterCaseInsensitive } from 'src/utils/helpers';
+import {
+  getParameterCaseInsensitive,
+  createLpPairName,
+} from 'src/utils/helpers';
 import {
   masterApeContractWeb,
   bananaAddress,
@@ -46,6 +49,7 @@ export class StatsService {
     @InjectModel(GeneralStatsDB.name)
     private generalStatsModel: Model<GeneralStatsDocument>,
     private subgraphService: SubgraphService,
+    private priceService: PriceService,
   ) {}
 
   createGeneralStats(stats) {
@@ -131,11 +135,16 @@ export class StatsService {
   }
 
   async getAllStats(): Promise<GeneralStats> {
-    const poolPrices: GeneralStats = await this.getCalculateStats();
-    poolPrices.incentivizedPools.forEach((pool) => {
-      delete pool.abi;
-    });
-    return poolPrices;
+    try {
+      const poolPrices: GeneralStats = await this.calculateStats();
+      poolPrices.incentivizedPools.forEach((pool) => {
+        delete pool.abi;
+      });
+      return poolPrices;
+    } catch (e) {
+      this.logger.error('Something went wrong calculating stats');
+      console.log(e);
+    }
   }
 
   async getStatsForWallet(wallet): Promise<WalletStats> {
@@ -210,14 +219,14 @@ export class StatsService {
     );
 
     const poolInfos = await Promise.all(
-      [...Array(poolCount).keys()].map(
-        async (x) => await this.getPoolInfo(masterApeContract, x),
+      [...Array(poolCount).keys()].map(async (x) =>
+        this.getPoolInfo(masterApeContract, x),
       ),
     );
 
     const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
       masterApeContract.methods.totalAllocPoint().call(),
-      getBscPrices(this.httpService),
+      this.priceService.getTokenPrices(),
       (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
         86400) /
         3,
@@ -303,11 +312,13 @@ export class StatsService {
       contract.methods.token0().call(),
       contract.methods.token1().call(),
     ]);
-    const [totalSupply, staked] = await Promise.all([
-      (await contract.methods.totalSupply().call()) / 10 ** decimals,
-      (await contract.methods.balanceOf(stakingAddress).call()) /
-        10 ** decimals,
+    let [totalSupply, staked] = await Promise.all([
+      contract.methods.totalSupply().call(),
+      contract.methods.balanceOf(stakingAddress).call(),
     ]);
+    totalSupply /= 10 ** decimals;
+    staked /= 10 ** decimals;
+
     const q0 = reserves._reserve0;
     const q1 = reserves._reserve1;
     return {
@@ -364,13 +375,13 @@ export class StatsService {
     const decimals = await bananaContract.methods.decimals().call();
 
     const [burntAmount, totalSupply] = await Promise.all([
-      (await bananaContract.methods.balanceOf(burnAddress()).call()) /
-        10 ** decimals,
-      (await bananaContract.methods.totalSupply().call()) / 10 ** decimals,
+      bananaContract.methods.balanceOf(burnAddress()).call(),
+      bananaContract.methods.totalSupply().call(),
     ]);
+
     return {
-      burntAmount,
-      totalSupply,
+      burntAmount: burntAmount / 10 ** decimals,
+      totalSupply: totalSupply / 10 ** decimals,
     };
   }
 
@@ -396,9 +407,8 @@ export class StatsService {
   async mappingIncetivizedPools(poolPrices, prices) {
     const currentBlockNumber = await getCurrentBlock();
     poolPrices.incentivizedPools = await Promise.all(
-      incentivizedPools.map(
-        async (pool) =>
-          await this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
+      incentivizedPools.map(async (pool) =>
+        this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
       ),
     );
     poolPrices.incentivizedPools = poolPrices.incentivizedPools.filter(
@@ -488,7 +498,7 @@ export class StatsService {
 
       return {
         id: pool.sousId,
-        name: `[${t0Symbol}]-[${t1Symbol}] LP`,
+        name: createLpPairName(t0Symbol, t1Symbol),
         address: pool.address,
         stakedTokenAddress: pool.stakeToken,
         t0Address,
@@ -511,8 +521,62 @@ export class StatsService {
         price: tvl / totalSupply,
         abi: pool.abi,
       };
+    } else {
+      const stakedTokenContract = getContract(ERC20_ABI, pool.stakeToken);
+      const stakedTokenPrice = getParameterCaseInsensitive(
+        prices,
+        pool.stakeToken,
+      )?.usd;
+      const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
+      const [
+        name,
+        stakedTokenDecimals,
+        rewardDecimals,
+        rewardTokenSymbol,
+      ] = await Promise.all([
+        stakedTokenContract.methods.symbol().call(),
+        stakedTokenContract.methods.decimals().call(),
+        rewardTokenContract.methods.decimals().call(),
+        rewardTokenContract.methods.symbol().call(),
+      ]);
+
+      const [totalSupply, stakedSupply, rewardsPerBlock] = await Promise.all([
+        (await stakedTokenContract.methods.totalSupply().call()) /
+          10 ** stakedTokenDecimals,
+        (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
+          10 ** stakedTokenDecimals,
+        (await poolContract.methods.rewardPerBlock().call()) /
+          10 ** rewardDecimals,
+      ]);
+
+      const tvl = totalSupply * stakedTokenPrice;
+      const stakedTvl = (stakedSupply * tvl) / totalSupply;
+      const rewardTokenPrice = getParameterCaseInsensitive(
+        prices,
+        pool.rewardToken,
+      )?.usd;
+      const apr =
+        (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
+
+      return {
+        id: pool.sousId,
+        name,
+        address: pool.address,
+        rewardTokenAddress: pool.rewardToken,
+        stakedTokenAddress: pool.stakeToken,
+        totalSupply,
+        stakedSupply,
+        rewardDecimals,
+        stakedTokenDecimals,
+        tvl,
+        stakedTvl,
+        apr,
+        rewardTokenPrice,
+        rewardTokenSymbol,
+        price: stakedTokenPrice,
+        abi: pool.abi,
+      };
     }
-    return null;
   }
 
   async getTVLData(poolPrices): Promise<any> {

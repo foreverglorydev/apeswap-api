@@ -1,35 +1,33 @@
-const chunk = (arr, n) =>
-  arr.length ? [arr.slice(0, n), ...chunk(arr.slice(n), n)] : [];
-
-export async function lookUpPrices(httpService, token_array) {
-  const prices = {};
-  const pricePromises = [];
-
-  for (const id_chunk of chunk(token_array, 50)) {
-    const ids = id_chunk.map((x) => x.id).join('%2C');
-    const url =
-      'https://api.coingecko.com/api/v3/simple/price?ids=' +
-      ids +
-      '&vs_currencies=usd';
-    pricePromises.push(httpService.get(url).toPromise());
-  }
-
-  await Promise.all(pricePromises).then((priceArray) => {
-    for (let i = 0; i < priceArray.length; i++) {
-      const data = priceArray[i].data;
-      for (const token of token_array) {
-        if (data[token.id]) {
-          prices[token.contract] = data[token.id];
-        }
-      }
-    }
-  });
-
-  return prices;
-}
-
 export function getParameterCaseInsensitive(object, key) {
   return object[
     Object.keys(object).find((k) => k.toLowerCase() === key.toLowerCase())
   ];
+}
+
+/**
+ * Given 2 token symbols, create LP-Pair name based on the following rules (in priority):
+ * 1) BANANA comes first
+ * 2) BUSD comes second
+ * 3) BNB comes second
+ * 4) Sort alphabetically
+ */
+export function createLpPairName(t0, t1) {
+  if (t0 == 'BANANA' || t1 == 'BANANA') {
+    return t0 == 'BANANA' ? `[${t0}]-[${t1}] LP` : `[${t1}]-[${t0}] LP`;
+  }
+
+  if (t0 == 'BUSD' || t1 == 'BUSD') {
+    return t0 == 'BUSD' ? `[${t1}]-[${t0}] LP` : `[${t0}]-[${t1}] LP`;
+  }
+
+  if (t0 == 'WBNB' || t0 == 'BNB') {
+    return `[${t1}]-[${t0}] LP`;
+  }
+  if (t1 == 'WBNB' || t1 == 'BNB') {
+    return `[${t0}]-[${t1}] LP`;
+  }
+
+  return t0.toLowerCase() < t1.toLowerCase()
+    ? `[${t0}]-[${t1}] LP`
+    : `[${t1}]-[${t0}] LP`;
 }

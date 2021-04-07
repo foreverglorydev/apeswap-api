@@ -58,4 +58,31 @@ describe('SubgraphService', () => {
     expect(summary.volume).toBeDefined;
     expect(summary.pairs).toBeDefined;
   });
+
+  it('should be get all price data', async () => {
+    const objPrice = {
+      derivedBNB: expect.any(String),
+      id: expect.any(String),
+      name: expect.any(String),
+      symbol: expect.any(String),
+      tokenDayData: expect.any(Array),
+    };
+    const tokenDayData = {
+      dailyTxns: expect.any(String),
+      id: expect.any(String),
+      priceUSD: expect.any(String),
+    };
+
+    const priceData = await service.getAllPriceData();
+
+    expect(priceData).toBeInstanceOf(Array);
+    if (priceData.length > 0) {
+      expect(priceData[0]).toEqual(expect.objectContaining(objPrice));
+      if (priceData[0].tokenDayData.length > 0) {
+        expect(priceData[0].tokenDayData[0]).toEqual(
+          expect.objectContaining(tokenDayData),
+        );
+      }
+    }
+  });
 });

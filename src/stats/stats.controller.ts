@@ -9,16 +9,12 @@ import {
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { StatsService } from './stats.service';
-import { SubgraphService } from './subgraph.service';
 
 @Controller('stats')
 @UseInterceptors(CacheInterceptor)
 export class StatsController {
   private readonly logger = new Logger(StatsController.name);
-  constructor(
-    private statsService: StatsService,
-    private subgraphService: SubgraphService,
-  ) {}
+  constructor(private statsService: StatsService) {}
   @Get()
   async getAllStats(): Promise<GeneralStats> {
     this.logger.debug('Called GET /stats');
@@ -38,7 +34,9 @@ export class StatsController {
   }
 
   @Get(':wallet')
-  async getStatsForWallet(@Param('wallet') wallet: string): Promise<any> {
+  async getStatsForWallet(
+    @Param('wallet') wallet: string,
+  ): Promise<WalletStats> {
     this.logger.debug('Called GET /stats/:wallet');
     return this.statsService.getStatsForWallet(wallet);
   }
