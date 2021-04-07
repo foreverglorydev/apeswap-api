@@ -145,6 +145,18 @@ export const incentivizedPools = [
     endingBlock: 7210011,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 13,
+    name: 'BANANA -> FOXY Reward Pool',
+    address: '0x726d5A4D170425C98BAff117BF3d9aF9f77f80bd',
+    stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0x4354a4f710182966e55ea30cfa807fa1b821a67b',
+    rewardPerBlock: '57870370',
+    startingBlock: 6348011,
+    endingBlock: 7212011,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 
   /* {
     sousId: 13,
