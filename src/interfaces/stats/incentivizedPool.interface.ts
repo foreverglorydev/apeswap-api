@@ -2,6 +2,7 @@ export interface IncentivizedPoolStats {
   readonly id: number;
   readonly name: string;
   readonly address: string;
+  readonly active: boolean;
   readonly stakedTokenAddress: string;
   t0Address?: string;
   t0Symbol?: string;
