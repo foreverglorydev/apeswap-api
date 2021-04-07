@@ -21,7 +21,6 @@ export class PriceService {
         };
       }
     }
-    console.log(prices);
 
     return prices;
   }
