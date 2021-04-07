@@ -1,6 +1,7 @@
 import { HttpModule } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PriceService } from './price.service';
+import { SubgraphService } from './subgraph.service';
 
 describe('PriceService', () => {
   let service: PriceService;
@@ -8,7 +9,7 @@ describe('PriceService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [HttpModule],
-      providers: [PriceService],
+      providers: [PriceService, SubgraphService],
     }).compile();
 
     service = module.get<PriceService>(PriceService);

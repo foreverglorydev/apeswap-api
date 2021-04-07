@@ -1,5 +1,4 @@
-export function liquidityQuery() {
-  return `{
+export const liquidityQuery = `{
       uniswapFactory(id: "0x0841BD0B734E4F5853f0dD8d7Ea041c241fb0Da6") {
         id
         totalVolumeUSD
@@ -7,7 +6,6 @@ export function liquidityQuery() {
         totalLiquidityETH
       }
     }`;
-}
 
 export const pairsQuery = `{
   pairs {
@@ -47,3 +45,17 @@ export function dayData(skip: number, startTime: number, endTime: number) {
     }
   }`;
 }
+
+export const allPricesQuery = `{
+  tokens {
+    id
+    symbol
+    name
+    derivedBNB: derivedETH
+    tokenDayData(orderBy: date orderDirection: desc, first: 1) {
+      id
+      dailyTxns
+      priceUSD
+    }
+  }
+}`;
