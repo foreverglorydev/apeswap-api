@@ -157,8 +157,7 @@ export const incentivizedPools = [
     bonusEndBlock: 7212011,
     abi: BEP20_REWARD_APE_ABI,
   },
-
-  /* {
+  {
     sousId: 14,
     name: 'BANANA -> JDI Reward Pool',
     address: '0x72C8750af0744282E065F0dF3F73460A3764c624',
@@ -169,5 +168,17 @@ export const incentivizedPools = [
     startBlock: 6401695,
     bonusEndBlock: 9860695,
     abi: BEP20_REWARD_APE_ABI,
-  }, */
+  },
+  {
+    sousId: 16,
+    name: 'BANANA -> LYPTUS Reward Pool',
+    address: '0x1900f5370830F0aa46DF76a6a4F0656Ef321b9f8',
+    stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0xBA26397cdFF25F0D26E815d218Ef3C77609ae7f1',
+    rewardPerBlock: '57870370370370000',
+    startBlock: 6427200,
+    bonusEndBlock: 7291200,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
