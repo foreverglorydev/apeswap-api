@@ -417,12 +417,9 @@ export class StatsService {
   }
 
   async getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
-    if (
-      pool.startBlock > currentBlockNumber ||
-      pool.endBlock < currentBlockNumber
-    ) {
-      return null;
-    }
+    const active =
+      pool.startBlock <= currentBlockNumber &&
+      pool.bonusEndBlock >= currentBlockNumber;
     const poolContract = getContract(pool.abi, pool.address);
 
     if (pool.stakeTokenIsLp) {
@@ -493,13 +490,15 @@ export class StatsService {
         prices,
         pool.rewardToken,
       )?.usd;
-      const apr =
-        (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
+      const apr = active
+        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
+        : 0;
 
       return {
         id: pool.sousId,
         name: createLpPairName(t0Symbol, t1Symbol),
         address: pool.address,
+        active,
         stakedTokenAddress: pool.stakeToken,
         t0Address,
         t0Symbol,
@@ -555,13 +554,15 @@ export class StatsService {
         prices,
         pool.rewardToken,
       )?.usd;
-      const apr =
-        (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl;
+      const apr = active
+        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
+        : 0;
 
       return {
         id: pool.sousId,
         name,
         address: pool.address,
+        active,
         rewardTokenAddress: pool.rewardToken,
         stakedTokenAddress: pool.stakeToken,
         totalSupply,
