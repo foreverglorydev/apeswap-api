@@ -219,9 +219,9 @@ export class StatsService {
     );
 
     const poolInfos = await Promise.all(
-      [...Array(poolCount).keys()].map(async (x) =>
-        this.getPoolInfo(masterApeContract, x),
-      ),
+      [...Array(poolCount).keys()]
+        .filter((x) => x != 23)
+        .map(async (x) => this.getPoolInfo(masterApeContract, x)),
     );
 
     const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
