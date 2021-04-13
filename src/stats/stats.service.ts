@@ -352,7 +352,7 @@ export class StatsService {
     if (tokenAddress == '0x3bA5aee47Bb7eAE40Eb3D06124a74Eb89Da8ffd2') {
       const contract = getContract(
         LP_ABI,
-        '0x93fa1A6357De25031311f784342c33A26Cb1C87A',
+        '0x93fa1A6357De25031311f784342c33A26Cb1C87A', // ROCKET-BNB LP pair address
       );
       const reserves = await contract.methods.getReserves().call();
       const q0 = reserves._reserve0 / 10 ** 18;
