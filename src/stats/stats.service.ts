@@ -219,9 +219,9 @@ export class StatsService {
     );
 
     const poolInfos = await Promise.all(
-      [...Array(poolCount).keys()]
-        .filter((x) => x != 23) // Hotfix: skip for now due to non-standard ABI issue
-        .map(async (x) => this.getPoolInfo(masterApeContract, x)),
+      [...Array(poolCount).keys()].map(async (x) =>
+        this.getPoolInfo(masterApeContract, x),
+      ),
     );
 
     const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
@@ -344,6 +344,26 @@ export class StatsService {
         totalSupply: 1e8,
         decimals: 18,
         staked: 0,
+        tokens: [tokenAddress],
+      };
+    }
+
+    // HOTFIX for Rocket token (Rocket contract currently incompatible with ERC20_ABI)
+    if (tokenAddress == '0x3bA5aee47Bb7eAE40Eb3D06124a74Eb89Da8ffd2') {
+      const contract = getContract(
+        LP_ABI,
+        '0x93fa1A6357De25031311f784342c33A26Cb1C87A',
+      );
+      const reserves = await contract.methods.getReserves().call();
+      const q0 = reserves._reserve0 / 10 ** 18;
+
+      return {
+        address: tokenAddress,
+        name: 'Rocket',
+        symbol: 'ROCKET',
+        totalSupply: 1000000000,
+        decimals: 18,
+        staked: q0,
         tokens: [tokenAddress],
       };
     }
