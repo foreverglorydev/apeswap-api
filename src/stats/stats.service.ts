@@ -275,10 +275,17 @@ export class StatsService {
     poolPrices.pools.forEach((pool) => {
       poolPrices.tvl += pool.stakedTvl;
     });
+
     await Promise.all([
       this.mappingIncetivizedPools(poolPrices, prices),
       this.getTVLData(poolPrices),
     ]);
+
+    poolPrices.incentivizedPools.forEach((pool) => {
+      if (!pool.t0Address) {
+        poolPrices.tvl += pool.stakedTvl;
+      }
+    });
 
     await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
     this.logger.log('Remove last stats');
@@ -604,7 +611,7 @@ export class StatsService {
   async getTVLData(poolPrices): Promise<any> {
     const { tvl, totalVolume } = await this.subgraphService.getTVLData();
     poolPrices.tvl += tvl;
-    poolPrices.totalLiquidity = tvl;
+    poolPrices.totalLiquidity += tvl;
     poolPrices.totalVolume += totalVolume;
   }
 
