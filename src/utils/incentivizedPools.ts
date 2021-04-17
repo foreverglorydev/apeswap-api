@@ -187,7 +187,7 @@ export const incentivizedPools = [
     address: '0xA007a5a8165D70DdFBC230927Cd639163228Fc72',
     stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
     stakeTokenIsLp: false,
-    rewardToken: '0xA007a5a8165D70DdFBC230927Cd639163228Fc72',
+    rewardToken: '0xc5A49b4CBe004b6FD55B30Ba1dE6AC360FF9765d',
     rewardPerBlock: '479442180800000',
     startBlock: 6680032,
     bonusEndBlock: 8408032,
