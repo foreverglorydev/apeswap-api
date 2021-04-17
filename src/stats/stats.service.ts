@@ -248,6 +248,7 @@ export class StatsService {
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
       tvl: 0,
+      totalLiquidity: 0,
       totalVolume: 0,
       burntAmount,
       totalSupply,
@@ -603,6 +604,7 @@ export class StatsService {
   async getTVLData(poolPrices): Promise<any> {
     const { tvl, totalVolume } = await this.subgraphService.getTVLData();
     poolPrices.tvl += tvl;
+    poolPrices.totalLiquidity = tvl;
     poolPrices.totalVolume += totalVolume;
   }
 

@@ -24,6 +24,9 @@ export class GeneralStats {
   tvlInBnb: number;
 
   @Prop({ required: true })
+  totalLiquidity: number;
+
+  @Prop({ required: true })
   totalVolume: number;
 
   @Prop({ required: true })
