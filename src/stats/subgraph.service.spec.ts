@@ -19,7 +19,7 @@ describe('SubgraphService', () => {
   });
 
   it('should be get TVL', async () => {
-    const { tvl } = await service.getTVLData();
+    const { tvl } = await service.getVolumeData();
     expect(tvl).toBeDefined;
   });
 

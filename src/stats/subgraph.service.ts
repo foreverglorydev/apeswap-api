@@ -12,13 +12,13 @@ export class SubgraphService {
     'https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph';
   constructor(private httpService: HttpService) {}
 
-  async getTVLData(): Promise<any> {
+  async getVolumeData(): Promise<any> {
     const { data } = await this.querySubraph(liquidityQuery);
-    const tvlData = {
-      tvl: parseFloat(data.uniswapFactory.totalLiquidityUSD),
+    const volumeData = {
+      liquidity: parseFloat(data.uniswapFactory.totalLiquidityUSD),
       totalVolume: parseFloat(data.uniswapFactory.totalVolumeUSD),
     };
-    return tvlData;
+    return volumeData;
   }
 
   async getPairsData(): Promise<any> {
@@ -45,7 +45,7 @@ export class SubgraphService {
   async getDailySummary() {
     const [dailyData, tvlData, pairData] = await Promise.all([
       this.getTodayData(),
-      this.getTVLData(),
+      this.getVolumeData(),
       this.getPairsData(),
     ]);
     return {

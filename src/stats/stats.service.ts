@@ -609,9 +609,9 @@ export class StatsService {
   }
 
   async getTVLData(poolPrices): Promise<any> {
-    const { tvl, totalVolume } = await this.subgraphService.getTVLData();
-    poolPrices.tvl += tvl;
-    poolPrices.totalLiquidity += tvl;
+    const { liquidity, totalVolume } = await this.subgraphService.getVolumeData();
+    poolPrices.tvl += liquidity;
+    poolPrices.totalLiquidity += liquidity;
     poolPrices.totalVolume += totalVolume;
   }
 
