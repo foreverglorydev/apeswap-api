@@ -205,4 +205,17 @@ export const incentivizedPools = [
     bonusEndBlock: 7061628,
     abi: BEP20_REWARD_APE_ABI,
   },
+
+  {
+    sousId: 19,
+    name: 'BANANA -> ALLOY Reward Pool',
+    address: '0x834534853bff9C97F8A9b0fb9FFF864E3584Df99',
+    stakeToken: '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0x5ef5994fa33ff4eb6c82d51ee1dc145c546065bd',
+    rewardPerBlock: '1467673032',
+    startBlock: 6707400,
+    bonusEndBlock: 8435400,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
