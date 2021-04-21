@@ -232,13 +232,13 @@ export const incentivizedPools = [
   {
     sousId: 21,
     name: 'GNANA -> BANANA Reward Pool',
-    address: '0xDC0913b2bf505E03794f0A68a0DbBa333D8e0E01',
+    address: '0x8F97B2E6559084CFaBA140e2AB4Da9aAF23FE7F8',
     stakeToken: '0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299',
     stakeTokenIsLp: false,
     rewardToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
     rewardPerBlock: '86805555555556000',
-    startBlock: 6767161,
-    bonusEndBlock: 8496161,
+    startBlock: 6770043,
+    bonusEndBlock: 8498043,
     abi: BEP20_REWARD_APE_ABI,
   },
   {
