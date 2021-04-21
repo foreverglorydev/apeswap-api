@@ -240,9 +240,9 @@ export class StatsService {
       };
     }
 
-    // Set GoldenBanana Price = 1.28 * Banana Price
+    // Set GoldenBanana Price = banana price / 0.72
     prices[goldenBananaAddress()] = {
-      usd: 1.3889 * parseFloat(prices[bananaAddress()].usd),
+      usd: parseFloat(prices[bananaAddress()].usd) / 0.72,
     };
 
     const priceUSD = prices[bananaAddress()].usd;
@@ -616,7 +616,10 @@ export class StatsService {
   }
 
   async getTVLData(poolPrices): Promise<any> {
-    const { liquidity, totalVolume } = await this.subgraphService.getVolumeData();
+    const {
+      liquidity,
+      totalVolume,
+    } = await this.subgraphService.getVolumeData();
     poolPrices.tvl += liquidity;
     poolPrices.totalLiquidity += liquidity;
     poolPrices.totalVolume += totalVolume;
