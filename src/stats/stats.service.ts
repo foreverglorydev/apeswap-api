@@ -242,7 +242,7 @@ export class StatsService {
 
     // Set GoldenBanana Price = 1.28 * Banana Price
     prices[goldenBananaAddress()] = {
-      usd: 1.28 * parseFloat(prices[bananaAddress()].usd),
+      usd: 1.3889 * parseFloat(prices[bananaAddress()].usd),
     };
 
     const priceUSD = prices[bananaAddress()].usd;
