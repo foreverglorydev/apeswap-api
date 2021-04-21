@@ -237,9 +237,9 @@ export const incentivizedPools = [
     stakeTokenIsLp: false,
     rewardToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
     // TODO finalize config
-    rewardPerBlock: '3858024',
+    rewardPerBlock: '3858024691358',
     startBlock: 6744393,
-    bonusEndBlock: 9336393,
+    bonusEndBlock: 9360161,
     abi: BEP20_REWARD_APE_ABI,
   },
   {
