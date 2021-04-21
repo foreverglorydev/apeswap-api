@@ -17,6 +17,10 @@ export function bananaAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.banana;
 }
 
+export function goldenBananaAddress(): string {
+  return configuration()[process.env.CHAIN_ID].contracts.goldenBanana;
+}
+
 function bnbAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.bnb;
 }

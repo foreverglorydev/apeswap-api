@@ -20,6 +20,7 @@ import {
 import {
   masterApeContractWeb,
   bananaAddress,
+  goldenBananaAddress,
   masterApeContractAddress,
   getBananaPriceWithPoolList,
   burnAddress,
@@ -232,12 +233,18 @@ export class StatsService {
         3,
     ]);
 
-    // If Banana price not returned from Gecko, calculating using pools
+    // If Banana price not returned from Subgraph, calculating using pools
     if (!prices[bananaAddress()]) {
       prices[bananaAddress()] = {
         usd: getBananaPriceWithPoolList(poolInfos, prices),
       };
     }
+
+    // Set GoldenBanana Price = 1.28 * Banana Price
+    prices[goldenBananaAddress()] = {
+      usd: 1.28 * parseFloat(prices[bananaAddress()].usd),
+    };
+
     const priceUSD = prices[bananaAddress()].usd;
 
     const [tokens, { burntAmount, totalSupply }] = await Promise.all([
