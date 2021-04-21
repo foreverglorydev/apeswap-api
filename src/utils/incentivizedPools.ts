@@ -220,7 +220,7 @@ export const incentivizedPools = [
   {
     sousId: 20,
     name: 'BANANA -> NAUT Reward Pool',
-    address: '0x2CE3893a3cbB9E6141ADa977f576F826415C1f65',
+    address: '0xDC0913b2bf505E03794f0A68a0DbBa333D8e0E01',
     stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
     stakeTokenIsLp: false,
     rewardToken: '0x05B339B0A346bF01f851ddE47a5d485c34FE220c',
