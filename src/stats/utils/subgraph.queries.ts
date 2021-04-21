@@ -47,7 +47,7 @@ export function dayData(skip: number, startTime: number, endTime: number) {
 }
 
 export const allPricesQuery = `{
-  tokens {
+  tokens(orderBy: tradeVolumeUSD orderDirection: desc) {
     id
     symbol
     name
