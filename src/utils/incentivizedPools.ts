@@ -253,4 +253,15 @@ export const incentivizedPools = [
     bonusEndBlock: 9364125,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 23,
+    name: 'BANANA -> NFTL Reward Pool',
+    address: '0x7618c42Fb5DC96F3C238FEC799B440AEd7c56E03',
+    stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
+    rewardToken: '0xE5904E9816b309d3eD4d061c922f5aa8f3B24C92',
+    rewardPerBlock: '2142857142000000000',
+    startBlock: 6794775,
+    bonusEndBlock: 6996375,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
