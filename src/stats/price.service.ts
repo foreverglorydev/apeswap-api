@@ -10,10 +10,11 @@ export class PriceService {
   ) {}
 
   async getTokenPrices(): Promise<any> {
-    //const prices = await this.getCoinGeckoPrices(); // old coinGeckoPrice price feed
     const prices = {};
     const data = await this.subgraphService.getAllPriceData();
-
+    const pricesGecko = await this.getCoinGeckoPrices(); // coinGeckoPrice price feed
+    
+    
     for (let i = 0; i < data.length; i++) {
       if (data[i].tokenDayData.length > 0) {
         prices[data[i].id] = {
@@ -22,7 +23,9 @@ export class PriceService {
       }
     }
 
-    return prices;
+    const pricesAll = Object.assign(prices, pricesGecko);
+    console.log(pricesAll);
+    return pricesAll;
   }
 
   async getCoinGeckoPrices() {
@@ -40,6 +43,7 @@ export class PriceService {
 
     Promise.all(pricePromises).then((priceArray) => {
       for (let i = 0; i < priceArray.length; i++) {
+        console.log(priceArray[i].data);
         const data = priceArray[i].data;
         for (const token of this.coinGeckoTokens) {
           if (data[token.id]) {
@@ -48,7 +52,7 @@ export class PriceService {
         }
       }
     });
-
+    
     return prices;
   }
 
@@ -92,6 +96,31 @@ export class PriceService {
       id: 'iota',
       symbol: 'IOTA',
       contract: '0xd944f1d1e9d5f9bb90b62f9d45e447d989580782',
+    },
+    {
+      id: 'polkadot',
+      symbol: 'DOT',
+      contract: '0x7083609fce4d1d8dc0c979aab8c869ea2c873402',
+    },
+    {
+      id: 'ripple',
+      symbol: 'XRP',
+      contract: '0x1d2f0da169ceb9fc7b3144628db156f3f6c60dbe',
+    },
+    {
+      id: 'chainlink',
+      symbol: 'LINK',
+      contract: '0xf8a0bf9cf54bb92f17374d9e9a321e6a111a51bd',
+    },
+    {
+      id: 'tether',
+      symbol: 'USDT',
+      contract: '0x55d398326f99059ff775485246999027b3197955',
+    },
+    {
+      id: 'swipe',
+      symbol: 'SXP',
+      contract: '0x47bead2563dcbf3bf2c9407fea4dc236faba485a',
     },
   ];
 }
