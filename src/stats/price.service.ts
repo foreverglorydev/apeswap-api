@@ -23,9 +23,7 @@ export class PriceService {
       }
     }
 
-    const pricesAll = Object.assign(prices, pricesGecko);
-    console.log(pricesAll);
-    return pricesAll;
+    return Object.assign(prices, pricesGecko);
   }
 
   async getCoinGeckoPrices() {
@@ -41,9 +39,8 @@ export class PriceService {
       pricePromises.push(this.httpService.get(url).toPromise());
     }
 
-    Promise.all(pricePromises).then((priceArray) => {
+    await Promise.all(pricePromises).then((priceArray) => {
       for (let i = 0; i < priceArray.length; i++) {
-        console.log(priceArray[i].data);
         const data = priceArray[i].data;
         for (const token of this.coinGeckoTokens) {
           if (data[token.id]) {
