@@ -557,10 +557,25 @@ export class StatsService {
       };
     } else {
       const stakedTokenContract = getContract(ERC20_ABI, pool.stakeToken);
-      const stakedTokenPrice = getParameterCaseInsensitive(
+
+      let stakedTokenPrice = getParameterCaseInsensitive(
         prices,
         pool.stakeToken,
       )?.usd;
+
+      if (isNaN(stakedTokenPrice)) {
+        stakedTokenPrice = 0;
+      }
+
+      let rewardTokenPrice = getParameterCaseInsensitive(
+        prices,
+        pool.rewardToken,
+      )?.usd;
+
+      if (isNaN(rewardTokenPrice)) {
+        rewardTokenPrice = 0;
+      }
+
       const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
       const [
         name,
@@ -585,13 +600,11 @@ export class StatsService {
 
       const tvl = totalSupply * stakedTokenPrice;
       const stakedTvl = (stakedSupply * tvl) / totalSupply;
-      const rewardTokenPrice = getParameterCaseInsensitive(
-        prices,
-        pool.rewardToken,
-      )?.usd;
-      const apr = active
-        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
-        : 0;
+      
+      let apr = 0;
+      if (active && stakedTokenPrice != 0) {
+        apr = (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
+      }
 
       return {
         id: pool.sousId,
