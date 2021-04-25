@@ -5,8 +5,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { StatsService } from './stats.service';
 import { SubgraphService } from './subgraph.service';
 import { PriceService } from './price.service';
-import { closeInMongodConnection, rootMongooseTestModule } from 'src//utils/testing';
-import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
+import {
+  closeInMongodConnection,
+  rootMongooseTestModule,
+} from 'src//utils/testing';
+import { GeneralStatsSchema } from './schema/generalStats.schema';
 
 describe('StatsService', () => {
   let service: StatsService;

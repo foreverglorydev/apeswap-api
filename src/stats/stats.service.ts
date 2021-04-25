@@ -600,10 +600,12 @@ export class StatsService {
 
       const tvl = totalSupply * stakedTokenPrice;
       const stakedTvl = (stakedSupply * tvl) / totalSupply;
-      
+
       let apr = 0;
       if (active && stakedTokenPrice != 0) {
-        apr = (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
+        apr =
+          (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
+          stakedTvl;
       }
 
       return {
