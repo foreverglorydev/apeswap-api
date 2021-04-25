@@ -206,7 +206,7 @@ export class StatsService {
     if (infoStats) return infoStats;
 
     await this.updateCreatedAtStats();
-    this.calculateStats();
+    await this.calculateStats();
     const generalStats: any = await this.findOne();
     return generalStats;
   }
@@ -242,7 +242,7 @@ export class StatsService {
 
     // Set GoldenBanana Price = banana price / 0.72
     prices[goldenBananaAddress()] = {
-      usd: parseFloat(prices[bananaAddress()].usd) / 0.72,
+      usd: prices[bananaAddress()].usd / 0.72,
     };
 
     const priceUSD = prices[bananaAddress()].usd;
