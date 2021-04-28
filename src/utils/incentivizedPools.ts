@@ -313,4 +313,16 @@ export const incentivizedPools = [
     bonusEndBlock: 7345311,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 28,
+    name: 'JDI -> JDI',
+    address: '0xa3283C497710cbBE31d35A5cf56C315C621D6e10',
+    stakeToken: '0x0491648c910ad2c1afaab733faf71d30313df7fc',
+    stakeTokenIsLp: false,
+    rewardToken: '0x0491648c910ad2c1afaab733faf71d30313df7fc',
+    rewardPerBlock: '115740740740000000',
+    startBlock: 6962657,
+    bonusEndBlock: 8690657,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
