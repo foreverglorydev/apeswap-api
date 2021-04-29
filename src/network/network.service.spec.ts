@@ -22,4 +22,19 @@ describe('NetworkService', () => {
       true,
     );
   });
+
+  it('should get green network status', () => {
+    const status = service.updateNetworkStatus(10);
+    expect(status).toEqual('green');
+  });
+
+  it('should get yellow network status', () => {
+    const status = service.updateNetworkStatus(7);
+    expect(status).toEqual('yellow');
+  });
+
+  it('should get red network status', () => {
+    const status = service.updateNetworkStatus(3);
+    expect(status).toEqual('red');
+  });
 });
