@@ -1,22 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { getCurrentBlock } from 'src/utils/lib/web3';
 
 @Injectable()
 export class NetworkService {
-  private lastBlock: number = 0;
-  private networkStatus: string = "green";
-  private networkStatusNum: number = 6;
-  private statusCheckInterval: number = 30000;
+  private readonly logger = new Logger(NetworkService.name);
+
+  private lastBlock = 0;
+  private networkStatus = 'green';
+  private networkStatusNum = 6;
+  private statusCheckInterval = 30000;
 
   constructor() {
     this.getLatestBlock();
   }
 
-  async getStatus(): Promise<any> {
+  getStatus() {
     return this.networkStatus;
   }
 
-  async getLatestBlock() { 
+  async getLatestBlock() {
     const newBlock = await getCurrentBlock();
     this.networkStatus = this.updateNetworkStatus(newBlock - this.lastBlock);
     this.lastBlock = newBlock;
@@ -29,15 +31,14 @@ export class NetworkService {
     If (blockDifference < 6) : netWorkStatusNum = 0                       RED
   */
   updateNetworkStatus(blockDifference) {
+    this.logger.log('Network Status Block difference: ' + blockDifference);
     if (blockDifference > 8) {
       this.networkStatusNum = Math.min(this.networkStatusNum + 1, 6);
-    } 
-    else if (blockDifference > 6) {
+    } else if (blockDifference > 6) {
       if (this.networkStatusNum > 3) {
         this.networkStatusNum = 3;
       }
-    } 
-    else {
+    } else {
       this.networkStatusNum = 0;
     }
     return this.getStatusByNum();
@@ -50,8 +51,8 @@ export class NetworkService {
     0-2 : red
   */
   getStatusByNum() {
-    if (this.networkStatusNum > 5) return "green";
-    if (this.networkStatusNum > 2) return "yellow";
-    return "red";
+    if (this.networkStatusNum > 5) return 'green';
+    if (this.networkStatusNum > 2) return 'yellow';
+    return 'red';
   }
 }

@@ -6,8 +6,8 @@ export class NetworkController {
   private readonly logger = new Logger(NetworkController.name);
   constructor(private networkService: NetworkService) {}
   @Get()
-  async getNetworkStatus(): Promise<any> {
+  getNetworkStatus() {
     this.logger.debug('Called GET /network');
-    return await this.networkService.getStatus();
+    return this.networkService.getStatus();
   }
 }

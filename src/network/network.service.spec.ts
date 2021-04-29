@@ -15,4 +15,11 @@ describe('NetworkService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('should get network status', () => {
+    const status = service.getStatus();
+    expect(status == 'green' || status == 'yellow' || status == 'red').toBe(
+      true,
+    );
+  });
 });
