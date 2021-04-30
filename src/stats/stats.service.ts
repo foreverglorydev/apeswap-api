@@ -17,6 +17,7 @@ import {
   getParameterCaseInsensitive,
   createLpPairName,
 } from 'src/utils/helpers';
+import { multicall } from 'src/utils/lib/multicall';
 import {
   masterApeContractWeb,
   bananaAddress,
@@ -320,6 +321,38 @@ export class StatsService {
   }
 
   async getLpInfo(tokenAddress, stakingAddress) {
+    let [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
+      {
+        address: tokenAddress,
+        name: 'getReserves',
+      },
+      {
+        address: tokenAddress,
+        name: 'decimals',
+      },
+      {
+        address: tokenAddress,
+        name: 'token0',
+      },
+      {
+        address: tokenAddress,
+        name: 'token1',
+      },
+    ]);
+    
+    let [totalSupply, staked] = await multicall(LP_ABI, [
+      {
+        address: tokenAddress,
+        name: 'totalSupply',
+      },
+      {
+        address: tokenAddress,
+        name: 'balanceOf',
+        params: [stakingAddress],
+      },
+    ]);
+    
+    /*
     const contract = getContract(LP_ABI, tokenAddress);
     const [reserves, decimals, token0, token1] = await Promise.all([
       contract.methods.getReserves().call(),
@@ -331,6 +364,7 @@ export class StatsService {
       contract.methods.totalSupply().call(),
       contract.methods.balanceOf(stakingAddress).call(),
     ]);
+    */
     totalSupply /= 10 ** decimals;
     staked /= 10 ** decimals;
 
