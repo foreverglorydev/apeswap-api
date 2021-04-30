@@ -206,7 +206,7 @@ export class StatsService {
     if (infoStats) return infoStats;
 
     await this.updateCreatedAtStats();
-    await this.calculateStats();
+    this.calculateStats();
     const generalStats: any = await this.findOne();
     return generalStats;
   }

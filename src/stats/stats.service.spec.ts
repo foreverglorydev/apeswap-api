@@ -94,7 +94,7 @@ describe('StatsService', () => {
       price: expect.any(Number),
     };
 
-    const stats = await service.getAllStats();
+    const stats = await service.calculateStats();
     expect(stats).toEqual(expect.objectContaining(objStats));
     if (stats.pools.length > 0) {
       expect(stats.pools[0]).toEqual(expect.objectContaining(objPools));
