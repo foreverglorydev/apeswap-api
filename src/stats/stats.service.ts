@@ -323,7 +323,7 @@ export class StatsService {
   }
 
   async getLpInfo(tokenAddress, stakingAddress) {
-    let [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
+    const [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
       {
         address: tokenAddress,
         name: 'getReserves',
@@ -341,7 +341,7 @@ export class StatsService {
         name: 'token1',
       },
     ]);
-    
+
     let [totalSupply, staked] = await multicall(LP_ABI, [
       {
         address: tokenAddress,
@@ -353,7 +353,7 @@ export class StatsService {
         params: [stakingAddress],
       },
     ]);
-    
+
     /*
     const contract = getContract(LP_ABI, tokenAddress);
     const [reserves, decimals, token0, token1] = await Promise.all([
@@ -374,15 +374,15 @@ export class StatsService {
     const q1 = reserves._reserve1;
     return {
       address: tokenAddress,
-      token0,
+      token0: token0[0],
       q0,
-      token1,
+      token1: token1[0],
       q1,
       totalSupply,
       stakingAddress,
       staked,
-      decimals,
-      tokens: [token0, token1],
+      decimals: decimals[0],
+      tokens: [token0[0], token1[0]],
     };
   }
 

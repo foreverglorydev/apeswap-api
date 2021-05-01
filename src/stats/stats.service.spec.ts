@@ -74,7 +74,7 @@ describe('StatsService', () => {
       tvl: expect.any(Number),
       stakedTvl: expect.any(Number),
       apr: expect.any(Number),
-      decimals: expect.any(String),
+      decimals: expect.any(Number),
     };
     const objIncentivized = {
       id: expect.any(Number),
