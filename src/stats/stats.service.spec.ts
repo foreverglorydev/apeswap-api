@@ -23,6 +23,7 @@ describe('StatsService', () => {
       bananaPrice: expect.any(Number),
       burntAmount: expect.any(Number),
       totalSupply: expect.any(Number),
+      circulatingSupply: expect.any(Number),
       marketCap: expect.any(Number),
       pools: expect.any(Array),
       farms: expect.any(Array),

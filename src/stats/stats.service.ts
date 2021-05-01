@@ -249,10 +249,10 @@ export class StatsService {
 
     const priceUSD = prices[bananaAddress()].usd;
 
-    const [tokens, { burntAmount, totalSupply }] = await Promise.all([
-      this.getTokens(poolInfos),
-      this.getBurnAndSupply(),
-    ]);
+    const [
+      tokens,
+      { burntAmount, totalSupply, circulatingSupply },
+    ] = await Promise.all([this.getTokens(poolInfos), this.getBurnAndSupply()]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
@@ -261,7 +261,8 @@ export class StatsService {
       totalVolume: 0,
       burntAmount,
       totalSupply,
-      marketCap: totalSupply * priceUSD,
+      circulatingSupply,
+      marketCap: circulatingSupply * priceUSD,
       pools: [],
       farms: [],
       incentivizedPools: [],
@@ -411,14 +412,19 @@ export class StatsService {
 
     const decimals = await bananaContract.methods.decimals().call();
 
-    const [burntAmount, totalSupply] = await Promise.all([
+    const [burned, supply] = await Promise.all([
       bananaContract.methods.balanceOf(burnAddress()).call(),
       bananaContract.methods.totalSupply().call(),
     ]);
 
+    const burntAmount = burned / 10 ** decimals;
+    const totalSupply = supply / 10 ** decimals;
+    const circulatingSupply = totalSupply - burntAmount;
+
     return {
-      burntAmount: burntAmount / 10 ** decimals,
-      totalSupply: totalSupply / 10 ** decimals,
+      burntAmount,
+      totalSupply,
+      circulatingSupply,
     };
   }
 
