@@ -17,7 +17,7 @@ export class PriceService {
     for (let i = 0; i < data.length; i++) {
       if (data[i].tokenDayData.length > 0) {
         prices[data[i].id] = {
-          usd: data[i].tokenDayData[0].priceUSD,
+          usd: parseFloat(data[i].tokenDayData[0].priceUSD),
         };
       }
     }
