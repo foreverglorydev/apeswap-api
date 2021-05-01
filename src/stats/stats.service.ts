@@ -244,7 +244,7 @@ export class StatsService {
 
     // Set GoldenBanana Price = banana price / 0.72
     prices[goldenBananaAddress()] = {
-      usd: parseFloat(prices[bananaAddress()].usd) / 0.72,
+      usd: prices[bananaAddress()].usd / 0.72,
     };
 
     const priceUSD = prices[bananaAddress()].usd;
