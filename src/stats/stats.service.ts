@@ -91,6 +91,7 @@ export class StatsService {
   async loadDefistation() {
     if (this.chainId !== 56) return; // Only run on mainet
     try {
+      if (!process.env.DEFISTATION_PASSWORD) return;
       this.logger.log('Loading Defistation');
       const statData = await this.getDefistationStats();
       const data = { test: false, bnb: 0, ...statData };
@@ -113,6 +114,7 @@ export class StatsService {
   }
 
   async getDefistation() {
+    if (!process.env.DEFISTATION_PASSWORD) return;
     const { data } = await this.httpService
       .get('https://api.defistation.io/dataProvider/tvl', {
         auth: {
@@ -242,15 +244,15 @@ export class StatsService {
 
     // Set GoldenBanana Price = banana price / 0.72
     prices[goldenBananaAddress()] = {
-      usd: parseFloat(prices[bananaAddress()].usd) / 0.72,
+      usd: prices[bananaAddress()].usd / 0.72,
     };
 
     const priceUSD = prices[bananaAddress()].usd;
 
-    const [tokens, { burntAmount, totalSupply }] = await Promise.all([
-      this.getTokens(poolInfos),
-      this.getBurnAndSupply(),
-    ]);
+    const [
+      tokens,
+      { burntAmount, totalSupply, circulatingSupply },
+    ] = await Promise.all([this.getTokens(poolInfos), this.getBurnAndSupply()]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
@@ -259,7 +261,8 @@ export class StatsService {
       totalVolume: 0,
       burntAmount,
       totalSupply,
-      marketCap: totalSupply * priceUSD,
+      circulatingSupply,
+      marketCap: circulatingSupply * priceUSD,
       pools: [],
       farms: [],
       incentivizedPools: [],
@@ -409,14 +412,19 @@ export class StatsService {
 
     const decimals = await bananaContract.methods.decimals().call();
 
-    const [burntAmount, totalSupply] = await Promise.all([
+    const [burned, supply] = await Promise.all([
       bananaContract.methods.balanceOf(burnAddress()).call(),
       bananaContract.methods.totalSupply().call(),
     ]);
 
+    const burntAmount = burned / 10 ** decimals;
+    const totalSupply = supply / 10 ** decimals;
+    const circulatingSupply = totalSupply - burntAmount;
+
     return {
-      burntAmount: burntAmount / 10 ** decimals,
-      totalSupply: totalSupply / 10 ** decimals,
+      burntAmount,
+      totalSupply,
+      circulatingSupply,
     };
   }
 
@@ -600,10 +608,12 @@ export class StatsService {
 
       const tvl = totalSupply * stakedTokenPrice;
       const stakedTvl = (stakedSupply * tvl) / totalSupply;
-      
+
       let apr = 0;
       if (active && stakedTokenPrice != 0) {
-        apr = (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
+        apr =
+          (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
+          stakedTvl;
       }
 
       return {

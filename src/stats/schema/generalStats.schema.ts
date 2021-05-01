@@ -15,6 +15,9 @@ export class GeneralStats {
   totalSupply: number;
 
   @Prop({ required: true })
+  circulatingSupply: number;
+
+  @Prop({ required: true })
   marketCap: number;
 
   @Prop({ required: true })

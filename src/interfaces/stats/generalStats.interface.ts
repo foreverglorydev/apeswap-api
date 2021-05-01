@@ -6,6 +6,7 @@ export interface GeneralStats {
   readonly bananaPrice: number;
   readonly burntAmount: number;
   readonly totalSupply: number;
+  readonly circulatingSupply: number;
   readonly marketCap: number;
   tvl: number;
   readonly tvlInBnb?: number;

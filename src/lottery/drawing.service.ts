@@ -74,15 +74,13 @@ export class DrawingService {
   // Runs every 20 seconds
   @Cron('20 * * * * *')
   async process() {
-    // if (this.chainId == 56) return;
+    if (!this.adminPrivateKey) return;
     const latestDraw = await this.drawModel.findOne().sort({ drawTime: -1 });
     const latestDrawHours = latestDraw?.drawTime.getUTCHours();
-    const latestDrawMinutes = latestDraw?.drawTime.getUTCMinutes();
     const latestDrawDay = latestDraw?.drawTime.getUTCDay();
     const drawed = await this.lottery.methods.drawed().call();
     const drawingPhase = await this.lottery.methods.drawingPhase().call();
     const currentDate = new Date();
-    const currentMinutes = currentDate.getUTCMinutes();
     const currentHour = currentDate.getUTCHours();
     const currentDay = currentDate.getUTCDay();
     const nextLottery = await this.getClosestLotteryHour(currentHour);
