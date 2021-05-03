@@ -325,4 +325,16 @@ export const incentivizedPools = [
     bonusEndBlock: 8690657,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 29,
+    name: 'GNANA -> BINGUS',
+    address: '0x1697b103a72299d5db4e39ef28a32991c347be23',
+    stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0xda20c8a5c3b1ab48e31ba6e43f0f2830e50218d8',
+    rewardPerBlock: '3592308202022',
+    startBlock: 7110269,
+    bonusEndBlock: 9702269,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
