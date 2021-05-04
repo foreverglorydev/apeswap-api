@@ -406,29 +406,32 @@ export class StatsService {
       };
     }
 
-    const [name, symbol, totalSupply, decimals, staked] = await multicall(ERC20_ABI, [
-      {
-        address: tokenAddress,
-        name: 'name',
-      },
-      {
-        address: tokenAddress,
-        name: 'symbol',
-      },
-      {
-        address: tokenAddress,
-        name: 'totalSupply',
-      },
-      {
-        address: tokenAddress,
-        name: 'decimals',
-      },
-      {
-        address: tokenAddress,
-        name: 'balanceOf',
-        params: [stakingAddress],
-      },
-    ]);
+    const [name, symbol, totalSupply, decimals, staked] = await multicall(
+      ERC20_ABI,
+      [
+        {
+          address: tokenAddress,
+          name: 'name',
+        },
+        {
+          address: tokenAddress,
+          name: 'symbol',
+        },
+        {
+          address: tokenAddress,
+          name: 'totalSupply',
+        },
+        {
+          address: tokenAddress,
+          name: 'decimals',
+        },
+        {
+          address: tokenAddress,
+          name: 'balanceOf',
+          params: [stakingAddress],
+        },
+      ],
+    );
 
     return {
       address: tokenAddress,
@@ -520,7 +523,9 @@ export class StatsService {
       ]);
 
       const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
-      const rewardDecimals = await rewardTokenContract.methods.decimals().call();
+      const rewardDecimals = await rewardTokenContract.methods
+        .decimals()
+        .call();
 
       const [
         token0decimals,
@@ -551,7 +556,7 @@ export class StatsService {
         },
       ]);
 
-      let [ totalSupply, stakedSupply] = await multicall(LP_ABI, [
+      let [totalSupply, stakedSupply] = await multicall(LP_ABI, [
         {
           address: pool.stakeToken,
           name: 'totalSupply',
@@ -565,7 +570,9 @@ export class StatsService {
 
       totalSupply = totalSupply / 10 ** stakedTokenDecimals[0];
       stakedSupply = stakedSupply / 10 ** stakedTokenDecimals[0];
-      const rewardsPerBlock = (await poolContract.methods.rewardPerBlock().call()) / 10 ** rewardDecimals;
+      const rewardsPerBlock =
+        (await poolContract.methods.rewardPerBlock().call()) /
+        10 ** rewardDecimals;
 
       const q0 = reserves._reserve0 / 10 ** token0decimals[0];
       const q1 = reserves._reserve1 / 10 ** token1decimals[0];
@@ -667,7 +674,7 @@ export class StatsService {
         },
       ]);
 
-      let [ totalSupply, stakedSupply] = await multicall(ERC20_ABI, [
+      let [totalSupply, stakedSupply] = await multicall(ERC20_ABI, [
         {
           address: pool.stakeToken,
           name: 'totalSupply',
@@ -680,7 +687,9 @@ export class StatsService {
       ]);
       totalSupply = totalSupply / 10 ** stakedTokenDecimals[0];
       stakedSupply = stakedSupply / 10 ** stakedTokenDecimals[0];
-      const rewardsPerBlock = (await poolContract.methods.rewardPerBlock().call()) / 10 ** rewardDecimals[0];
+      const rewardsPerBlock =
+        (await poolContract.methods.rewardPerBlock().call()) /
+        10 ** rewardDecimals[0];
       const tvl = totalSupply * stakedTokenPrice;
       const stakedTvl = (stakedSupply * tvl) / totalSupply;
 
