@@ -9,12 +9,16 @@ import {
 } from '@nestjs/common';
 import { NfaSaleDto } from './dto/nfaSale.dto';
 import { Nfa } from './interfaces/nfas.interface';
+import { NfasTrackingService } from './nfas-tracking.service';
 import { NfasService } from './nfas.service';
 
 @Controller('nfas')
 export class NfasController {
   private readonly logger = new Logger(NfasController.name);
-  constructor(private nfasService: NfasService) {}
+  constructor(
+    private nfasService: NfasService,
+    private nfaTracking: NfasTrackingService,
+  ) {}
 
   @Get()
   async getAllNfas(@Query() query): Promise<Nfa[]> {
@@ -29,6 +33,12 @@ export class NfasController {
   ): Promise<Nfa[] | null> {
     this.logger.debug('Called GET /nfas/address/:address');
     return await this.nfasService.getNfasByAddress(address, query);
+  }
+
+  @Get('process/:startBlock')
+  async processEvents(@Param('startBlock') startBlock: string): Promise<any> {
+    this.logger.debug('Called GET /nfas/process/:startBlock');
+    this.nfaTracking.fetchLogs({ startBlock: parseInt(startBlock, 10) });
   }
 
   @Get(':index')
