@@ -495,64 +495,94 @@ export class StatsService {
     const poolContract = getContract(pool.abi, pool.address);
 
     if (pool.stakeTokenIsLp) {
-      const stakedTokenContract = getContract(LP_ABI, pool.stakeToken);
-      const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
       const [
         reserves,
         stakedTokenDecimals,
         t0Address,
         t1Address,
-        rewardDecimals,
-      ] = await Promise.all([
-        stakedTokenContract.methods.getReserves().call(),
-        stakedTokenContract.methods.decimals().call(),
-        stakedTokenContract.methods.token0().call(),
-        stakedTokenContract.methods.token1().call(),
-        rewardTokenContract.methods.decimals().call(),
+      ] = await multicall(LP_ABI, [
+        {
+          address: pool.stakeToken,
+          name: 'getReserves',
+        },
+        {
+          address: pool.stakeToken,
+          name: 'decimals',
+        },
+        {
+          address: pool.stakeToken,
+          name: 'token0',
+        },
+        {
+          address: pool.stakeToken,
+          name: 'token1',
+        },
       ]);
 
-      const token0Contract = getContract(ERC20_ABI, t0Address);
-      const token1Contract = getContract(ERC20_ABI, t1Address);
+      const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
+      const rewardDecimals = await rewardTokenContract.methods.decimals().call();
 
       const [
         token0decimals,
         token1decimals,
-        totalSupply,
-        stakedSupply,
-        rewardsPerBlock,
         rewardTokenSymbol,
         t0Symbol,
         t1Symbol,
-      ] = await Promise.all([
-        token0Contract.methods.decimals().call(),
-        token1Contract.methods.decimals().call(),
-        (await stakedTokenContract.methods.totalSupply().call()) /
-          10 ** stakedTokenDecimals,
-        (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
-          10 ** stakedTokenDecimals,
-        (await poolContract.methods.rewardPerBlock().call()) /
-          10 ** rewardDecimals,
-        rewardTokenContract.methods.symbol().call(),
-        token0Contract.methods.symbol().call(),
-        token1Contract.methods.symbol().call(),
+      ] = await multicall(ERC20_ABI, [
+        {
+          address: t0Address[0],
+          name: 'decimals',
+        },
+        {
+          address: t1Address[0],
+          name: 'decimals',
+        },
+        {
+          address: pool.rewardToken,
+          name: 'symbol',
+        },
+        {
+          address: t0Address[0],
+          name: 'symbol',
+        },
+        {
+          address: t1Address[0],
+          name: 'symbol',
+        },
       ]);
 
-      const q0 = reserves._reserve0 / 10 ** token0decimals;
-      const q1 = reserves._reserve1 / 10 ** token1decimals;
+      let [ totalSupply, stakedSupply] = await multicall(LP_ABI, [
+        {
+          address: pool.stakeToken,
+          name: 'totalSupply',
+        },
+        {
+          address: pool.stakeToken,
+          name: 'balanceOf',
+          params: [pool.address],
+        },
+      ]);
 
-      let p0 = getParameterCaseInsensitive(prices, t0Address)?.usd;
-      let p1 = getParameterCaseInsensitive(prices, t1Address)?.usd;
+      totalSupply = totalSupply / 10 ** stakedTokenDecimals[0];
+      stakedSupply = stakedSupply / 10 ** stakedTokenDecimals[0];
+      const rewardsPerBlock = (await poolContract.methods.rewardPerBlock().call()) / 10 ** rewardDecimals;
+
+      const q0 = reserves._reserve0 / 10 ** token0decimals[0];
+      const q1 = reserves._reserve1 / 10 ** token1decimals[0];
+
+      let p0 = getParameterCaseInsensitive(prices, t0Address[0])?.usd;
+      let p1 = getParameterCaseInsensitive(prices, t1Address[0])?.usd;
 
       if (p0 == null && p1 == null) {
         return undefined;
       }
       if (p0 == null) {
         p0 = (q1 * p1) / q0;
-        prices[t0Address] = { usd: p0 };
+        prices[t0Address[0]] = { usd: p0 };
       }
       if (p1 == null) {
         p1 = (q0 * p0) / q1;
-        prices[t1Address] = { usd: p1 };
+        prices[t1Address[0]] = { usd: p1 };
       }
 
       const tvl = q0 * p0 + q1 * p1;
@@ -568,38 +598,37 @@ export class StatsService {
 
       return {
         id: pool.sousId,
-        name: createLpPairName(t0Symbol, t1Symbol),
+        name: createLpPairName(t0Symbol[0], t1Symbol[0]),
         address: pool.address,
         active,
         stakedTokenAddress: pool.stakeToken,
-        t0Address,
-        t0Symbol,
+        t0Address: t0Address[0],
+        t0Symbol: t0Symbol[0],
         p0,
         q0,
-        t1Address,
-        t1Symbol,
+        t1Address: t1Address[0],
+        t1Symbol: t1Symbol[0],
         p1,
         q1,
         totalSupply,
         stakedSupply,
         rewardDecimals,
-        stakedTokenDecimals,
+        stakedTokenDecimals: stakedTokenDecimals[0],
         tvl,
         stakedTvl,
         apr,
         rewardTokenPrice,
-        rewardTokenSymbol,
+        rewardTokenSymbol: rewardTokenSymbol[0],
         price: tvl / totalSupply,
         abi: pool.abi,
       };
     } else {
-      const stakedTokenContract = getContract(ERC20_ABI, pool.stakeToken);
-
       let stakedTokenPrice = getParameterCaseInsensitive(
         prices,
         pool.stakeToken,
       )?.usd;
 
+      // If token is not trading on DEX, assign price = 0
       if (isNaN(stakedTokenPrice)) {
         stakedTokenPrice = 0;
       }
@@ -609,32 +638,49 @@ export class StatsService {
         pool.rewardToken,
       )?.usd;
 
+      // If token is not trading on DEX, assign price = 0
       if (isNaN(rewardTokenPrice)) {
         rewardTokenPrice = 0;
       }
 
-      const rewardTokenContract = getContract(ERC20_ABI, pool.rewardToken);
       const [
         name,
         stakedTokenDecimals,
         rewardDecimals,
         rewardTokenSymbol,
-      ] = await Promise.all([
-        stakedTokenContract.methods.symbol().call(),
-        stakedTokenContract.methods.decimals().call(),
-        rewardTokenContract.methods.decimals().call(),
-        rewardTokenContract.methods.symbol().call(),
+      ] = await multicall(ERC20_ABI, [
+        {
+          address: pool.stakeToken,
+          name: 'symbol',
+        },
+        {
+          address: pool.stakeToken,
+          name: 'decimals',
+        },
+        {
+          address: pool.rewardToken,
+          name: 'decimals',
+        },
+        {
+          address: pool.rewardToken,
+          name: 'symbol',
+        },
       ]);
 
-      const [totalSupply, stakedSupply, rewardsPerBlock] = await Promise.all([
-        (await stakedTokenContract.methods.totalSupply().call()) /
-          10 ** stakedTokenDecimals,
-        (await stakedTokenContract.methods.balanceOf(pool.address).call()) /
-          10 ** stakedTokenDecimals,
-        (await poolContract.methods.rewardPerBlock().call()) /
-          10 ** rewardDecimals,
+      let [ totalSupply, stakedSupply] = await multicall(ERC20_ABI, [
+        {
+          address: pool.stakeToken,
+          name: 'totalSupply',
+        },
+        {
+          address: pool.stakeToken,
+          name: 'balanceOf',
+          params: [pool.address],
+        },
       ]);
-
+      totalSupply = totalSupply / 10 ** stakedTokenDecimals[0];
+      stakedSupply = stakedSupply / 10 ** stakedTokenDecimals[0];
+      const rewardsPerBlock = (await poolContract.methods.rewardPerBlock().call()) / 10 ** rewardDecimals[0];
       const tvl = totalSupply * stakedTokenPrice;
       const stakedTvl = (stakedSupply * tvl) / totalSupply;
 
@@ -647,20 +693,20 @@ export class StatsService {
 
       return {
         id: pool.sousId,
-        name,
+        name: name[0],
         address: pool.address,
         active,
         rewardTokenAddress: pool.rewardToken,
         stakedTokenAddress: pool.stakeToken,
         totalSupply,
         stakedSupply,
-        rewardDecimals,
-        stakedTokenDecimals,
+        rewardDecimals: rewardDecimals[0],
+        stakedTokenDecimals: stakedTokenDecimals[0],
         tvl,
         stakedTvl,
         apr,
         rewardTokenPrice,
-        rewardTokenSymbol,
+        rewardTokenSymbol: rewardTokenSymbol[0],
         price: stakedTokenPrice,
         abi: pool.abi,
       };
