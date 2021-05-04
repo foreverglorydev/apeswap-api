@@ -92,6 +92,7 @@ export class StatsService {
   async loadDefistation() {
     if (this.chainId !== 56) return; // Only run on mainet
     try {
+      if (!process.env.DEFISTATION_PASSWORD) return;
       this.logger.log('Loading Defistation');
       const statData = await this.getDefistationStats();
       const data = { test: false, bnb: 0, ...statData };
@@ -114,6 +115,7 @@ export class StatsService {
   }
 
   async getDefistation() {
+    if (!process.env.DEFISTATION_PASSWORD) return;
     const { data } = await this.httpService
       .get('https://api.defistation.io/dataProvider/tvl', {
         auth: {
@@ -243,7 +245,7 @@ export class StatsService {
 
     // Set GoldenBanana Price = banana price / 0.72
     prices[goldenBananaAddress()] = {
-      usd: parseFloat(prices[bananaAddress()].usd) / 0.72,
+      usd: prices[bananaAddress()].usd / 0.72,
     };
 
     const priceUSD = prices[bananaAddress()].usd;
@@ -321,7 +323,7 @@ export class StatsService {
   }
 
   async getLpInfo(tokenAddress, stakingAddress) {
-    let [reserves, decimals, token0, token1, totalSupply, staked] = await multicall(LP_ABI, [
+    const [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
       {
         address: tokenAddress,
         name: 'getReserves',
@@ -338,6 +340,9 @@ export class StatsService {
         address: tokenAddress,
         name: 'token1',
       },
+    ]);
+
+    let [totalSupply, staked] = await multicall(LP_ABI, [
       {
         address: tokenAddress,
         name: 'totalSupply',
@@ -349,29 +354,35 @@ export class StatsService {
       },
     ]);
 
-    if (Array.isArray(decimals)) decimals = decimals[0];
-    if (Array.isArray(token0)) token0 = token0[0];
-    if (Array.isArray(token1)) token1 = token1[0];
+    /*
+    const contract = getContract(LP_ABI, tokenAddress);
+    const [reserves, decimals, token0, token1] = await Promise.all([
+      contract.methods.getReserves().call(),
+      contract.methods.decimals().call(),
+      contract.methods.token0().call(),
+      contract.methods.token1().call(),
+    ]);
+    let [totalSupply, staked] = await Promise.all([
+      contract.methods.totalSupply().call(),
+      contract.methods.balanceOf(stakingAddress).call(),
+    ]);
+    */
+    totalSupply /= 10 ** decimals[0];
+    staked /= 10 ** decimals[0];
 
-    totalSupply = totalSupply.toString();
-    staked = staked.toString();
-   
-    totalSupply /= 10 ** decimals;
-    staked /= 10 ** decimals;
-   
-    const q0 = reserves._reserve0.toString();
-    const q1 = reserves._reserve1.toString();
+    const q0 = reserves._reserve0;
+    const q1 = reserves._reserve1;
     return {
       address: tokenAddress,
-      token0,
+      token0: token0[0],
       q0,
-      token1,
+      token1: token1[0],
       q1,
       totalSupply,
       stakingAddress,
       staked,
-      decimals,
-      tokens: [token0, token1],
+      decimals: decimals[0],
+      tokens: [token0[0], token1[0]],
     };
   }
 
@@ -625,10 +636,12 @@ export class StatsService {
 
       const tvl = totalSupply * stakedTokenPrice;
       const stakedTvl = (stakedSupply * tvl) / totalSupply;
-      
+
       let apr = 0;
       if (active && stakedTokenPrice != 0) {
-        apr = (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
+        apr =
+          (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
+          stakedTvl;
       }
 
       return {

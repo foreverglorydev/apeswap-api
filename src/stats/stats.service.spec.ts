@@ -1,14 +1,30 @@
-import { HttpException, HttpModule } from '@nestjs/common';
+import { CacheModule, HttpException, HttpModule } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { StatsService } from './stats.service';
+import { SubgraphService } from './subgraph.service';
+import { PriceService } from './price.service';
+import {
+  closeInMongodConnection,
+  rootMongooseTestModule,
+} from 'src//utils/testing';
+import { GeneralStatsSchema } from './schema/generalStats.schema';
 
 describe('StatsService', () => {
   let service: StatsService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule],
-      providers: [StatsService],
+      imports: [
+        CacheModule.register({ ttl: 60 }),
+        HttpModule,
+        rootMongooseTestModule(),
+        MongooseModule.forFeature([
+          { name: 'GeneralStats', schema: GeneralStatsSchema },
+        ]),
+      ],
+      providers: [StatsService, SubgraphService, PriceService],
     }).compile();
 
     service = module.get<StatsService>(StatsService);
@@ -58,10 +74,10 @@ describe('StatsService', () => {
       tvl: expect.any(Number),
       stakedTvl: expect.any(Number),
       apr: expect.any(Number),
-      decimals: expect.any(String),
+      decimals: expect.any(Number),
     };
     const objIncentivized = {
-      id: expect.any(String),
+      id: expect.any(Number),
       name: expect.any(String),
       address: expect.any(String),
       active: expect.any(Boolean),
@@ -78,7 +94,7 @@ describe('StatsService', () => {
       price: expect.any(Number),
     };
 
-    const stats = await service.getAllStats();
+    const stats = await service.calculateStats();
     expect(stats).toEqual(expect.objectContaining(objStats));
     if (stats.pools.length > 0) {
       expect(stats.pools[0]).toEqual(expect.objectContaining(objPools));
@@ -155,5 +171,9 @@ describe('StatsService', () => {
     await expect(service.getStatsForWallet(wallet)).rejects.toThrow(
       new HttpException(messageError, 400),
     );
+  });
+
+  afterAll(async () => {
+    await closeInMongodConnection();
   });
 });
