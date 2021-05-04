@@ -81,7 +81,7 @@ export class StatsService {
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
-    const time = 30000; // 5 minutes
+    const time = 300000; // 5 minutes
 
     if (diff > time) return null;
 
@@ -354,19 +354,6 @@ export class StatsService {
       },
     ]);
 
-    /*
-    const contract = getContract(LP_ABI, tokenAddress);
-    const [reserves, decimals, token0, token1] = await Promise.all([
-      contract.methods.getReserves().call(),
-      contract.methods.decimals().call(),
-      contract.methods.token0().call(),
-      contract.methods.token1().call(),
-    ]);
-    let [totalSupply, staked] = await Promise.all([
-      contract.methods.totalSupply().call(),
-      contract.methods.balanceOf(stakingAddress).call(),
-    ]);
-    */
     totalSupply /= 10 ** decimals[0];
     staked /= 10 ** decimals[0];
 
@@ -419,23 +406,37 @@ export class StatsService {
       };
     }
 
-    const contract = getContract(ERC20_ABI, tokenAddress);
-    const [name, symbol, totalSupply, decimals] = await Promise.all([
-      contract.methods.name().call(),
-      contract.methods.symbol().call(),
-      contract.methods.totalSupply().call(),
-      contract.methods.decimals().call(),
+    const [name, symbol, totalSupply, decimals, staked] = await multicall(ERC20_ABI, [
+      {
+        address: tokenAddress,
+        name: 'name',
+      },
+      {
+        address: tokenAddress,
+        name: 'symbol',
+      },
+      {
+        address: tokenAddress,
+        name: 'totalSupply',
+      },
+      {
+        address: tokenAddress,
+        name: 'decimals',
+      },
+      {
+        address: tokenAddress,
+        name: 'balanceOf',
+        params: [stakingAddress],
+      },
     ]);
 
     return {
       address: tokenAddress,
-      name,
-      symbol,
-      totalSupply,
-      decimals,
-      staked:
-        (await contract.methods.balanceOf(stakingAddress).call()) /
-        10 ** decimals,
+      name: name[0],
+      symbol: symbol[0],
+      totalSupply: totalSupply[0],
+      decimals: decimals[0],
+      staked: staked[0] / 10 ** decimals[0],
       tokens: [tokenAddress],
     };
   }
