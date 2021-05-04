@@ -81,7 +81,7 @@ export class StatsService {
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
-    const time = 300000; // 5 minutes
+    const time = 30000; // 5 minutes
 
     if (diff > time) return null;
 
@@ -321,7 +321,7 @@ export class StatsService {
   }
 
   async getLpInfo(tokenAddress, stakingAddress) {
-    let [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
+    let [reserves, decimals, token0, token1, totalSupply, staked] = await multicall(LP_ABI, [
       {
         address: tokenAddress,
         name: 'getReserves',
@@ -338,9 +338,6 @@ export class StatsService {
         address: tokenAddress,
         name: 'token1',
       },
-    ]);
-    
-    let [totalSupply, staked] = await multicall(LP_ABI, [
       {
         address: tokenAddress,
         name: 'totalSupply',
@@ -351,25 +348,19 @@ export class StatsService {
         params: [stakingAddress],
       },
     ]);
-    
-    /*
-    const contract = getContract(LP_ABI, tokenAddress);
-    const [reserves, decimals, token0, token1] = await Promise.all([
-      contract.methods.getReserves().call(),
-      contract.methods.decimals().call(),
-      contract.methods.token0().call(),
-      contract.methods.token1().call(),
-    ]);
-    let [totalSupply, staked] = await Promise.all([
-      contract.methods.totalSupply().call(),
-      contract.methods.balanceOf(stakingAddress).call(),
-    ]);
-    */
+
+    if (Array.isArray(decimals)) decimals = decimals[0];
+    if (Array.isArray(token0)) token0 = token0[0];
+    if (Array.isArray(token1)) token1 = token1[0];
+
+    totalSupply = totalSupply.toString();
+    staked = staked.toString();
+   
     totalSupply /= 10 ** decimals;
     staked /= 10 ** decimals;
-
-    const q0 = reserves._reserve0;
-    const q1 = reserves._reserve1;
+   
+    const q0 = reserves._reserve0.toString();
+    const q1 = reserves._reserve1.toString();
     return {
       address: tokenAddress,
       token0,
