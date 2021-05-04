@@ -34,9 +34,7 @@ export class NfasTrackingService {
         utils.id('Transfer(address,address,uint256)'),
       ],
     };
-    console.log(filter);
     const events = await this.provider.getLogs(filter);
-    console.log(events);
     const promises = [];
     for (const event of events) {
       promises.push(this.processEvent(event));
