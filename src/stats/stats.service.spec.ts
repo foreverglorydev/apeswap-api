@@ -82,6 +82,7 @@ describe('StatsService', () => {
       name: expect.any(String),
       address: expect.any(String),
       active: expect.any(Boolean),
+      blocksRemaining: expect.any(Number),
       stakedTokenAddress: expect.any(String),
       totalSupply: expect.any(Number),
       stakedSupply: expect.any(Number),
