@@ -81,7 +81,7 @@ export class StatsService {
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
-    const time = 300000; // 5 minutes
+    const time = 10000; // 5 minutes
 
     if (diff > time) return null;
 
@@ -614,7 +614,7 @@ export class StatsService {
         name: createLpPairName(t0Symbol[0], t1Symbol[0]),
         address: pool.address,
         active,
-        blocksRemaining: active ? currentBlockNumber - pool.startBlock: 0,
+        blocksRemaining: active ? pool.bonusEndBlock - currentBlockNumber : 0,
         stakedTokenAddress: pool.stakeToken,
         t0Address: t0Address[0],
         t0Symbol: t0Symbol[0],
@@ -712,7 +712,7 @@ export class StatsService {
         name: name[0],
         address: pool.address,
         active,
-        blocksRemaining: active ? currentBlockNumber - pool.startBlock: 0,
+        blocksRemaining: active ? pool.bonusEndBlock - currentBlockNumber: 0,
         rewardTokenAddress: pool.rewardToken,
         stakedTokenAddress: pool.stakeToken,
         totalSupply,
