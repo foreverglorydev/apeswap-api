@@ -81,7 +81,7 @@ export class StatsService {
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
-    const time = 10000; // 5 minutes
+    const time = 300000; // 5 minutes
 
     if (diff > time) return null;
 
