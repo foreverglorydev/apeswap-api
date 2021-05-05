@@ -3,6 +3,7 @@ export interface IncentivizedPoolStats {
   readonly name: string;
   readonly address: string;
   readonly active: boolean;
+  readonly blocksRemaining: number;
   readonly stakedTokenAddress: string;
   t0Address?: string;
   t0Symbol?: string;
