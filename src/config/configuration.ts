@@ -16,6 +16,7 @@ export default () => ({
       bananaBusd: '0x7Bd46f6Da97312AC2DBD1749f82E202764C0B914',
       bananaBnb: '0xF65C1C0478eFDe3c19b49EcBE7ACc57BB6B1D713',
       burn: '0x000000000000000000000000000000000000dead',
+      mulltiCall: '0x67ADCB4dF3931b0C5Da724058ADC2174a9844412',
     },
     appNodes: [
       'https://data-seed-prebsc-2-s2.binance.org:8545',
@@ -37,6 +38,7 @@ export default () => ({
       bananaBusd: '0x7Bd46f6Da97312AC2DBD1749f82E202764C0B914',
       bananaBnb: '0xF65C1C0478eFDe3c19b49EcBE7ACc57BB6B1D713',
       burn: '0x000000000000000000000000000000000000dead',
+      mulltiCall: '0x38ce767d81de3940CFa5020B55af1A400ED4F657',
     },
     appNodes: [
       'https://bsc-dataseed.binance.org:443',
