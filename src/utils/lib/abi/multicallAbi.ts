@@ -1,4 +1,4 @@
-[
+export const MULTICALL_ABI = [
   {
     "constant": true,
     "inputs": [
