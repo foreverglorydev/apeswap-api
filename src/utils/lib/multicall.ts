@@ -1,7 +1,7 @@
 import { AbiItem } from 'web3-utils';
 import { Interface } from '@ethersproject/abi';
 import { getWeb3 } from './web3';
-import MultiCallAbi from './abi/Multicall.json';
+import { MULTICALL_ABI } from './abi/multicallAbi';
 import configuration from 'src/config/configuration';
 
 interface Call {
@@ -15,7 +15,7 @@ export const multicall = async (abi: any[], calls: Call[]) => {
   //console.log(calls[0]);
   const web3 = getWeb3();
   const multi = new web3.eth.Contract(
-    (MultiCallAbi as unknown) as AbiItem,
+    (MULTICALL_ABI as unknown) as AbiItem,
     getMulticallAddress(),
   );
   const itf = new Interface(abi);
