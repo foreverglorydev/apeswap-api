@@ -712,7 +712,7 @@ export class StatsService {
         name: name[0],
         address: pool.address,
         active,
-        blocksRemaining: active ? pool.bonusEndBlock - currentBlockNumber: 0,
+        blocksRemaining: active ? pool.bonusEndBlock - currentBlockNumber : 0,
         rewardTokenAddress: pool.rewardToken,
         stakedTokenAddress: pool.stakeToken,
         totalSupply,
