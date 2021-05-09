@@ -4,6 +4,7 @@ import {
   pairsQuery,
   liquidityQuery,
   allPricesQuery,
+  swapsData,
 } from './utils/subgraph.queries';
 
 @Injectable()
@@ -40,6 +41,12 @@ export class SubgraphService {
     const nowTimestamp = Math.round(new Date().getTime() / 1000);
     const { apeswapDayDatas } = await this.getDayData(yTimestamp, nowTimestamp);
     return apeswapDayDatas[1] || apeswapDayDatas[0];
+  }
+
+  async getPairSwapData(pair: string, startTime: number): Promise<any> {
+    const query = swapsData(pair, startTime);
+    const result = await this.querySubraph(query);
+    return result.data.swaps;
   }
 
   async getDailySummary() {

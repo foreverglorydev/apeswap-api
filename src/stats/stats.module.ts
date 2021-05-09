@@ -5,6 +5,8 @@ import { PriceService } from './price.service';
 import { StatsController } from './stats.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
+import { TradingService } from './trading.service';
+import { TradingStats, TradingStatsSchema } from './schema/trading.schema';
 
 @Module({
   imports: [
@@ -14,9 +16,10 @@ import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
     HttpModule,
     MongooseModule.forFeature([
       { name: GeneralStats.name, schema: GeneralStatsSchema },
+      { name: TradingStats.name, schema: TradingStatsSchema },
     ]),
   ],
-  providers: [StatsService, SubgraphService, PriceService],
+  providers: [StatsService, SubgraphService, PriceService, TradingService],
   controllers: [StatsController],
 })
 export class StatsModule {}

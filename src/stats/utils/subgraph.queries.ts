@@ -46,6 +46,30 @@ export function dayData(skip: number, startTime: number, endTime: number) {
   }`;
 }
 
+export function swapsData(pair: string, startTime: number) {
+  return `{
+    swaps(where: { pair:"${pair}" timestamp_gt: ${startTime}} first: 1000 orderBy: timestamp) {
+      id
+      pair {
+        id
+        token0 {
+          id
+        }
+        token1 {
+          id
+        }
+      }
+      transaction {
+        id
+      }
+      from
+      timestamp
+      sender
+      amountUSD
+    }
+  }`;
+}
+
 export const allPricesQuery = `{
   tokens(orderBy: tradeVolumeUSD orderDirection: desc first: 1000) {
     id
