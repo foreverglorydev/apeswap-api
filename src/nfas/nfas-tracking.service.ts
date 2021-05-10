@@ -7,7 +7,7 @@ import { NfaTracking, NfaTrackingDocument } from './schema/nfa-tracking.schema';
 
 @Injectable()
 export class NfasTrackingService {
-  nfa_address = "0x6eca7754007d22d3F557740d06FeD4A031BeFE1e"
+  nfa_address = '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e';
   logger = new Logger(NfasTrackingService.name);
   urlInfo = {
     url: process.env.APE_RPC,
