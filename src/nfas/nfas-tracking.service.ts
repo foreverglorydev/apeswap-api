@@ -33,7 +33,7 @@ export class NfasTrackingService {
 
   async fetchLogs({ startBlock }) {
     const filter = {
-      address: '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e',
+      address: process.env.NFA_ADDRESS,
       fromBlock: startBlock,
       toBlock: startBlock + 1000,
       topics: [
@@ -51,18 +51,7 @@ export class NfasTrackingService {
 
   async fetchLastBlockLogs() {
     const curBlock = await this.provider.getBlockNumber();
-    const filter = {
-      address: '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e',
-      fromBlock: curBlock - 1000,
-      toBlock: curBlock,
-      topics: [utils.id('Transfer(address,address,uint256)')],
-    };
-    const events = await this.provider.getLogs(filter);
-    const promises = [];
-    for (const event of events) {
-      promises.push(this.processEvent(event));
-    }
-    return Promise.all(promises);
+    return this.fetchLogs({ startBlock: curBlock - 1000 });
   }
 
   async processEvent(event) {
@@ -104,7 +93,7 @@ export class NfasTrackingService {
 
   async listenToEvents() {
     const filter = {
-      address: '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e',
+      address: process.env.NFA_ADDRESS,
       topics: [
         // the name of the event, parnetheses containing the data type of each event, no spaces
         utils.id('Transfer(address,address,uint256)'),
