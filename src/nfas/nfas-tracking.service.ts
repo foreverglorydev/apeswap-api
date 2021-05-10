@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { BigNumber, ethers, utils } from 'ethers';
+import { ethers, utils } from 'ethers';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { NfaTracking, NfaTrackingDocument } from './schema/nfa-tracking.schema';
 
@@ -24,6 +25,12 @@ export class NfasTrackingService {
     private nfaTrackingModel: Model<NfaTrackingDocument>,
   ) {}
 
+  async getNfaSellHistory(index: number): Promise<NfaTrackingDocument[]> {
+    const sales = await this.nfaTrackingModel.find({ tokenId: index });
+    this.logger.log(sales);
+    return sales;
+  }
+
   async fetchLogs({ startBlock }) {
     const filter = {
       address: '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e',
@@ -42,11 +49,37 @@ export class NfasTrackingService {
     return Promise.all(promises);
   }
 
+  async fetchLastBlockLogs() {
+    const curBlock = await this.provider.getBlockNumber();
+    const filter = {
+      address: '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e',
+      fromBlock: curBlock - 1000,
+      toBlock: curBlock,
+      topics: [utils.id('Transfer(address,address,uint256)')],
+    };
+    const events = await this.provider.getLogs(filter);
+    const promises = [];
+    for (const event of events) {
+      promises.push(this.processEvent(event));
+    }
+    return Promise.all(promises);
+  }
+
   async processEvent(event) {
-    const parsed = await this.parseEvent(event);
-    this.logger.log('Parsed event');
-    this.logger.log(parsed);
-    return this.nfaTrackingModel.create(parsed);
+    try {
+      const parsed = await this.parseEvent(event);
+      this.logger.log('Parsed event');
+      this.logger.log(parsed);
+      return this.nfaTrackingModel.create(parsed);
+    } catch (errorMessage) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: errorMessage,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   async parseEvent(event) {
@@ -66,7 +99,7 @@ export class NfasTrackingService {
       transactionHash,
       blockNumber,
     };
-    return transferEvent;
+    return value === '0' ? null : transferEvent;
   }
 
   async listenToEvents() {
