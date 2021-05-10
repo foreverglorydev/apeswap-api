@@ -88,7 +88,7 @@ export class NfasTrackingService {
       transactionHash,
       blockNumber,
     };
-    return value === '0' ? null : transferEvent;
+    return transferEvent;
   }
 
   async listenToEvents() {
