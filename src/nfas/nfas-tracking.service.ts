@@ -7,6 +7,7 @@ import { NfaTracking, NfaTrackingDocument } from './schema/nfa-tracking.schema';
 
 @Injectable()
 export class NfasTrackingService {
+  nfa_address = "0x6eca7754007d22d3F557740d06FeD4A031BeFE1e"
   logger = new Logger(NfasTrackingService.name);
   urlInfo = {
     url: process.env.APE_RPC,
@@ -33,7 +34,7 @@ export class NfasTrackingService {
 
   async fetchLogs({ startBlock }) {
     const filter = {
-      address: process.env.NFA_ADDRESS,
+      address: this.nfa_address,
       fromBlock: startBlock,
       toBlock: startBlock + 1000,
       topics: [
@@ -93,7 +94,7 @@ export class NfasTrackingService {
 
   async listenToEvents() {
     const filter = {
-      address: process.env.NFA_ADDRESS,
+      address: this.nfa_address,
       topics: [
         // the name of the event, parnetheses containing the data type of each event, no spaces
         utils.id('Transfer(address,address,uint256)'),
