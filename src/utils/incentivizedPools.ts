@@ -373,4 +373,16 @@ export const incentivizedPools = [
     bonusEndBlock: 9838473,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 33,
+    name: 'GNANA -> KEYFI',
+    address: '0xeedd7475eb5d05d591be0927b178acbbdc5ee1c1',
+    stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0x4b6000f9163de2e3f0a01ec37e06e1469dbbce9d',
+    rewardPerBlock: '25483796296296296',
+    startBlock: 7305030,
+    bonusEndBlock: 8601030,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
