@@ -103,10 +103,10 @@ export class NfasTrackingService {
   }
 
   async parseAuction(event) {
+    const transactionReceipt = await this.provider.getTransactionReceipt(
+      event.transactionHash,
+    );
     try {
-      const transactionReceipt = await this.provider.getTransactionReceipt(
-        event.transactionHash,
-      );
       const auctionLog = transactionReceipt.logs.slice(-1).pop();
       const value = this.auctionIface.parseLog(auctionLog).args[3];
       return value.toString();
