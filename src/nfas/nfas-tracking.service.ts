@@ -19,7 +19,13 @@ export class NfasTrackingService {
   abi = [
     'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
   ];
+
+  auctionAbi = [
+    'event TokenBidAccepted(uint256 indexed tokenId, address indexed from, address indexed to, uint256 total, uint256 value, uint256 fees)',
+  ];
+
   iface = new utils.Interface(this.abi);
+  auctionIface = new utils.Interface(this.auctionAbi);
 
   constructor(
     @InjectModel(NfaTracking.name)
@@ -96,6 +102,20 @@ export class NfasTrackingService {
     }
   }
 
+  async parseAuction(event) {
+    try {
+      const transactionReceipt = await this.provider.getTransactionReceipt(
+        event.transactionHash,
+      );
+      const auctionLog = transactionReceipt.logs.slice(-1).pop();
+      const value = this.auctionIface.parseLog(auctionLog).args[3];
+      return value.toString();
+    } catch (error) {
+      this.logger.log(error);
+      return '0';
+    }
+  }
+
   async parseEvent(event) {
     const transaction = await this.provider.getTransaction(
       event.transactionHash,
@@ -113,6 +133,9 @@ export class NfasTrackingService {
       transactionHash,
       blockNumber,
     };
+    if (transferEvent.value === '0') {
+      transferEvent.value = await this.parseAuction(event);
+    }
     return transferEvent;
   }
 
