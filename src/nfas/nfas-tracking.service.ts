@@ -32,6 +32,20 @@ export class NfasTrackingService {
     return sales;
   }
 
+  // return all txn with "tokenId = index" where "value != 0"
+  async getNfaSellHistoryNonNullValue(index: number): Promise<NfaTrackingDocument[]> {
+    const sales = await this.nfaTrackingModel.find({ tokenId: index }).where('value').ne('0');
+    this.logger.log(sales);
+    return sales;
+  }
+
+  // return all txn with "tokenId = index" in descending blockNumber
+  async getNfaSellHistoryDescendingBlock(index: number): Promise<NfaTrackingDocument[]> {
+    const sales = await this.nfaTrackingModel.find({ tokenId: index }).sort({ blockNumber: 'desc' });;
+    this.logger.log(sales);
+    return sales;
+  }
+
   async fetchLogs({ startBlock }) {
     const filter = {
       address: this.nfa_address,
