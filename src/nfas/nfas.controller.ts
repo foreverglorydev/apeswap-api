@@ -47,10 +47,10 @@ export class NfasController {
     this.nfaTracking.fetchLastBlockLogs();
   }
 
-  @Get('history/:index')
-  async getNfaSellHistory(@Param('index') index: number): Promise<any> {
+  @Get('transactions/:index')
+  async getNfaTransactions(@Param('index') index: number): Promise<any> {
     this.logger.debug('Called GET /nfas/history/:index');
-    return await this.nfaTracking.getNfaSellHistory(index);
+    return await this.nfaTracking.getNfaTransactions(index);
   }
 
   @Get('history/nonNull/:index')

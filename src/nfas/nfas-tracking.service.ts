@@ -32,7 +32,7 @@ export class NfasTrackingService {
     private nfaTrackingModel: Model<NfaTrackingDocument>,
   ) {}
 
-  async getNfaSellHistory(index: number): Promise<NfaTrackingDocument[]> {
+  async getNfaTransactions(index: number): Promise<NfaTrackingDocument[]> {
     const sales = await this.nfaTrackingModel.find({ tokenId: index });
     this.logger.log(sales);
     return sales;
