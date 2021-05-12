@@ -59,9 +59,9 @@ export class NfasController {
     return await this.nfaTracking.getNfaSellHistory(index);
   }
 
-  @Get('history/descBlock/:index')
+  @Get('transactions/descBlock/:index')
   async getNfaTransactionHistoryDescendingBlock(@Param('index') index: number): Promise<any> {
-    this.logger.debug('Called GET /nfas/history/descBlock/:index');
+    this.logger.debug('Called GET /nfas/transactions/descBlock/:index');
     return await this.nfaTracking.getNfaTransactionHistoryDescendingBlock(index);
   }
 
