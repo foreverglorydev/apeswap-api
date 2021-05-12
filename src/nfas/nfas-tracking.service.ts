@@ -19,15 +19,45 @@ export class NfasTrackingService {
   abi = [
     'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
   ];
+
+  auctionAbi = [
+    'event TokenBidAccepted(uint256 indexed tokenId, address indexed from, address indexed to, uint256 total, uint256 value, uint256 fees)',
+  ];
+
   iface = new utils.Interface(this.abi);
+  auctionIface = new utils.Interface(this.auctionAbi);
 
   constructor(
     @InjectModel(NfaTracking.name)
     private nfaTrackingModel: Model<NfaTrackingDocument>,
   ) {}
 
-  async getNfaSellHistory(index: number): Promise<NfaTrackingDocument[]> {
+  async getNfaTransactions(index: number): Promise<NfaTrackingDocument[]> {
     const sales = await this.nfaTrackingModel.find({ tokenId: index });
+    this.logger.log(sales);
+    return sales;
+  }
+
+  // return all txn with "tokenId = index" where "value != 0"
+  async getNfaSellHistory(
+    index: number,
+  ): Promise<NfaTrackingDocument[]> {
+    const sales = await this.nfaTrackingModel
+      .find({ tokenId: index })
+      .where('value')
+      .ne('0')
+      .sort({ blockNumber: 'desc' });
+    this.logger.log(sales);
+    return sales;
+  }
+
+  // return all txn with "tokenId = index" in descending blockNumber
+  async getNfaTransactionHistoryDescendingBlock(
+    index: number,
+  ): Promise<NfaTrackingDocument[]> {
+    const sales = await this.nfaTrackingModel
+      .find({ tokenId: index })
+      .sort({ blockNumber: 'desc' });
     this.logger.log(sales);
     return sales;
   }
@@ -72,6 +102,20 @@ export class NfasTrackingService {
     }
   }
 
+  async parseAuction(event) {
+    const transactionReceipt = await this.provider.getTransactionReceipt(
+      event.transactionHash,
+    );
+    try {
+      const auctionLog = transactionReceipt.logs.slice(-1).pop();
+      const value = this.auctionIface.parseLog(auctionLog).args[3];
+      return value.toString();
+    } catch (error) {
+      this.logger.log(error);
+      return '0';
+    }
+  }
+
   async parseEvent(event) {
     const transaction = await this.provider.getTransaction(
       event.transactionHash,
@@ -89,6 +133,9 @@ export class NfasTrackingService {
       transactionHash,
       blockNumber,
     };
+    if (transferEvent.value === '0') {
+      transferEvent.value = await this.parseAuction(event);
+    }
     return transferEvent;
   }
 

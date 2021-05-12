@@ -47,10 +47,22 @@ export class NfasController {
     this.nfaTracking.fetchLastBlockLogs();
   }
 
+  @Get('transactions/:index')
+  async getNfaTransactions(@Param('index') index: number): Promise<any> {
+    this.logger.debug('Called GET /nfas/history/:index');
+    return await this.nfaTracking.getNfaTransactions(index);
+  }
+
   @Get('history/:index')
   async getNfaSellHistory(@Param('index') index: number): Promise<any> {
     this.logger.debug('Called GET /nfas/history/:index');
     return await this.nfaTracking.getNfaSellHistory(index);
+  }
+
+  @Get('transactions/descBlock/:index')
+  async getNfaTransactionHistoryDescendingBlock(@Param('index') index: number): Promise<any> {
+    this.logger.debug('Called GET /nfas/transactions/descBlock/:index');
+    return await this.nfaTracking.getNfaTransactionHistoryDescendingBlock(index);
   }
 
   @Get(':index')
