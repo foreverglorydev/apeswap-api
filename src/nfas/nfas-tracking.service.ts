@@ -39,7 +39,7 @@ export class NfasTrackingService {
   }
 
   // return all txn with "tokenId = index" where "value != 0"
-  async getNfaSellHistoryNonNullValue(
+  async getNfaSellHistory(
     index: number,
   ): Promise<NfaTrackingDocument[]> {
     const sales = await this.nfaTrackingModel
@@ -52,7 +52,7 @@ export class NfasTrackingService {
   }
 
   // return all txn with "tokenId = index" in descending blockNumber
-  async getNfaSellHistoryDescendingBlock(
+  async getNfaTransactionHistoryDescendingBlock(
     index: number,
   ): Promise<NfaTrackingDocument[]> {
     const sales = await this.nfaTrackingModel
