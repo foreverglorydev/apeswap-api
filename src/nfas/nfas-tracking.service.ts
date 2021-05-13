@@ -8,6 +8,7 @@ import { NfaTracking, NfaTrackingDocument } from './schema/nfa-tracking.schema';
 export class NfasTrackingService {
   nfa_address = '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e';
   lootex_address = '0x145F83aD6108391cbF9ed554E5cE1dbd984437f8';
+  wbnb_address = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
   logger = new Logger(NfasTrackingService.name);
   urlInfo = {
     url: process.env.APE_RPC,
@@ -15,22 +16,16 @@ export class NfasTrackingService {
     password: process.env.RPC_PASSWORD,
   };
   provider = new ethers.providers.JsonRpcProvider(this.urlInfo);
-
   abi = [
     'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
   ];
-
-  nftKeyAuctionAbi = [
-    'event TokenBidAccepted(uint256 indexed tokenId, address indexed from, address indexed to, uint256 total, uint256 value, uint256 fees)',
-  ];
-
-  lootexAbi = [
-    'event Fill(address indexed makerAddress, address indexed feeRecipientAddress, address takerAddress, address senderAddress, uint256 makerAssetFilledAmount, uint256 takerAssetFilledAmount, uint256 makerFeePaid, uint256 takerFeePaid, bytes32 indexed orderHash, bytes makerAssetData, bytes takerAssetData)',
+  wbnbTransferedAbi = [
+    'event Transfer(address indexed src, address indexed dst, uint wad);',
   ];
 
   iface = new utils.Interface(this.abi);
-  nftKeyAuctionIface = new utils.Interface(this.nftKeyAuctionAbi);
-  lootexIface = new utils.Interface(this.lootexAbi);
+
+  wbnbIface = new utils.Interface(this.wbnbTransferedAbi);
 
   constructor(
     @InjectModel(NfaTracking.name)
@@ -95,38 +90,17 @@ export class NfasTrackingService {
     return this.nfaTrackingModel.create(parsed);
   }
 
-  async parseLootex(transactionReceipt) {
-    try {
-      const fillLog = transactionReceipt.logs[0];
-      const value = this.lootexIface.parseLog(fillLog).args[5];
-      return value.toString();
-    } catch (error) {
-      this.logger.log(error);
-      return '0';
-    }
-  }
-
-  async parseNftKeyAuction(transactionReceipt) {
-    try {
-      const auctionLog = transactionReceipt.logs.slice(-1).pop();
-      const value = this.nftKeyAuctionIface.parseLog(auctionLog).args[3];
-      return value.toString();
-    } catch (error) {
-      this.logger.log(error);
-      return '0';
-    }
-  }
-
   async parseZeroValue(event) {
-    // this.logger.log(event)
+    let value = 0;
     const transactionReceipt = await this.provider.getTransactionReceipt(
       event.transactionHash,
     );
-    if (transactionReceipt.to === this.lootex_address) {
-      return this.parseLootex(transactionReceipt);
-    } else {
-      return this.parseNftKeyAuction(transactionReceipt);
-    }
+    transactionReceipt.logs.map((log) => {
+      if (log.address === this.wbnb_address) {
+        value += parseInt(this.wbnbIface.parseLog(log).args[2]);
+      }
+    });
+    return value.toString();
   }
 
   async parseEvent(event) {
