@@ -7,7 +7,6 @@ import { NfaTracking, NfaTrackingDocument } from './schema/nfa-tracking.schema';
 @Injectable()
 export class NfasTrackingService {
   nfa_address = '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e';
-  lootex_address = '0x145F83aD6108391cbF9ed554E5cE1dbd984437f8';
   wbnb_address = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
   logger = new Logger(NfasTrackingService.name);
   urlInfo = {
