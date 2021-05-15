@@ -16,6 +16,9 @@ export class TradingStats {
 
   @Prop({ required: true })
   totalTradedUsd: number;
+
+  @Prop()
+  pendingBananaRewards: number;
 }
 
 export const TradingStatsSchema = SchemaFactory.createForClass(TradingStats);

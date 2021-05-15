@@ -1,16 +1,10 @@
 import { CacheModule, Module, HttpModule } from '@nestjs/common';
 import { TradingService } from '../trading/trading.service';
 import { TradingStats, TradingStatsSchema } from './schema/trading.schema';
-import {
-  TradeSession,
-  TradeSessionSchema,
-} from '../trading/schema/trade-session.schema';
-import {
-  TradeTracking,
-  TradeTrackingSchema,
-} from './schema/trade-tracking.schema';
+import { TradeSeason, TradeSeasonSchema } from './schema/trade-season.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { StatsModule } from 'src/stats/stats.module';
+import { TradingController } from './trading.controller';
 
 @Module({
   imports: [
@@ -21,11 +15,10 @@ import { StatsModule } from 'src/stats/stats.module';
     StatsModule,
     MongooseModule.forFeature([
       { name: TradingStats.name, schema: TradingStatsSchema },
-      { name: TradeSession.name, schema: TradeSessionSchema },
-      { name: TradeTracking.name, schema: TradeTrackingSchema },
+      { name: TradeSeason.name, schema: TradeSeasonSchema },
     ]),
   ],
   providers: [TradingService],
-  controllers: [],
+  controllers: [TradingController],
 })
 export class TradingModule {}
