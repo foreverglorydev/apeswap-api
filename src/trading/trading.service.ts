@@ -2,8 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
+import {
+  TradeSession,
+  TradeSessionDocument,
+} from './schema/trade-session.schema';
+import {
+  TradeTracking,
+  TradeTrackingDocument,
+} from './schema/trade-tracking.schema';
 import { TradingStats, TradingStatsDocument } from './schema/trading.schema';
-import { SubgraphService } from './subgraph.service';
+import { SubgraphService } from '../stats/subgraph.service';
 
 @Injectable()
 export class TradingService {
@@ -12,6 +20,10 @@ export class TradingService {
     private subgraphService: SubgraphService,
     @InjectModel(TradingStats.name)
     private tradingStatsModel: Model<TradingStatsDocument>,
+    @InjectModel(TradeTracking.name)
+    private tradeTrackingModel: Model<TradeTrackingDocument>,
+    @InjectModel(TradeSession.name)
+    private tradeSessionModel: Model<TradeSessionDocument>,
   ) {}
   pairsToTrack = ['0xf65c1c0478efde3c19b49ecbe7acc57bb6b1d713'];
   latestTimestamp = 0;

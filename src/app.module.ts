@@ -9,6 +9,7 @@ import { LotteryModule } from './lottery/lottery.module';
 import { StatsModule } from './stats/stats.module';
 import { NfasModule } from './nfas/nfas.module';
 import configuration from './config/configuration';
+import { TradingModule } from './trading/trading.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import configuration from './config/configuration';
     LotteryModule,
     StatsModule,
     NfasModule,
+    TradingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
