@@ -60,9 +60,13 @@ export class NfasController {
   }
 
   @Get('transactions/descBlock/:index')
-  async getNfaTransactionHistoryDescendingBlock(@Param('index') index: number): Promise<any> {
+  async getNfaTransactionHistoryDescendingBlock(
+    @Param('index') index: number,
+  ): Promise<any> {
     this.logger.debug('Called GET /nfas/transactions/descBlock/:index');
-    return await this.nfaTracking.getNfaTransactionHistoryDescendingBlock(index);
+    return await this.nfaTracking.getNfaTransactionHistoryDescendingBlock(
+      index,
+    );
   }
 
   @Get(':index')
