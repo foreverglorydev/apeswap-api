@@ -12,7 +12,7 @@ export class NfasService {
     @InjectModel(Nfa.name)
     private nfaModel: Model<NfaDocument>,
   ) {}
-  async fetchNafs(filter) {
+  async fetchNfas(filter) {
     return this.nfaModel.find(filter);
   }
   async getNfa(filter) {
@@ -23,11 +23,11 @@ export class NfasService {
   }
   async getAllNfas(query): Promise<Nfa[]> {
     const filter = this.mappingFilter(query);
-    return await this.fetchNafs(filter);
+    return await this.fetchNfas(filter);
   }
   async getNfasByAddress(address: string, query): Promise<Nfa[]> {
     const filter = this.mappingFilter(query);
-    return await this.fetchNafs({ ...{ address: address }, ...filter });
+    return await this.fetchNfas({ ...{ address: address }, ...filter });
   }
   async getNfasByIndex(index: number): Promise<Nfa> {
     return await this.getNfa({ index: index });
@@ -58,7 +58,7 @@ export class NfasService {
   }
 
   async initData() {
-    const allData = await this.fetchNafs({});
+    const allData = await this.fetchNfas({});
     if (allData.length > 0)
       return {
         info:
