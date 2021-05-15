@@ -5,7 +5,6 @@ import { Model } from 'mongoose';
 import { TradeSeason, TradeSeasonDocument } from './schema/trade-season.schema';
 import { TradingStats, TradingStatsDocument } from './schema/trading.schema';
 import { SubgraphService } from '../stats/subgraph.service';
-
 @Injectable()
 export class TradingService {
   logger = new Logger(TradingService.name);
@@ -17,6 +16,7 @@ export class TradingService {
     private tradeSeasonModel: Model<TradeSeasonDocument>,
   ) {}
   currentSeason = 0;
+  processingTimestamps = {};
 
   async getSeasonPairs() {
     const config = await this.tradeSeasonModel.find({
@@ -36,7 +36,13 @@ export class TradingService {
 
   async loadPairData(pairConfig) {
     const { latestTimestamp, season, pair, usdPerBanana } = pairConfig;
+    const key = latestTimestamp + pair;
+    if (this.processingTimestamps[key]) {
+      this.logger.log(`Timestamp already being processed ${key}`);
+      return;
+    }
     try {
+      this.processingTimestamps[key] = true;
       this.logger.log(`Fetching pair ${pair} from ${latestTimestamp}`);
       const swaps = await this.subgraphService.getPairSwapData(
         pair,
@@ -47,6 +53,7 @@ export class TradingService {
         pairConfig.latestTimestamp = swaps[swaps.length - 1].timestamp;
         await pairConfig.save();
       }
+      delete this.processingTimestamps[key];
 
       console.log(swaps);
     } catch (e) {
@@ -54,6 +61,7 @@ export class TradingService {
         `Failed loading data for ${pair} from ${latestTimestamp}`,
       );
       this.logger.error(e);
+      delete this.processingTimestamps[key];
     }
   }
 
@@ -90,5 +98,9 @@ export class TradingService {
       .find({ pair, season })
       .sort({ totalTradedUsd: -1 })
       .limit(100);
+  }
+
+  async getPairAddressStats(pair: string, address: string, season: number) {
+    return this.tradingStatsModel.findOne({ pair, season, address });
   }
 }

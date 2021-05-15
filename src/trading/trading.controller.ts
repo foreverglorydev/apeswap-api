@@ -16,11 +16,21 @@ export class TradingController {
   constructor(private tradingService: TradingService) {}
 
   @Get(':season/:pair')
-  async getStatsForWallet(
+  async getStatsForSeason(
     @Param('pair') pair: string,
     @Param('season') season: number,
   ): Promise<TradingStatsDocument[]> {
-    this.logger.debug('Called GET /trading/:wallet');
+    this.logger.debug('Called GET /trading/:season/:pair');
     return this.tradingService.getPairLeaderBoard(pair, season);
+  }
+
+  @Get(':season/:pair/:address')
+  async getStatsForAddress(
+    @Param('pair') pair: string,
+    @Param('address') address: string,
+    @Param('season') season: number,
+  ): Promise<TradingStatsDocument> {
+    this.logger.debug('Called GET /trading/:season/:pair/:address');
+    return this.tradingService.getPairAddressStats(pair, address, season);
   }
 }
