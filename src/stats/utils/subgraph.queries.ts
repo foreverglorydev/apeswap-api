@@ -46,9 +46,15 @@ export function dayData(skip: number, startTime: number, endTime: number) {
   }`;
 }
 
-export function swapsData(pair: string, startTime: number) {
+export function swapsData(
+  pair: string,
+  startTime: number,
+  endTime: number,
+  first = 1000,
+  skip = 0,
+) {
   return `{
-    swaps(where: { pair:"${pair}" timestamp_gt: ${startTime}} first: 1000 orderBy: timestamp) {
+    swaps(where: { pair:"${pair}" timestamp_gt: ${startTime} timestamp_lte: ${endTime}} first: ${first} skip: ${skip} orderBy: timestamp) {
       id
       pair {
         id

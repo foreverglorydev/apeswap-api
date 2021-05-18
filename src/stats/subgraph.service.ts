@@ -1,4 +1,4 @@
-import { Injectable, HttpService } from '@nestjs/common';
+import { Injectable, HttpService, Logger } from '@nestjs/common';
 import {
   dayData,
   pairsQuery,
@@ -9,6 +9,7 @@ import {
 
 @Injectable()
 export class SubgraphService {
+  logger = new Logger(SubgraphService.name);
   graphUrl =
     'https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph';
   constructor(private httpService: HttpService) {}
@@ -43,10 +44,30 @@ export class SubgraphService {
     return apeswapDayDatas[1] || apeswapDayDatas[0];
   }
 
-  async getPairSwapData(pair: string, startTime: number): Promise<any> {
-    const query = swapsData(pair, startTime);
-    const result = await this.querySubraph(query);
-    return result.data.swaps;
+  async getPairSwapData(
+    pair: string,
+    startTime: number,
+    endTime: number,
+    first = 1000,
+    skip = 0,
+  ): Promise<any> {
+    const query = swapsData(pair, startTime, endTime, first, skip);
+    this.logger.log(query);
+    const { data } = await this.querySubraph(query);
+    let result = data.swaps;
+    if (result?.length === 1000) {
+      // Paginate
+      const swaps = await this.getPairSwapData(
+        pair,
+        startTime,
+        endTime,
+        first,
+        first + skip,
+      );
+      result = [...result, ...swaps];
+      this.logger.log(`swapsData result length: ${result.length}`);
+    }
+    return result;
   }
 
   async getDailySummary() {

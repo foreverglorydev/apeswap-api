@@ -21,6 +21,7 @@ export class TradingService {
   async getSeasonPairs() {
     const config = await this.tradeSeasonModel.find({
       season: this.currentSeason,
+      processed: { $ne: true },
     });
     return config;
   }
@@ -30,39 +31,69 @@ export class TradingService {
     this.logger.log('Load trading activity');
     const seasonPairs = await this.getSeasonPairs();
     for (const pairConfig of seasonPairs) {
-      this.loadPairData(pairConfig);
+      this.loadSeasonData(pairConfig);
     }
   }
 
-  async loadPairData(pairConfig) {
-    const { latestTimestamp, season, pair, usdPerBanana } = pairConfig;
-    const key = latestTimestamp + pair;
+  async loadSeasonData(pairConfig) {
+    const {
+      startTimestamp,
+      endTimestamp,
+      season,
+      pair,
+      latestTimestamp,
+      usdPerBanana,
+    } = pairConfig;
+    const key = season + pair;
     if (this.processingTimestamps[key]) {
       this.logger.log(`Timestamp already being processed ${key}`);
       return;
     }
+    const startTime =
+      latestTimestamp > startTimestamp ? latestTimestamp : startTimestamp;
     try {
       this.processingTimestamps[key] = true;
-      this.logger.log(`Fetching pair ${pair} from ${latestTimestamp}`);
+      this.logger.log(
+        `Fetching pair ${pair} from ${startTimestamp} to ${endTimestamp}`,
+      );
       const swaps = await this.subgraphService.getPairSwapData(
         pair,
-        latestTimestamp,
+        startTime,
+        endTimestamp,
       );
       if (swaps.length) {
+        this.logger.log(`${swaps.length} swaps found for given timestamp`);
+        const latestTimestamp = swaps[swaps.length - 1].timestamp;
         await this.bulkUpdate(swaps, season, usdPerBanana);
-        pairConfig.latestTimestamp = swaps[swaps.length - 1].timestamp;
+        pairConfig.latestTimestamp = latestTimestamp;
         await pairConfig.save();
+      } else {
+        const currentTimestamp = this.getCurrentTimestamp();
+        // tolerance for up to 3 hour delay
+        const testTimestamp = endTimestamp + 3 * 60 * 60;
+        console.log(currentTimestamp, testTimestamp);
+        if (currentTimestamp > testTimestamp) {
+          this.logger.log(
+            `Finished processing season: ${season} for pair: ${pair}`,
+          );
+          pairConfig.processed = true;
+          await pairConfig.save();
+        }
       }
       delete this.processingTimestamps[key];
 
       console.log(swaps);
     } catch (e) {
       this.logger.error(
-        `Failed loading data for ${pair} from ${latestTimestamp}`,
+        `Failed loading data for ${pair} from ${startTimestamp}`,
       );
       this.logger.error(e);
       delete this.processingTimestamps[key];
     }
+  }
+
+  getCurrentTimestamp() {
+    return Math.round(new Date().getTime() / 1000);
   }
 
   bulkUpdate(items, season, usdPerBanana) {

@@ -12,7 +12,16 @@ export class TradeSeason {
   season: number;
 
   @Prop({ required: true })
+  startTimestamp: number;
+
+  @Prop({ required: true })
+  endTimestamp: number;
+
+  @Prop({ required: true })
   latestTimestamp: number;
+
+  @Prop()
+  processed: boolean;
 
   @Prop({ required: true })
   usdPerBanana: number;
