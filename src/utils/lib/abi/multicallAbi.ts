@@ -1,54 +1,54 @@
 export const MULTICALL_ABI = [
   {
-    "constant": true,
-    "inputs": [
+    constant: true,
+    inputs: [
       {
-        "components": [
+        components: [
           {
-            "name": "target",
-            "type": "address"
+            name: 'target',
+            type: 'address',
           },
           {
-            "name": "callData",
-            "type": "bytes"
-          }
+            name: 'callData',
+            type: 'bytes',
+          },
         ],
-        "name": "calls",
-        "type": "tuple[]"
-      }
+        name: 'calls',
+        type: 'tuple[]',
+      },
     ],
-    "name": "aggregate",
-    "outputs": [
+    name: 'aggregate',
+    outputs: [
       {
-        "name": "blockNumber",
-        "type": "uint256"
+        name: 'blockNumber',
+        type: 'uint256',
       },
       {
-        "name": "returnData",
-        "type": "bytes[]"
-      }
+        name: 'returnData',
+        type: 'bytes[]',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [
+    constant: true,
+    inputs: [
       {
-        "name": "addr",
-        "type": "address"
-      }
+        name: 'addr',
+        type: 'address',
+      },
     ],
-    "name": "getEthBalance",
-    "outputs": [
+    name: 'getEthBalance',
+    outputs: [
       {
-        "name": "balance",
-        "type": "uint256"
-      }
+        name: 'balance',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  }
-]
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
+  },
+];
