@@ -5,6 +5,7 @@ import {
   CACHE_MANAGER,
   Logger,
 } from '@nestjs/common';
+import { BEP20_REWARD_APE_ABI } from 'src/stats/utils/abi/bep20RewardApeAbi';
 import { InjectModel } from '@nestjs/mongoose';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { Cache } from 'cache-manager';
@@ -487,8 +488,9 @@ export class StatsService {
   }
   async mappingIncetivizedPools(poolPrices, prices) {
     const currentBlockNumber = await getCurrentBlock();
+    const incentivized = await this.fetchPoolsStrapi();
     poolPrices.incentivizedPools = await Promise.all(
-      incentivizedPools.map(async (pool) =>
+      incentivized.map(async (pool) =>
         this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
       ),
     );
@@ -807,5 +809,44 @@ export class StatsService {
     walletStats.aggregateAprPerMonth = (walletStats.aggregateApr * 30) / 365;
 
     return walletStats;
+  }
+
+  async fetchPoolsStrapi() {
+    try {
+      const result = await this.httpService
+        .get('https://apeswap-strapi.herokuapp.com/pools')
+        .toPromise();
+      const data = [];
+      for (let index = 0; index < result.data.length; index++) {
+        const pool = result.data[index];
+        if (pool.startBlock) {
+          data.push({
+            sousId: Number(pool.sousId),
+            rewardToken: pool.rewardToken,
+            name: pool.tokenName,
+            address: pool.contractAddress[this.chainId],
+            stakeToken: pool.stakingTokenAddress[this.chainId],
+            stakeTokenIsLp: pool.lpStaking,
+            rewardPerBlock: pool.rewardPerBlock,
+            startBlock: pool.startBlock,
+            bonusEndBlock: pool.endBlock,
+            abi: this.getRewardApeAbi(pool.abi),
+          });
+        }
+      }
+      return data;
+    } catch (error) {
+      return incentivizedPools;
+    }
+  }
+
+  getRewardApeAbi(abi) {
+    switch (abi) {
+      case 'bep20RewardApeAbi':
+        return BEP20_REWARD_APE_ABI;
+        break;
+      default:
+        return BEP20_REWARD_APE_ABI;
+    }
   }
 }
