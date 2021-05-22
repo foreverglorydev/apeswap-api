@@ -40,6 +40,7 @@ import {
 } from './schema/generalStats.schema';
 import { SubgraphService } from './subgraph.service';
 import { Cron } from '@nestjs/schedule';
+import { BigNumber } from 'ethers';
 
 @Injectable()
 export class StatsService {
@@ -827,7 +828,7 @@ export class StatsService {
             address: pool.contractAddress[this.chainId],
             stakeToken: pool.stakingTokenAddress[this.chainId],
             stakeTokenIsLp: pool.lpStaking,
-            rewardPerBlock: pool.rewardPerBlock,
+            rewardPerBlock: this.calculateTokenPerBlock(pool),
             startBlock: pool.startBlock,
             bonusEndBlock: pool.endBlock,
             abi: this.getRewardApeAbi(pool.abi),
@@ -848,5 +849,10 @@ export class StatsService {
       default:
         return BEP20_REWARD_APE_ABI;
     }
+  }
+
+  calculateTokenPerBlock(pool) {
+    const decimals = BigNumber.from(10).pow(pool.tokenDecimals).toString();
+    return Number(decimals) * pool.tokenPerBlock;
   }
 }
