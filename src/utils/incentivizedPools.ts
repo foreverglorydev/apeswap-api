@@ -421,4 +421,16 @@ export const incentivizedPools = [
     bonusEndBlock: 9363704,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 37,
+    name: 'SPACE/BNB -> SPACE',
+    address: '0xfE615dA45dBC8C763851A34Cf14d65B0056a2D8A',
+    stakeToken: '0xd0F82498051067E154d1dcd3d88fA95063949D7e',
+    stakeTokenIsLp: true,
+    rewardToken: '0xe486a69E432Fdc29622bF00315f6b34C99b45e80',
+    rewardPerBlock: '27557043650000000',
+    startBlock: 7706570,
+    bonusEndBlock: 8109770,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
