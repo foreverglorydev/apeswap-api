@@ -5,6 +5,7 @@ import {
   liquidityQuery,
   allPricesQuery,
   swapsData,
+  usersPairDayData,
 } from './utils/subgraph.queries';
 
 @Injectable()
@@ -12,6 +13,8 @@ export class SubgraphService {
   logger = new Logger(SubgraphService.name);
   graphUrl =
     'https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph';
+  failoverUrl = process.env.FAILOVER_URL;
+
   constructor(private httpService: HttpService) {}
 
   async getVolumeData(): Promise<any> {
@@ -52,7 +55,6 @@ export class SubgraphService {
     skip = 0,
   ): Promise<any> {
     const query = swapsData(pair, startTime, endTime, first, skip);
-    this.logger.log(query);
     const { data } = await this.querySubraph(query);
     let result = data.swaps;
     if (result?.length === 1000) {
@@ -66,6 +68,32 @@ export class SubgraphService {
       );
       result = [...result, ...swaps];
       this.logger.log(`swapsData result length: ${result.length}`);
+    }
+    return result;
+  }
+
+  async getUserDailyPairData(
+    pair: string,
+    startTime: number,
+    endTime: number,
+    first = 1000,
+    skip = 0,
+  ): Promise<any> {
+    const query = usersPairDayData(pair, startTime, endTime, first, skip);
+    this.logger.log(query);
+    const res = await this.querySubraph(query);
+    let result = res.data.userPairDayDatas;
+    if (result?.length === 1000) {
+      // Paginate
+      const userPairDayDatas = await this.getUserDailyPairData(
+        pair,
+        startTime,
+        endTime,
+        first,
+        first + skip,
+      );
+      result = [...result, ...userPairDayDatas];
+      this.logger.log(`getUserDailyPairData result length: ${result.length}`);
     }
     return result;
   }
@@ -90,7 +118,7 @@ export class SubgraphService {
 
   async querySubraph(query): Promise<any> {
     const { data } = await this.httpService
-      .post(this.graphUrl, { query })
+      .post(this.failoverUrl, { query })
       .toPromise();
     return data;
   }

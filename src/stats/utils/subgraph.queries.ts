@@ -75,6 +75,29 @@ export function swapsData(
     }
   }`;
 }
+export function usersPairDayData(
+  pair: string,
+  startTime: number,
+  endTime: number,
+  first = 1000,
+  skip = 0,
+) {
+  return `{
+    userPairDayDatas
+      (orderBy: date, orderDirection: desc, 
+      where: {pair: "${pair}" date_gt: ${startTime} date_lte: ${endTime} } first: ${first} skip: ${skip}) {
+        id
+        user {
+          id
+        }
+        pair {
+          id
+        }
+        dailyVolumeUSD
+        date
+    }
+  }`;
+}
 
 export const allPricesQuery = `{
   tokens(orderBy: tradeVolumeUSD orderDirection: desc first: 1000) {

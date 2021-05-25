@@ -16,6 +16,7 @@ export class TradingService {
     private tradeSeasonModel: Model<TradeSeasonDocument>,
   ) {}
   currentSeason = 0;
+  querySplit = 10;
   processingTimestamps = {};
 
   async getSeasonPairs() {
@@ -51,38 +52,27 @@ export class TradingService {
     }
     const startTime =
       latestTimestamp > startTimestamp ? latestTimestamp : startTimestamp;
+    const timestamps = this.slpitTimestamp(
+      startTime,
+      endTimestamp,
+      this.querySplit,
+    );
     try {
-      this.processingTimestamps[key] = true;
-      this.logger.log(
-        `Fetching pair ${pair} from ${startTimestamp} to ${endTimestamp}`,
-      );
-      const swaps = await this.subgraphService.getPairSwapData(
-        pair,
-        startTime,
-        endTimestamp,
-      );
-      if (swaps.length) {
-        this.logger.log(`${swaps.length} swaps found for given timestamp`);
-        const latestTimestamp = swaps[swaps.length - 1].timestamp;
-        await this.bulkUpdate(swaps, season, usdPerBanana);
-        pairConfig.latestTimestamp = latestTimestamp;
-        await pairConfig.save();
-      } else {
-        const currentTimestamp = this.getCurrentTimestamp();
-        // tolerance for up to 3 hour delay
-        const testTimestamp = endTimestamp + 3 * 60 * 60;
-        console.log(currentTimestamp, testTimestamp);
-        if (currentTimestamp > testTimestamp) {
-          this.logger.log(
-            `Finished processing season: ${season} for pair: ${pair}`,
-          );
-          pairConfig.processed = true;
-          await pairConfig.save();
-        }
+      console.time('process');
+      for (let i = 0; i < timestamps.length - 1; i++) {
+        this.processingTimestamps[key] = true;
+        await this.processInterval(
+          pair,
+          timestamps[i + 1],
+          timestamps[i],
+          season,
+          usdPerBanana,
+          pairConfig,
+        );
       }
-      delete this.processingTimestamps[key];
 
-      console.log(swaps);
+      delete this.processingTimestamps[key];
+      console.timeEnd('process');
     } catch (e) {
       this.logger.error(
         `Failed loading data for ${pair} from ${startTimestamp}`,
@@ -92,19 +82,71 @@ export class TradingService {
     }
   }
 
+  private async processInterval(
+    pair: any,
+    endTimestamp: any,
+    startTime: any,
+    season: any,
+    usdPerBanana: any,
+    pairConfig: any,
+  ) {
+    this.logger.log(
+      `Fetching pair ${pair} from ${startTime} to ${endTimestamp}`,
+    );
+    const userPairDayData = await this.subgraphService.getUserDailyPairData(
+      pair,
+      startTime,
+      endTimestamp,
+    );
+    if (userPairDayData.length) {
+      this.logger.log(
+        `${userPairDayData.length} swaps found for given timestamp`,
+      );
+      const latestTimestamp = userPairDayData[userPairDayData.length - 1].date;
+      await this.bulkUpdate(userPairDayData, season, usdPerBanana);
+      pairConfig.latestTimestamp = latestTimestamp;
+      await pairConfig.save();
+    } else {
+      const currentTimestamp = this.getCurrentTimestamp();
+      // tolerance for up to 3 hour delay
+      const testTimestamp = endTimestamp + 3 * 60 * 60;
+      console.log(currentTimestamp, testTimestamp);
+      if (currentTimestamp > testTimestamp) {
+        this.logger.log(
+          `Finished processing season: ${season} for pair: ${pair}`,
+        );
+        pairConfig.processed = true;
+        await pairConfig.save();
+      }
+    }
+    return userPairDayData;
+  }
+
   getCurrentTimestamp() {
     return Math.round(new Date().getTime() / 1000);
+  }
+
+  slpitTimestamp(start, end, amount) {
+    const interval = Math.ceil((end - start) / (amount - 1));
+    const timeframes = [start];
+    for (let i = 0; i < amount - 1; i++) {
+      const time = timeframes[i];
+      const frame = time + interval;
+      const efectiveFrame = frame < end ? frame : end;
+      timeframes.push(efectiveFrame);
+    }
+    return timeframes;
   }
 
   bulkUpdate(items, season, usdPerBanana) {
     const bulkUpdate = this.tradingStatsModel.collection.initializeUnorderedBulkOp();
     for (const item of items) {
       const onInsert = {
-        address: item.from,
+        address: item.user.id,
         pair: item.pair.id,
         season,
       };
-      const volume = parseFloat(item.amountUSD);
+      const volume = parseFloat(item.dailyVolumeUSD);
       const rewards = volume / usdPerBanana;
       const inc = { totalTradedUsd: volume, pendingBananaRewards: rewards };
       if (item !== null) {
