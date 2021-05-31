@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, CACHE_MANAGER } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
+import { Cache } from 'cache-manager';
 import { TradeSeason, TradeSeasonDocument } from './schema/trade-season.schema';
 import { TradingStats, TradingStatsDocument } from './schema/trading.schema';
 import { SubgraphService } from '../stats/subgraph.service';
@@ -9,6 +10,7 @@ import { SubgraphService } from '../stats/subgraph.service';
 export class TradingService {
   logger = new Logger(TradingService.name);
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private subgraphService: SubgraphService,
     @InjectModel(TradingStats.name)
     private tradingStatsModel: Model<TradingStatsDocument>,
@@ -27,10 +29,12 @@ export class TradingService {
     return config;
   }
 
-  @Interval(5000)
+  // @Interval(50000)
   async loadTradingActivity() {
     this.logger.log('Load trading activity');
     const seasonPairs = await this.getSeasonPairs();
+    console.log('seasonPairs');
+    console.log(seasonPairs);
     for (const pairConfig of seasonPairs) {
       this.loadSeasonData(pairConfig);
     }
@@ -59,6 +63,7 @@ export class TradingService {
     );
     try {
       console.time('process');
+      console.log('timestamps', timestamps);
       for (let i = 0; i < timestamps.length - 1; i++) {
         this.processingTimestamps[key] = true;
         await this.processInterval(
@@ -72,6 +77,9 @@ export class TradingService {
       }
 
       delete this.processingTimestamps[key];
+      this.cachedTrading(pair, season);
+      pairConfig.latestTimestamp = 0;
+      await pairConfig.save();
       console.timeEnd('process');
     } catch (e) {
       this.logger.error(
@@ -79,6 +87,7 @@ export class TradingService {
       );
       this.logger.error(e);
       delete this.processingTimestamps[key];
+      console.timeEnd('process');
     }
   }
 
@@ -98,6 +107,7 @@ export class TradingService {
       startTime,
       endTimestamp,
     );
+    console.log(userPairDayData);
     if (userPairDayData.length) {
       this.logger.log(
         `${userPairDayData.length} swaps found for given timestamp`,
@@ -167,6 +177,12 @@ export class TradingService {
   }
 
   async getPairLeaderBoard(pair: string, season: number) {
+    this.validateAndUpdateData(pair, season);
+    const cachedValue = await this.cacheManager.get('tradingStats');
+    if (cachedValue) {
+      this.logger.log('Hit tradingStats cache');
+      return cachedValue as TradingStatsDocument[];
+    }
     return this.tradingStatsModel
       .find({ pair, season })
       .sort({ totalTradedUsd: -1 })
@@ -175,5 +191,29 @@ export class TradingService {
 
   async getPairAddressStats(pair: string, address: string, season: number) {
     return this.tradingStatsModel.findOne({ pair, season, address });
+  }
+
+  async validateAndUpdateData(pair, season) {
+    const config = await this.tradeSeasonModel.findOne({
+      season: season,
+      pair: pair,
+    });
+
+    if (config.latestTimestamp === 0 && config.processed) {
+      await this.cleanSeason(pair, season);
+      config.processed = false;
+      await config.save();
+      this.loadTradingActivity();
+    }
+  }
+
+  async cachedTrading(pair, season) {
+    console.log('Hit cached trading');
+    const tradinsStats = await this.tradingStatsModel.find({ pair, season });
+    await this.cacheManager.set('tradingStats', tradinsStats, { ttl: 300 });
+  }
+
+  async cleanSeason(pair, season) {
+    await this.tradingStatsModel.deleteMany({ pair, season });
   }
 }
