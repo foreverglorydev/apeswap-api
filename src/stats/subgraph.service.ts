@@ -6,6 +6,7 @@ import {
   allPricesQuery,
   swapsData,
   usersPairDayData,
+  userPairDayData,
 } from './utils/subgraph.queries';
 
 @Injectable()
@@ -95,6 +96,19 @@ export class SubgraphService {
       result = [...result, ...userPairDayDatas];
       this.logger.log(`getUserDailyPairData result length: ${result.length}`);
     }
+    return result;
+  }
+
+  async getUserCurrentPairData(
+    pair: string,
+    startTime: number,
+    endTime: number,
+    address: string,
+  ): Promise<any> {
+    const query = userPairDayData(pair, startTime, endTime, address);
+    this.logger.log(query);
+    const res = await this.querySubraph(query);
+    const result = res.data.userPairDayDatas;
     return result;
   }
 

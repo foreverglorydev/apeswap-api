@@ -98,6 +98,28 @@ export function usersPairDayData(
     }
   }`;
 }
+export function userPairDayData(
+  pair: string,
+  startTime: number,
+  endTime: number,
+  address: string,
+) {
+  return `{
+    userPairDayDatas
+      (orderBy: date, orderDirection: desc, 
+      where: {pair: "${pair}" date_gt: ${startTime} date_lte: ${endTime} user: "${address}"} ) {
+        id
+        user {
+          id
+        }
+        pair {
+          id
+        }
+        dailyVolumeUSD
+        date
+    }
+  }`;
+}
 
 export const allPricesQuery = `{
   tokens(orderBy: tradeVolumeUSD orderDirection: desc first: 1000) {

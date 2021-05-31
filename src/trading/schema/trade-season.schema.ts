@@ -23,8 +23,14 @@ export class TradeSeason {
   @Prop()
   processed: boolean;
 
+  @Prop()
+  finished: boolean;
+
   @Prop({ required: true })
   usdPerBanana: number;
+
+  @Prop()
+  lastUpdateTimestamp: number;
 }
 
 export const TradeSeasonSchema = SchemaFactory.createForClass(TradeSeason);

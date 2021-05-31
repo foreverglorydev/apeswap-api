@@ -29,7 +29,7 @@ export class TradingController {
     @Param('pair') pair: string,
     @Param('address') address: string,
     @Param('season') season: number,
-  ): Promise<TradingStatsDocument> {
+  ): Promise<any> {
     this.logger.debug('Called GET /trading/:season/:pair/:address');
     return this.tradingService.getPairAddressStats(pair, address, season);
   }

@@ -20,21 +20,22 @@ export class TradingService {
   currentSeason = 0;
   querySplit = 10;
   processingTimestamps = {};
+  lastUpdateTimestamp = 0;
 
   async getSeasonPairs() {
     const config = await this.tradeSeasonModel.find({
       season: this.currentSeason,
       processed: { $ne: true },
+      finished: { $ne: true },
     });
     return config;
   }
 
+  // @Interval(50000) @Cron('59 59 23 * * *')
   // @Interval(50000)
   async loadTradingActivity() {
     this.logger.log('Load trading activity');
     const seasonPairs = await this.getSeasonPairs();
-    console.log('seasonPairs');
-    console.log(seasonPairs);
     for (const pairConfig of seasonPairs) {
       this.loadSeasonData(pairConfig);
     }
@@ -54,6 +55,9 @@ export class TradingService {
       this.logger.log(`Timestamp already being processed ${key}`);
       return;
     }
+
+    if (this.isFinished(endTimestamp)) return;
+
     const startTime =
       latestTimestamp > startTimestamp ? latestTimestamp : startTimestamp;
     const timestamps = this.slpitTimestamp(
@@ -62,8 +66,6 @@ export class TradingService {
       this.querySplit,
     );
     try {
-      console.time('process');
-      console.log('timestamps', timestamps);
       for (let i = 0; i < timestamps.length - 1; i++) {
         this.processingTimestamps[key] = true;
         await this.processInterval(
@@ -79,6 +81,7 @@ export class TradingService {
       delete this.processingTimestamps[key];
       this.cachedTrading(pair, season);
       pairConfig.latestTimestamp = 0;
+      pairConfig.lastUpdateTimestamp = this.lastUpdateTimestamp;
       await pairConfig.save();
       console.timeEnd('process');
     } catch (e) {
@@ -107,7 +110,6 @@ export class TradingService {
       startTime,
       endTimestamp,
     );
-    console.log(userPairDayData);
     if (userPairDayData.length) {
       this.logger.log(
         `${userPairDayData.length} swaps found for given timestamp`,
@@ -137,12 +139,20 @@ export class TradingService {
   }
 
   slpitTimestamp(start, end, amount) {
-    const interval = Math.ceil((end - start) / (amount - 1));
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(23, 59, 59);
+    const yTime = Math.floor(yesterday.getTime() / 1000);
+    const endTime = yTime > end ? end : yTime;
+    this.lastUpdateTimestamp = endTime;
+
+    const interval = Math.ceil((endTime - start) / (amount - 1));
     const timeframes = [start];
+
     for (let i = 0; i < amount - 1; i++) {
       const time = timeframes[i];
       const frame = time + interval;
-      const efectiveFrame = frame < end ? frame : end;
+      const efectiveFrame = frame < endTime ? frame : endTime;
       timeframes.push(efectiveFrame);
     }
     return timeframes;
@@ -177,43 +187,70 @@ export class TradingService {
   }
 
   async getPairLeaderBoard(pair: string, season: number) {
-    this.validateAndUpdateData(pair, season);
     const cachedValue = await this.cacheManager.get('tradingStats');
     if (cachedValue) {
-      this.logger.log('Hit tradingStats cache');
+      this.logger.log('Hit calculateStats() cache');
       return cachedValue as TradingStatsDocument[];
     }
-    return this.tradingStatsModel
+    const tradingStats = await this.tradingStatsModel
       .find({ pair, season })
       .sort({ totalTradedUsd: -1 })
       .limit(100);
+    await this.cacheManager.set('tradingStats', tradingStats, { ttl: 600 });
+
+    return tradingStats;
   }
 
   async getPairAddressStats(pair: string, address: string, season: number) {
-    return this.tradingStatsModel.findOne({ pair, season, address });
+    const pastData = await this.tradingStatsModel.findOne({
+      pair,
+      season,
+      address,
+    });
+    return this.getUserCurrentPairData(pair, season, address, pastData);
   }
 
-  async validateAndUpdateData(pair, season) {
+  async getUserCurrentPairData(pair, season, address, pastData) {
     const config = await this.tradeSeasonModel.findOne({
       season: season,
       pair: pair,
     });
 
-    if (config.latestTimestamp === 0 && config.processed) {
-      await this.cleanSeason(pair, season);
-      config.processed = false;
-      await config.save();
-      this.loadTradingActivity();
+    const currentData = await this.subgraphService.getUserCurrentPairData(
+      pair,
+      config.lastUpdateTimestamp + 1,
+      Math.floor(new Date().getTime() / 1000),
+      address,
+    );
+
+    let totalTrade = pastData?.totalTradedUsd || 0;
+
+    for (let index = 0; index < currentData.length; index++) {
+      const current = currentData[index];
+      totalTrade += parseFloat(current.dailyVolumeUSD);
     }
+
+    const volume = parseFloat(totalTrade);
+    const rewards = volume / config.usdPerBanana;
+
+    return {
+      account: pastData?.account || address,
+      pair: pair,
+      season: season,
+      pendingBananaRewards: rewards,
+      totalTradedUsd: totalTrade,
+    };
   }
 
   async cachedTrading(pair, season) {
     console.log('Hit cached trading');
-    const tradinsStats = await this.tradingStatsModel.find({ pair, season });
-    await this.cacheManager.set('tradingStats', tradinsStats, { ttl: 300 });
+    const tradingStats = await this.tradingStatsModel.find({ pair, season });
+    await this.cacheManager.set('tradingStats', tradingStats, { ttl: 600 });
   }
 
-  async cleanSeason(pair, season) {
-    await this.tradingStatsModel.deleteMany({ pair, season });
+  isFinished(endTimestamp) {
+    const currentTime = this.getCurrentTimestamp();
+    if (endTimestamp < currentTime) return true;
+    return false;
   }
 }
