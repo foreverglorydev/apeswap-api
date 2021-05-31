@@ -438,7 +438,7 @@ export const incentivizedPools = [
     name: 'GNANA -> TAPE',
     address: '0x4b5ee00fcce905cc2861c8255b368cf9f114c667',
     stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
-    stakeTokenIsLp: true,
+    stakeTokenIsLp: false,
     rewardToken: '0xf63400ee0420ce5b1ebdee0c942d7de1c734a41f',
     rewardPerBlock: '2314814814814814700',
     startBlock: 7870997,
