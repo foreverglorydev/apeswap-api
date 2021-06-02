@@ -62,7 +62,6 @@ export class TradingService {
       return;
     }
 
-    if (this.isFinished(endTimestamp)) return;
     await this.cleanDataTradingSeason(pair, season);
     const startTime =
       latestTimestamp > startTimestamp ? latestTimestamp : startTimestamp;
@@ -204,7 +203,7 @@ export class TradingService {
       return cachedValue as TradingStatsDocument[];
     }
     // this.loadTradingActivity();
-    // this.calculateTodayTrading();
+    // this.calculateTodaySeasons();
     return this.getTopTrading(pair, season);
   }
 
@@ -294,24 +293,33 @@ export class TradingService {
     await this.cacheManager.set('tradingStats', tradingStats, { ttl: 600 });
   }
 
+  async calculateTodaySeasons() {
+    const seasonPairs = await this.getSeasonPairs();
+    for (const pairConfig of seasonPairs) {
+      this.calculateTodayTrading(pairConfig);
+    }
+  }
   // @Interval(360000) // 600000 every 10 minutes
-  async calculateTodayTrading() {
-    const config = await this.tradeSeasonModel.findOne({
-      season: this.currentSeason,
-      finished: { $ne: true },
-      lastUpdateTimestamp: { $ne: 0 },
-    });
-    if (!config || !config.processedToday) return;
-    this.logger.log('hit calculate today trading');
-    const { pair, season } = config;
+  async calculateTodayTrading(pairConfig) {
+    const {
+      endTimestamp,
+      season,
+      pair,
+      usdPerBanana,
+      lastUpdateTimestamp,
+      processedToday,
+    } = pairConfig;
+    if (!pairConfig || !processedToday || lastUpdateTimestamp >= endTimestamp)
+      return;
+    this.logger.log(`hit calculate today trading to pair ${pair}`);
     await this.cleanDataToday(pair, season);
     const currentTime = this.getCurrentTimestamp();
     console.time('today');
-    config.processedToday = false;
-    await config.save();
+    pairConfig.processedToday = false;
+    await pairConfig.save();
     const userPairDayData = await this.subgraphService.getUserDailyPairData(
       pair,
-      config.lastUpdateTimestamp + 1,
+      lastUpdateTimestamp + 1,
       currentTime,
     );
     console.timeEnd('today');
@@ -320,13 +328,13 @@ export class TradingService {
       await this.bulkUpdate(
         userPairDayData,
         season,
-        config.usdPerBanana,
+        usdPerBanana,
         this.tradingTodayStatsModel,
       );
       console.timeEnd('bulk');
     }
-    config.processedToday = true;
-    await config.save();
+    pairConfig.processedToday = true;
+    await pairConfig.save();
   }
 
   async getTopTrading(pair, season) {
@@ -339,7 +347,11 @@ export class TradingService {
         .find({ pair, season })
         .sort({ totalTradedUsd: -1 })
         .limit(100);
-      await this.cacheManager.set('tradingStats', tradingStats, { ttl: 600 });
+      await this.cacheManager.set(
+        `tradingStats${pair}-${season}`,
+        tradingStats,
+        { ttl: 600 },
+      );
       return tradingStats;
     }
     const tradingStats = await this.tradingStatsModel
@@ -368,7 +380,9 @@ export class TradingService {
 
     if (combined.length > 100) combined = combined.slice(0, 100);
     console.timeEnd('calculating');
-    await this.cacheManager.set('tradingStats', combined, { ttl: 600 });
+    await this.cacheManager.set(`tradingStats${pair}-${season}`, combined, {
+      ttl: 600,
+    });
     return combined;
   }
   async cleanDataToday(pair, season) {
