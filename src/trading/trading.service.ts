@@ -38,7 +38,7 @@ export class TradingService {
   }
 
   // @Interval(50000) @Cron('59 59 23 * * *')
-  @Interval(50000)
+  // @Interval(240000)
   async loadTradingActivity() {
     this.logger.log('Load trading activity');
     const seasonPairs = await this.getSeasonPairs();
@@ -85,11 +85,11 @@ export class TradingService {
       }
 
       delete this.processingTimestamps[key];
-      this.calculateAndCachedTrading(pair, season);
       pairConfig.latestTimestamp = 0;
       pairConfig.lastUpdateTimestamp = this.lastUpdateTimestamp;
       await pairConfig.save();
       console.timeEnd('process');
+      this.getTopTrading(pair, season);
     } catch (e) {
       this.logger.error(
         `Failed loading data for ${pair} from ${startTimestamp}`,
@@ -203,10 +203,18 @@ export class TradingService {
       this.logger.log('Hit tradingStats cache');
       return cachedValue as TradingStatsDocument[];
     }
+    // this.loadTradingActivity();
+    // this.calculateTodayTrading();
     return this.getTopTrading(pair, season);
   }
 
   async getPairAddressStats(pair: string, address: string, season: number) {
+    const cachedValue = await this.cacheManager.get(`${address}`);
+    if (cachedValue) {
+      this.logger.log('Hit individual cache');
+      return cachedValue;
+    }
+    console.log('pass');
     const config = await this.getTradeSeason(pair, season);
     const pastData = await this.tradingStatsModel.findOne({
       pair,
@@ -226,13 +234,16 @@ export class TradingService {
     const volume = Number(pastTrade) + Number(todayTrade);
     const rewards = volume / config.usdPerBanana;
 
-    return {
-      account: address,
+    const trade = {
+      address: address,
       pair: pair,
       season: season,
       pendingBananaRewards: rewards,
       totalTradedUsd: volume,
     };
+
+    await this.cacheManager.set(`${address}`, trade, { ttl: 1100 });
+    return trade;
   }
 
   async getUserCurrentPairData(config, address, pastData) {
@@ -283,18 +294,21 @@ export class TradingService {
     await this.cacheManager.set('tradingStats', tradingStats, { ttl: 600 });
   }
 
-  // @Interval(600000) // 600000 every 10 minutes
+  // @Interval(360000) // 600000 every 10 minutes
   async calculateTodayTrading() {
-    this.logger.log('hit calculate today trading');
     const config = await this.tradeSeasonModel.findOne({
       season: this.currentSeason,
       finished: { $ne: true },
+      lastUpdateTimestamp: { $ne: 0 },
     });
-    if (!config) return;
+    if (!config || !config.processedToday) return;
+    this.logger.log('hit calculate today trading');
     const { pair, season } = config;
     await this.cleanDataToday(pair, season);
     const currentTime = this.getCurrentTimestamp();
     console.time('today');
+    config.processedToday = false;
+    await config.save();
     const userPairDayData = await this.subgraphService.getUserDailyPairData(
       pair,
       config.lastUpdateTimestamp + 1,
@@ -311,6 +325,8 @@ export class TradingService {
       );
       console.timeEnd('bulk');
     }
+    config.processedToday = true;
+    await config.save();
   }
 
   async getTopTrading(pair, season) {

@@ -24,6 +24,9 @@ export class TradeSeason {
   processed: boolean;
 
   @Prop()
+  processedToday: boolean;
+
+  @Prop()
   finished: boolean;
 
   @Prop({ required: true })
