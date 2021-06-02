@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type TradingStatsDocument = TradingStats & Document;
+export type TradingTodayStatsDocument = TradingTodayStats & Document;
 
 @Schema()
-export class TradingStats {
+export class TradingTodayStats {
   @Prop({ index: true, required: true })
   address: string;
 
@@ -21,4 +21,6 @@ export class TradingStats {
   pendingBananaRewards: number;
 }
 
-export const TradingStatsSchema = SchemaFactory.createForClass(TradingStats);
+export const TradingTodayStatsSchema = SchemaFactory.createForClass(
+  TradingTodayStats,
+);
