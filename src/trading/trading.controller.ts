@@ -5,6 +5,7 @@ import {
   Logger,
   Param,
   UseInterceptors,
+  Res,
 } from '@nestjs/common';
 import { TradingStatsDocument } from './schema/trading.schema';
 import { TradingService } from './trading.service';
@@ -14,6 +15,21 @@ import { TradingService } from './trading.service';
 export class TradingController {
   private readonly logger = new Logger(TradingController.name);
   constructor(private tradingService: TradingService) {}
+
+  @Get('export/:season/:pair')
+  async tradingExportSeason(
+    @Param('pair') pair: string,
+    @Param('address') address: string,
+    @Param('season') season: number,
+    @Res() res,
+  ): Promise<any> {
+    this.logger.debug('Called GET /export/:season/:pair');
+    const pathfile = await this.tradingService.tradingExportSeason(
+      pair,
+      season,
+    );
+    return res.download(pathfile, pathfile);
+  }
 
   @Get(':season/:pair')
   async getStatsForSeason(

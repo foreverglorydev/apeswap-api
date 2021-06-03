@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { Cache } from 'cache-manager';
+import { ExportToCsv } from 'export-to-csv';
+import fs from 'fs';
 import { TradeSeason, TradeSeasonDocument } from './schema/trade-season.schema';
 import { TradingStats, TradingStatsDocument } from './schema/trading.schema';
 import {
@@ -71,6 +73,7 @@ export class TradingService {
       this.querySplit,
     );
     try {
+      console.time('process');
       for (let i = 0; i < timestamps.length - 1; i++) {
         this.processingTimestamps[key] = true;
         await this.processInterval(
@@ -213,7 +216,6 @@ export class TradingService {
       this.logger.log('Hit individual cache');
       return cachedValue;
     }
-    console.log('pass');
     const config = await this.getTradeSeason(pair, season);
     const pastData = await this.tradingStatsModel.findOne({
       pair,
@@ -391,5 +393,28 @@ export class TradingService {
 
   async cleanDataTradingSeason(pair, season) {
     await this.tradingStatsModel.deleteMany({ pair, season });
+  }
+
+  async tradingExportSeason(pair, season) {
+    const data = await this.tradingStatsModel
+      .find({ pair, season })
+      .sort({ totalTradedUsd: -1 }); // only past trading
+    const csv = [];
+    for (let index = 0; index < data.length; index++) {
+      const element = data[index];
+      csv.push({
+        address: element.address,
+        totalTradedUsd: element.totalTradedUsd,
+        pendingBananaRewards: element.pendingBananaRewards,
+      });
+    }
+    const options = {
+      headers: ['address', 'totalTradedUsd', 'pendingBananaRewards'],
+    };
+    const csvExporter = new ExportToCsv(options);
+    const csvData = csvExporter.generateCsv(csv, true);
+    const pathfile = `${season}-${pair}.csv`;
+    fs.writeFileSync(pathfile, csvData);
+    return pathfile;
   }
 }
