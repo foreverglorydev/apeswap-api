@@ -8,6 +8,9 @@ export class TradeSeason {
   @Prop({ required: true })
   pair: string;
 
+  @Prop()
+  name: string;
+
   @Prop({ required: true })
   season: number;
 

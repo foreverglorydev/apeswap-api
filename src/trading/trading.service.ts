@@ -63,7 +63,7 @@ export class TradingService {
       this.logger.log(`Timestamp already being processed ${key}`);
       return;
     }
-
+    this.logger.log('Load Season Data');
     await this.cleanDataTradingSeason(pair, season);
     const startTime =
       latestTimestamp > startTimestamp ? latestTimestamp : startTimestamp;
@@ -88,6 +88,7 @@ export class TradingService {
 
       delete this.processingTimestamps[key];
       pairConfig.latestTimestamp = 0;
+      pairConfig.processed = false;
       pairConfig.lastUpdateTimestamp = this.lastUpdateTimestamp;
       await pairConfig.save();
       console.timeEnd('process');
@@ -154,14 +155,25 @@ export class TradingService {
   slpitTimestamp(start, end, amount) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(23, 59, 59);
-    const yTime = Math.floor(yesterday.getTime() / 1000);
+    yesterday.setHours(23, 59, 59); // local
+    const yesterdayUTC = Date.UTC(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDay(),
+      23,
+      59,
+      59,
+    );
+    const currentTime = this.getCurrentTimestamp();
+    const realEnd =
+      yesterdayUTC / 1000 > currentTime ? currentTime : yesterdayUTC / 1000;
+    const yTime = Math.floor(realEnd);
     const endTime = yTime > end ? end : yTime;
     this.lastUpdateTimestamp = endTime;
 
     const interval = Math.ceil((endTime - start) / (amount - 1));
     const timeframes = [start];
-
+    this.logger.log(`split timestamp start ${start} to ${endTime}`);
     for (let i = 0; i < amount - 1; i++) {
       const time = timeframes[i];
       const frame = time + interval;
@@ -274,25 +286,11 @@ export class TradingService {
     };
   }
 
-  isFinished(endTimestamp) {
-    const currentTime = this.getCurrentTimestamp();
-    if (endTimestamp < currentTime) return true;
-    return false;
-  }
-
   async getTradeSeason(pair, season) {
     return await this.tradeSeasonModel.findOne({
       season: season,
       pair: pair,
     });
-  }
-
-  async calculateAndCachedTrading(pair, season) {
-    const tradingStats = await this.tradingStatsModel
-      .find({ pair, season })
-      .sort({ totalTradedUsd: -1 })
-      .limit(100);
-    await this.cacheManager.set('tradingStats', tradingStats, { ttl: 600 });
   }
 
   async calculateTodaySeasons() {
@@ -340,6 +338,7 @@ export class TradingService {
   }
 
   async getTopTrading(pair, season) {
+    this.logger.log('get Top Trading');
     const config = await this.getTradeSeason(pair, season);
     const tradingTodayStats = await this.tradingTodayStatsModel
       .find({ pair, season })
@@ -356,6 +355,7 @@ export class TradingService {
       );
       return tradingStats;
     }
+    this.logger.log('get Top Trading with today stats');
     const tradingStats = await this.tradingStatsModel
       .find({ pair, season })
       .sort({ totalTradedUsd: -1 });
@@ -396,10 +396,12 @@ export class TradingService {
   }
 
   async tradingExportSeason(pair, season) {
+    const config = await this.getTradeSeason(pair, season);
     const data = await this.tradingStatsModel
       .find({ pair, season })
       .sort({ totalTradedUsd: -1 }); // only past trading
     const csv = [];
+    let amount = 0;
     for (let index = 0; index < data.length; index++) {
       const element = data[index];
       csv.push({
@@ -407,12 +409,34 @@ export class TradingService {
         totalTradedUsd: element.totalTradedUsd,
         pendingBananaRewards: element.pendingBananaRewards,
       });
+      amount += Number(element.totalTradedUsd);
     }
-    const options = {
-      headers: ['address', 'totalTradedUsd', 'pendingBananaRewards'],
-    };
-    const csvExporter = new ExportToCsv(options);
-    const csvData = csvExporter.generateCsv(csv, true);
+    const startTime = new Date(config.startTimestamp * 1000);
+    const endTime = new Date(config.lastUpdateTimestamp * 1000);
+    const extraData = [
+      {
+        address: 'Token: ',
+        totalTradedUsd: config.name || config.pair,
+        pendingBananaRewards: '',
+      },
+      {
+        address: 'Date: ',
+        totalTradedUsd: `${startTime.toUTCString()} to ${endTime.toUTCString()}`,
+        pendingBananaRewards: '',
+      },
+      {
+        address: 'Total Amount Trade: ',
+        totalTradedUsd: amount,
+        pendingBananaRewards: '',
+      },
+      {
+        address: '',
+        totalTradedUsd: '',
+        pendingBananaRewards: '',
+      },
+    ];
+    const csvExporter = new ExportToCsv();
+    const csvData = csvExporter.generateCsv([...extraData, ...csv], true);
     const pathfile = `${season}-${pair}.csv`;
     fs.writeFileSync(pathfile, csvData);
     return pathfile;
