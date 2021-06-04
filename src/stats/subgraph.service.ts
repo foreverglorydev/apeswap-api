@@ -9,7 +9,7 @@ import {
 @Injectable()
 export class SubgraphService {
   graphUrl =
-    'https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph';
+    'https://graph2.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph';
   constructor(private httpService: HttpService) {}
 
   async getVolumeData(): Promise<any> {
