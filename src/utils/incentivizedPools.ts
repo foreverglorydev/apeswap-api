@@ -471,7 +471,7 @@ export const incentivizedPools = [
   },
   {
     sousId: 41,
-    name: 'GNANA -> TYPE',
+    name: 'GNANA -> TYPH',
     address: '0x222c821620480f7482238dd3B71A7051d02c9624',
     stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
     stakeTokenIsLp: false,
