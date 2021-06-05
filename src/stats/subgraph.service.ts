@@ -55,9 +55,14 @@ export class SubgraphService {
     };
   }
 
-  async getAllPriceData() {
-    const { data } = await this.querySubraph(allPricesQuery);
-    return data.tokens;
+  async getAllPriceData(skip = 0, first = 1000) {
+    const { data } = await this.querySubraph(allPricesQuery(skip, first));
+    let tokens = data.tokens;
+    if (tokens?.length === 1000) {
+      const swaps = await this.getAllPriceData(first + skip, first);
+      tokens = [...tokens, ...swaps];
+    }
+    return tokens;
   }
 
   async querySubraph(query): Promise<any> {

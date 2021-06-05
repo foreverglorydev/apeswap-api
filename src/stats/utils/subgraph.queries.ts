@@ -46,16 +46,18 @@ export function dayData(skip: number, startTime: number, endTime: number) {
   }`;
 }
 
-export const allPricesQuery = `{
-  tokens(orderBy: tradeVolumeUSD orderDirection: desc first: 1000) {
-    id
-    symbol
-    name
-    derivedBNB: derivedETH
-    tokenDayData(orderBy: date orderDirection: desc, first: 1) {
+export function allPricesQuery(skip = 0, first = 1000) {
+  return `{
+    tokens(orderBy: tradeVolumeUSD orderDirection: desc first: ${first} skip:${skip}) {
       id
-      dailyTxns
-      priceUSD
+      symbol
+      name
+      derivedBNB: derivedETH
+      tokenDayData(orderBy: date orderDirection: desc, first: 1) {
+        id
+        dailyTxns
+        priceUSD
+      }
     }
-  }
-}`;
+  }`;
+}
