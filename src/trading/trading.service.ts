@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject, CACHE_MANAGER } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Interval } from '@nestjs/schedule';
+import { Cron, Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { Cache } from 'cache-manager';
 import { ExportToCsv } from 'export-to-csv';
@@ -39,10 +39,10 @@ export class TradingService {
     return config;
   }
 
-  // @Interval(50000) @Cron('59 59 23 * * *')
-  // @Interval(240000)
+  @Cron('00 01 00 * * *') // firs minute day
   async loadTradingActivity() {
     this.logger.log('Load trading activity');
+    console.log(new Date());
     const seasonPairs = await this.getSeasonPairs();
     for (const pairConfig of seasonPairs) {
       this.loadSeasonData(pairConfig);
@@ -73,7 +73,7 @@ export class TradingService {
       this.querySplit,
     );
     try {
-      console.time('process');
+      console.time(`process-pair-${pair}`);
       for (let i = 0; i < timestamps.length - 1; i++) {
         this.processingTimestamps[key] = true;
         await this.processInterval(
@@ -91,7 +91,7 @@ export class TradingService {
       pairConfig.processed = false;
       pairConfig.lastUpdateTimestamp = this.lastUpdateTimestamp;
       await pairConfig.save();
-      console.timeEnd('process');
+      console.timeEnd(`process-pair-${pair}`);
       this.getTopTrading(pair, season);
     } catch (e) {
       this.logger.error(
@@ -99,7 +99,7 @@ export class TradingService {
       );
       this.logger.error(e);
       delete this.processingTimestamps[key];
-      console.timeEnd('process');
+      console.timeEnd(`process-pair-${pair}`);
     }
   }
 
@@ -159,7 +159,7 @@ export class TradingService {
     const yesterdayUTC = Date.UTC(
       yesterday.getFullYear(),
       yesterday.getMonth(),
-      yesterday.getDay(),
+      yesterday.getDate(),
       23,
       59,
       59,
@@ -217,8 +217,6 @@ export class TradingService {
       this.logger.log('Hit tradingStats cache');
       return cachedValue as TradingStatsDocument[];
     }
-    // this.loadTradingActivity();
-    // this.calculateTodaySeasons();
     return this.getTopTrading(pair, season);
   }
 
@@ -255,7 +253,7 @@ export class TradingService {
       totalTradedUsd: volume,
     };
 
-    await this.cacheManager.set(`${address}`, trade, { ttl: 1100 });
+    await this.cacheManager.set(`${address}`, trade, { ttl: 660 });
     return trade;
   }
 
@@ -293,13 +291,14 @@ export class TradingService {
     });
   }
 
+  @Interval(600000)
   async calculateTodaySeasons() {
     const seasonPairs = await this.getSeasonPairs();
     for (const pairConfig of seasonPairs) {
       this.calculateTodayTrading(pairConfig);
     }
   }
-  // @Interval(360000) // 600000 every 10 minutes
+
   async calculateTodayTrading(pairConfig) {
     const {
       endTimestamp,
@@ -319,7 +318,7 @@ export class TradingService {
     await pairConfig.save();
     const userPairDayData = await this.subgraphService.getUserDailyPairData(
       pair,
-      lastUpdateTimestamp + 1,
+      lastUpdateTimestamp,
       currentTime,
     );
     console.timeEnd('today');
