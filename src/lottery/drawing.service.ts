@@ -72,7 +72,7 @@ export class DrawingService {
   }
 
   // Runs every 20 seconds
-  @Cron('20 * * * * *')
+  // @Cron('20 * * * * *')
   async process() {
     if (!this.adminPrivateKey) return;
     const latestDraw = await this.drawModel.findOne().sort({ drawTime: -1 });
