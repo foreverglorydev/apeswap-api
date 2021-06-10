@@ -143,6 +143,7 @@ export class TradingService {
         );
         pairConfig.processed = true;
         await pairConfig.save();
+        await this.isFinished(pairConfig);
       }
     }
     return userPairDayData;
@@ -152,10 +153,12 @@ export class TradingService {
     return Math.round(new Date().getTime() / 1000);
   }
 
-  slpitTimestamp(start, end, amount) {
+  calculateEndTime(endTimestamp) {
+    const currentTime = this.getCurrentTimestamp();
+    if (currentTime > endTimestamp) return endTimestamp;
+
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(23, 59, 59); // local
     const yesterdayUTC = Date.UTC(
       yesterday.getFullYear(),
       yesterday.getMonth(),
@@ -164,11 +167,11 @@ export class TradingService {
       59,
       59,
     );
-    const currentTime = this.getCurrentTimestamp();
-    const realEnd =
-      yesterdayUTC / 1000 > currentTime ? currentTime : yesterdayUTC / 1000;
-    const yTime = Math.floor(realEnd);
-    const endTime = yTime > end ? end : yTime;
+    return Math.floor(yesterdayUTC / 1000);
+  }
+
+  slpitTimestamp(start, end, amount) {
+    const endTime = this.calculateEndTime(end);
     this.lastUpdateTimestamp = endTime;
 
     const interval = Math.ceil((endTime - start) / (amount - 1));
@@ -439,5 +442,14 @@ export class TradingService {
     const pathfile = `${season}-${pair}.csv`;
     fs.writeFileSync(pathfile, csvData);
     return pathfile;
+  }
+
+  async isFinished(pairConfig) {
+    const currentTime = this.getCurrentTimestamp();
+    if (currentTime > pairConfig.endTimestamp) {
+      pairConfig.finished = true;
+      pairConfig.save();
+      this.cleanDataToday(pairConfig.pair, pairConfig.season);
+    }
   }
 }
