@@ -39,7 +39,7 @@ export class TradingService {
     return config;
   }
 
-  @Cron('00 01 00 * * *') // firs minute day
+  @Cron('00 15 00 * * *') // 15 minutes after the start of the day
   async loadTradingActivity() {
     this.logger.log('Load trading activity');
     console.log(new Date());
