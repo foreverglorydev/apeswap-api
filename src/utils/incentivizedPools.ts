@@ -493,4 +493,16 @@ export const incentivizedPools = [
     bonusEndBlock: 9012642,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 43,
+    name: 'HIFI/BNB -> HIFI',
+    address: '0x454155ac563a382458eda66fdaf59237d7230dc9',
+    stakeToken: '0xf093ce6778c4d7d99c23f714297fff15a661d354',
+    stakeTokenIsLp: true,
+    rewardToken: '0x0a38bc18022b0ccb043f7b730b354d554c6230f1',
+    rewardPerBlock: '49603174603174600000',
+    startBlock: 8199995,
+    bonusEndBlock: 8401595,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
