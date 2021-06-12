@@ -40,6 +40,7 @@ export class TradingService {
   }
 
   @Cron('00 15 00 * * *') // 15 minutes after the start of the day
+  @Interval(600000)
   async loadTradingActivity() {
     this.logger.log('Load trading activity');
     console.log(new Date());
