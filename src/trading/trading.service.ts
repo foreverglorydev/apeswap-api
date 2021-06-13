@@ -15,6 +15,10 @@ import { SubgraphService } from '../stats/subgraph.service';
 @Injectable()
 export class TradingService {
   logger = new Logger(TradingService.name);
+
+  currentSeason = 1;
+  processingTimestamps = {};
+
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private subgraphService: SubgraphService,
@@ -25,10 +29,6 @@ export class TradingService {
     @InjectModel(TradingTodayStats.name)
     private tradingTodayStatsModel: Model<TradingTodayStatsDocument>,
   ) {}
-  currentSeason = 1;
-  querySplit = 10;
-  processingTimestamps = {};
-  lastUpdateTimestamp = 0;
 
   async getSeasonPairs() {
     const config = await this.tradeSeasonModel.find({
@@ -42,7 +42,6 @@ export class TradingService {
   @Cron('0 20 * * * *') // runs every hour on minute 20
   async loadTradingActivity() {
     this.logger.log('Load trading activity');
-    console.log(new Date());
     const seasonPairs = await this.getSeasonPairs();
     for (const pairConfig of seasonPairs) {
       this.loadSeasonData(pairConfig);
@@ -69,7 +68,7 @@ export class TradingService {
         ? this.getEndOfDayTimestamp()
         : endTimestamp;
 
-    if (endTime >= latestTimestamp) {
+    if (endTime === latestTimestamp) {
       this.logger.log(`Timestamp already processed ${key}`);
       return;
     }
@@ -85,6 +84,7 @@ export class TradingService {
         pairConfig,
       );
       pairConfig.latestTimestamp = endTime;
+      pairConfig.latestDayTimestamp = endTime;
       pairConfig.processed = endTime === endTimestamp;
       await pairConfig.save();
 
@@ -119,7 +119,7 @@ export class TradingService {
     );
     if (userPairDayData.length) {
       this.logger.log(
-        `${userPairDayData.length} swaps found for given timestamp`,
+        `${userPairDayData.length} users found for given timestamp`,
       );
       const latestTimestamp = userPairDayData[userPairDayData.length - 1].date;
       await this.cleanDataTradingSeason(pair, season);
@@ -129,6 +129,7 @@ export class TradingService {
         usdPerBanana,
         this.tradingStatsModel,
       );
+      pairConfig.latestDayTimestamp = latestTimestamp;
       pairConfig.latestTimestamp = latestTimestamp;
       await pairConfig.save();
     }
@@ -139,12 +140,18 @@ export class TradingService {
     return Math.round(new Date().getTime() / 1000);
   }
 
+  substractMinutes(substract) {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - substract);
+    return Math.round(now.getTime() / 1000);
+  }
+
   getEndOfDayTimestamp() {
     const today = new Date();
     const todayUtc = Date.UTC(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
+      today.getUTCFullYear(),
+      today.getUTCMonth(),
+      today.getUTCDate(),
       0,
       0,
       0,
@@ -152,40 +159,21 @@ export class TradingService {
     return Math.floor(todayUtc / 1000) - 1;
   }
 
-  calculateEndTime(endTimestamp) {
-    const currentTime = this.getCurrentTimestamp();
-    if (currentTime > endTimestamp) return endTimestamp;
-
-    const yesterday = new Date();
-    // yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayUTC = Date.UTC(
-      yesterday.getFullYear(),
-      yesterday.getMonth(),
-      yesterday.getDate(),
-      23,
-      59,
-      59,
-    );
-    return Math.floor(yesterdayUTC / 1000);
-  }
-
-  slpitTimestamp(start, end, amount) {
-    const endTime = this.calculateEndTime(end);
-    this.lastUpdateTimestamp = endTime;
-
-    const timeframes = [start, endTime];
-    return timeframes;
-    /*
-      const interval = Math.ceil((endTime - start) / (amount - 1));
-      this.logger.log(`split timestamp start ${start} to ${endTime}`);
-      for (let i = 0; i < amount - 1; i++) {
-        const time = timeframes[i];
-        const frame = time + interval;
-        const efectiveFrame = frame < endTime ? frame : endTime;
-        timeframes.push(efectiveFrame);
-      }
-      return timeframes; 
-    */
+  formatValues(items, season, usdPerBanana) {
+    const formated = [];
+    for (const item of items) {
+      const volume = parseFloat(item.dailyVolumeUSD);
+      const rewards = volume / usdPerBanana;
+      const doc = {
+        address: item.user.id,
+        pair: item.pair.id,
+        season: Number(season),
+        totalTradedUsd: volume,
+        pendingBananaRewards: rewards,
+      };
+      formated.push(doc);
+    }
+    return formated;
   }
 
   bulkUpdate(items, season, usdPerBanana, model) {
@@ -270,7 +258,7 @@ export class TradingService {
     const currentData = await this.subgraphService.getUserCurrentPairData(
       config.pair,
       config.lastUpdateTimestamp + 1,
-      Math.floor(new Date().getTime() / 1000),
+      this.getCurrentTimestamp(),
       address,
     );
 
@@ -308,37 +296,76 @@ export class TradingService {
     }
   }
 
-  async calculateTodayTrading(pairConfig) {
+  async calculateTodayTrading(pairConfig: TradeSeasonDocument) {
     const {
-      endTimestamp,
       season,
       pair,
+      endTimestamp,
       usdPerBanana,
-      latestTimestamp,
+      latestDayTimestamp,
     } = pairConfig;
-    if (!pairConfig || latestTimestamp >= endTimestamp) return;
-    this.logger.log(`hit calculate today trading to pair ${pair}`);
-    await this.cleanDataToday(pair, season);
-    const currentTime = this.getCurrentTimestamp();
+
+    const key = `${season}-${pair}`;
+    if (this.processingTimestamps[key]) {
+      this.logger.log(`Timestamp already being processed ${key}`);
+      return;
+    }
+
+    if (!latestDayTimestamp) return;
+    const startTime = latestDayTimestamp;
+    const processTime = this.substractMinutes(15);
+
+    if (!startTime || startTime > processTime || startTime >= endTimestamp)
+      return;
+
+    this.logger.log(
+      `hit calculate today trading to pair ${pair}-${season} ${startTime}-${processTime}`,
+    );
+
     console.time(`today-${season}-${pair}`);
-    await pairConfig.save();
-    const userPairDayData = await this.subgraphService.getUserDailyPairData(
+    const swaps = await this.subgraphService.getPairSwapData(
       pair,
-      latestTimestamp,
-      currentTime,
+      startTime,
+      processTime,
     );
     console.timeEnd(`today-${season}-${pair}`);
-    if (userPairDayData?.length > 0) {
+
+    if (swaps?.length > 0) {
+      this.logger.log(`${swaps.length} swaps found for given timestamp`);
       console.time(`bulk-${season}-${pair}`);
-      await this.bulkUpdate(
-        userPairDayData,
-        season,
-        usdPerBanana,
-        this.tradingTodayStatsModel,
-      );
+      await this.bulkUpdateSwaps(swaps, season, usdPerBanana);
       console.timeEnd(`bulk-${season}-${pair}`);
+      pairConfig.latestDayTimestamp = swaps[swaps.length - 1].timestamp;
     }
     await pairConfig.save();
+  }
+
+  bulkUpdateSwaps(items, season, usdPerBanana) {
+    const bulkUpdate = this.tradingStatsModel.collection.initializeUnorderedBulkOp();
+    for (const item of items) {
+      const onInsert = {
+        address: item.from,
+        pair: item.pair.id,
+        season,
+      };
+      const volume = parseFloat(item.amountUSD);
+      const rewards = volume / usdPerBanana;
+      const inc = { totalTradedUsd: volume, pendingBananaRewards: rewards };
+      if (item !== null) {
+        bulkUpdate
+          .find({
+            address: onInsert.address,
+            pair: onInsert.pair,
+            season: onInsert.season,
+          })
+          .upsert()
+          .updateOne({
+            $inc: inc,
+            $setOnInsert: onInsert,
+          });
+      }
+    }
+    return bulkUpdate.execute();
   }
 
   async getTopTrading(pair, season) {

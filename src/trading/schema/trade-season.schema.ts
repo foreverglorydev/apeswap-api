@@ -20,8 +20,11 @@ export class TradeSeason {
   @Prop({ required: true })
   endTimestamp: number;
 
-  @Prop({ required: true })
+  @Prop()
   latestTimestamp: number;
+
+  @Prop()
+  latestDayTimestamp: number;
 
   @Prop()
   processed: boolean;
