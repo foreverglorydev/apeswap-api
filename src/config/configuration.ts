@@ -33,7 +33,7 @@ export default () => ({
     contracts: {
       masterApe: '0x5c8D727b265DBAfaba67E050f2f739cAeEB4A6F9',
       banana: '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95',
-      goldenBanana: '0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299',
+      goldenBanana: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
       bnb: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
       bananaBusd: '0x7Bd46f6Da97312AC2DBD1749f82E202764C0B914',
       bananaBnb: '0xF65C1C0478eFDe3c19b49EcBE7ACc57BB6B1D713',
