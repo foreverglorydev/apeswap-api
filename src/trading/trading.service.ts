@@ -12,6 +12,7 @@ import {
   TradingTodayStatsDocument,
 } from './schema/trading-stats-today.schema';
 import { SubgraphService } from '../stats/subgraph.service';
+import { getConnection } from 'typeorm';
 @Injectable()
 export class TradingService {
   logger = new Logger(TradingService.name);
@@ -215,12 +216,17 @@ export class TradingService {
   }
 
   async getPairLeaderBoard(pair: string, season: number) {
-    const cachedValue = await this.cacheManager.get('tradingStats');
-    if (cachedValue) {
-      this.logger.log('Hit tradingStats cache');
-      return cachedValue as TradingStatsDocument[];
-    }
-    return this.getTopTrading(pair, season);
+    const query = await getConnection().query(
+      'SELECT * FROM user_pair_day_data LIMIT 10',
+    );
+
+    return query;
+    // const cachedValue = await this.cacheManager.get('tradingStats');
+    // if (cachedValue) {
+    //   this.logger.log('Hit tradingStats cache');
+    //   return cachedValue as TradingStatsDocument[];
+    // }
+    // return this.getTopTrading(pair, season);
   }
 
   async getPairAddressStats(pair: string, address: string, season: number) {
