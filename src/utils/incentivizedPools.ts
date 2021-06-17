@@ -589,4 +589,16 @@ export const incentivizedPools = [
     bonusEndBlock: 10089077,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 51,
+    name: 'BANANA --> WYVERN',
+    address: '0x33a8CE49cFBdeF61e5E494f769b5626d395a56f3',
+    stakeToken: '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0x470862af0cf8d27ebfe0ff77b0649779c29186db',
+    rewardPerBlock: '1352941671296',
+    startBlock: 8381901,
+    bonusEndBlock: 9245901,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
