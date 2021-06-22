@@ -24,21 +24,7 @@ import { query } from 'express';
 @Injectable()
 export class TradingService {
   logger = new Logger(TradingService.name);
-  client = new Client(
-    'postgres://readaccess:vBkHFQYQq4gMP2v5FTDVy6@graph2.apeswap.finance:5432/test_001',
-  );
-  // sql = new Postgres(
-  //   'postgres://readaccess:vBkHFQYQq4gMP2v5FTDVy6@graph2.apeswap.finance:5432/test_001',
-  //   {
-  //     types: {
-  //       string: {
-  //         to: 50,
-  //         from: null,
-  //         serialize: (x) => '' + x,
-  //       },
-  //     },
-  //   },
-  // );
+  client = new Client(process.env.POSTGRES_URL);
   constructor(
     private httpService: HttpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -164,12 +150,11 @@ export class TradingService {
     try {
       const sql = `SELECT user_pair_day_data.user, sum(daily_volume_usd) volume, sum(daily_volume_usd)/$1 prize 
       FROM sgd1.user_pair_day_data 
-      WHERE pair  = '${pair}' AND "date"  > $3 AND "date" <= $4
+      WHERE pair  = '${pair}' AND "date"  > $2 AND "date" <= $3
       AND block_range @> 999999999 
       GROUP BY user_pair_day_data.user ORDER BY sum(daily_volume_usd) DESC`;
       const query = await this.client.query(sql, [
         reward,
-        pair,
         startTimestamp,
         endTimestamp,
       ]);
