@@ -171,7 +171,7 @@ function getBep20Prices(
   totalAllocPoints,
   rewardsPerDay,
 ) {
-  const price = getParameterCaseInsensitive(prices, pool.address)?.usd;
+  const price = getParameterCaseInsensitive(prices, pool.address)?.usd || 0;
   const tvl = (pool.totalSupply * price) / 10 ** pool.decimals;
   const stakedTvl = pool.staked * price;
 
