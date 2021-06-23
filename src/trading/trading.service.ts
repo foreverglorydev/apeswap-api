@@ -32,7 +32,11 @@ export class TradingService {
     return Math.round(new Date().getTime() / 1000);
   }
 
-  async getPairLeaderBoard(season: number, pair: string, address?: string) {
+  async getPairLeaderBoardWithUser(
+    season: number,
+    pair: string,
+    address?: string,
+  ) {
     const seasonInfo = await this.getPairInformation(pair, season);
 
     const trading = await this.getTrading(
@@ -50,6 +54,23 @@ export class TradingService {
     const allInfo: TradingAllInfoDto = {
       season: seasonInfo,
       individual: individual,
+      trading: trading,
+    };
+    return allInfo;
+  }
+
+  async getPairLeaderBoard(season: number, pair: string) {
+    const seasonInfo = await this.getPairInformation(pair, season);
+
+    const trading = await this.getTrading(
+      season,
+      pair,
+      seasonInfo.startTimestamp,
+      seasonInfo.endTimestamp,
+      seasonInfo.rewards,
+    );
+    const allInfo = {
+      season: seasonInfo,
       trading: trading,
     };
     return allInfo;

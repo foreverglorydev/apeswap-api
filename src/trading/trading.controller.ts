@@ -32,12 +32,25 @@ export class TradingController {
   }
 
   @Get(':season/:pair/:address')
-  async getStatsForSeason(
+  async getStatsForSeasonAddress(
     @Param('pair') pair: string,
     @Param('season') season: number,
     @Param('address') address: string,
   ): Promise<TradingAllInfoDto | any> {
     this.logger.debug('Called GET /trading/:season/:pair');
-    return this.tradingService.getPairLeaderBoard(season, pair, address);
+    return this.tradingService.getPairLeaderBoardWithUser(
+      season,
+      pair,
+      address,
+    );
+  }
+
+  @Get(':season/:pair')
+  async getStatsForSeason(
+    @Param('pair') pair: string,
+    @Param('season') season: number,
+  ): Promise<TradingAllInfoDto | any> {
+    this.logger.debug('Called GET /trading/:season/:pair');
+    return this.tradingService.getPairLeaderBoard(season, pair);
   }
 }
