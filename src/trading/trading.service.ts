@@ -152,8 +152,9 @@ export class TradingService {
       position: 0,
     };
     if (allInfo.length == 0) return individual;
+    const lowerAddress = address.toLowerCase();
 
-    const position = allInfo.findIndex((el) => el.user === address);
+    const position = allInfo.findIndex((el) => el.user === lowerAddress);
     individual.position = allInfo.length + 1;
     if (position !== -1) {
       const volume = parseFloat(allInfo[position].volume);
