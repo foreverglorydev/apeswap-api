@@ -54,7 +54,7 @@ export class TradingService {
     const allInfo: TradingAllInfoDto = {
       season: seasonInfo,
       individual: individual,
-      trading: trading,
+      trading: trading.slice(0, 100),
     };
     return allInfo;
   }
@@ -71,7 +71,7 @@ export class TradingService {
     );
     const allInfo = {
       season: seasonInfo,
-      trading: trading,
+      trading: trading.slice(0, 100),
     };
     return allInfo;
   }
@@ -129,8 +129,16 @@ export class TradingService {
     fs.writeFileSync(pathfile, csvData);
     return pathfile;
   }
-  async getTrading(season, pair, startTimestamp, endTimestamp, reward) {
-    let trading = await this.cacheManager.get(`trading-${season}-${pair}`);
+  async getTrading(
+    season,
+    pair,
+    startTimestamp,
+    endTimestamp,
+    reward,
+  ): Promise<Array<any>> {
+    let trading = (await this.cacheManager.get(
+      `trading-${season}-${pair}`,
+    )) as Array<any>;
     if (!trading) {
       trading = await this.executeQuery(
         pair,
@@ -147,11 +155,13 @@ export class TradingService {
 
   async executeQuery(pair, startTimestamp, endTimestamp, reward) {
     try {
-      const sql = `SELECT user_pair_day_data.user, sum(daily_volume_usd) volume, sum(daily_volume_usd)/$1 prize 
+      const sql = `
+      SELECT user_pair_day_data.user, sum(daily_volume_usd) volume, sum(daily_volume_usd)/$1 prize,
+      ROW_NUMBER() OVER (ORDER BY sum(daily_volume_usd) DESC)as rank 
       FROM sgd1.user_pair_day_data 
       WHERE pair  = $4 AND "date"  > $2 AND "date" <= $3
       AND block_range @> 999999999 
-      GROUP BY user_pair_day_data.user ORDER BY sum(daily_volume_usd) DESC`;
+      GROUP BY user_pair_day_data.user`;
       const query = await this.client.query(sql, [
         reward,
         startTimestamp,
