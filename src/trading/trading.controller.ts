@@ -2,16 +2,12 @@ import {
   CacheInterceptor,
   Controller,
   Get,
-  Post,
   Logger,
   Param,
   UseInterceptors,
   Res,
-  Body,
 } from '@nestjs/common';
 import { TradingAllInfoDto } from './dto/tradingAllInfo.dto';
-import { TradingDataDto } from './dto/tradingData.dto';
-import { TradingStatsDocument } from './schema/trading.schema';
 import { TradingService } from './trading.service';
 
 @Controller('trading')
@@ -44,14 +40,4 @@ export class TradingController {
     this.logger.debug('Called GET /trading/:season/:pair');
     return this.tradingService.getPairLeaderBoard(season, pair, address);
   }
-
-  // @Get(':season/:pair/:address')
-  // async getStatsForAddress(
-  //   @Param('pair') pair: string,
-  //   @Param('address') address: string,
-  //   @Param('season') season: number,
-  // ): Promise<any> {
-  //   this.logger.debug('Called GET /trading/:season/:pair/:address');
-  //   return this.tradingService.getPairAddressStats(pair, address, season);
-  // }
 }

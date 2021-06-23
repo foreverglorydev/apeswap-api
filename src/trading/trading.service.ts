@@ -5,35 +5,19 @@ import {
   CACHE_MANAGER,
   HttpService,
 } from '@nestjs/common';
-import Postgres from 'postgres';
-import { Client, types } from 'pg';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Client } from 'pg';
 import { Cache } from 'cache-manager';
 import { ExportToCsv } from 'export-to-csv';
 import fs from 'fs';
-import { TradeSeason, TradeSeasonDocument } from './schema/trade-season.schema';
-import { TradingStats, TradingStatsDocument } from './schema/trading.schema';
-import {
-  TradingTodayStats,
-  TradingTodayStatsDocument,
-} from './schema/trading-stats-today.schema';
-import { SubgraphService } from '../stats/subgraph.service';
 import { SeasonInfoDto, TradingAllInfoDto } from './dto/tradingAllInfo.dto';
 @Injectable()
 export class TradingService {
   logger = new Logger(TradingService.name);
   client = new Client(process.env.POSTGRES_URL);
+  apeswapStrapiUrl = process.env.APESWAP_STRAPI_URL;
   constructor(
     private httpService: HttpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private subgraphService: SubgraphService,
-    @InjectModel(TradingStats.name)
-    private tradingStatsModel: Model<TradingStatsDocument>,
-    @InjectModel(TradeSeason.name)
-    private tradeSeasonModel: Model<TradeSeasonDocument>,
-    @InjectModel(TradingTodayStats.name)
-    private tradingTodayStatsModel: Model<TradingTodayStatsDocument>,
   ) {
     this.client.connect((err) => {
       if (err) {
@@ -43,10 +27,6 @@ export class TradingService {
       }
     });
   }
-  currentSeason = 0;
-  querySplit = 10;
-  processingTimestamps = {};
-  lastUpdateTimestamp = 0;
 
   getCurrentTimestamp() {
     return Math.round(new Date().getTime() / 1000);
@@ -54,7 +34,6 @@ export class TradingService {
 
   async getPairLeaderBoard(season: number, pair: string, address?: string) {
     const seasonInfo = await this.getPairInformation(pair, season);
-    if (!seasonInfo?.startTimestamp || !seasonInfo?.endTimestamp) return [];
 
     const trading = await this.getTrading(
       season,
@@ -211,7 +190,7 @@ export class TradingService {
       return cachedValue as SeasonInfoDto;
     }
 
-    const url = `https://apeswap-strapi.herokuapp.com/tradings?pair=${pair}&season=${season}`;
+    const url = `${this.apeswapStrapiUrl}/tradings?pair=${pair}&season=${season}`;
     const { data } = await this.httpService.get(url).toPromise();
     if (data.length > 0)
       await this.cacheManager.set(`info-${season}-${pair}`, data[0], {

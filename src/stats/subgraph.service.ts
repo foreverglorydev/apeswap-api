@@ -12,9 +12,7 @@ import {
 @Injectable()
 export class SubgraphService {
   logger = new Logger(SubgraphService.name);
-  graphUrl =
-    'https://graph.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph';
-  failoverUrl = process.env.FAILOVER_URL;
+  graphUrl = process.env.GRAPH_URL;
 
   constructor(private httpService: HttpService) {}
 
@@ -132,7 +130,7 @@ export class SubgraphService {
 
   async querySubraph(query): Promise<any> {
     const { data } = await this.httpService
-      .post(this.failoverUrl, { query })
+      .post(this.graphUrl, { query })
       .toPromise();
     return data;
   }
