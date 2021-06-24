@@ -162,12 +162,15 @@ export class TradingService {
       WHERE pair  = $4 AND "date"  > $2 AND "date" <= $3
       AND block_range @> 999999999 
       GROUP BY user_pair_day_data.user`;
+      this.logger.log('Ejeecuting query');
       const query = await this.client.query(sql, [
         reward,
         startTimestamp,
         endTimestamp,
         pair,
       ]);
+
+      this.logger.log('Query executed: ' + query.rowCount);
       return query.rows;
     } catch (error) {
       console.log(error);
