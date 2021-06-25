@@ -245,6 +245,8 @@ export class TradingService {
             endTimestamp: data[0].endTimestamp,
             finished: data[0].finished,
             rewards: data[0].rewards,
+            token1: data[0].token1,
+            token2: data[0].token2,
           }
         : {
             startTimestamp: null,

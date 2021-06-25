@@ -108,6 +108,8 @@ describe('StatsService', () => {
       endTimestamp: expect.any(String),
       finished: expect.any(Boolean),
       rewards: expect.any(Number),
+      token1: expect.any(Object),
+      token2: expect.any(Object),
     };
     const seasonInfo = await service.getPairInformation(pair, season, true);
     expect(seasonValidate).toEqual(expect.objectContaining(seasonInfo));
@@ -127,6 +129,8 @@ describe('StatsService', () => {
         endTimestamp: expect.any(String),
         finished: expect.any(Boolean),
         rewards: expect.any(Number),
+        token1: expect.any(Object),
+        token2: expect.any(Object),
       },
       individual: {
         address: expect.any(String),
