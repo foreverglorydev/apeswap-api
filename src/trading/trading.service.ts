@@ -9,7 +9,11 @@ import { Client } from 'pg';
 import { Cache } from 'cache-manager';
 import { ExportToCsv } from 'export-to-csv';
 import fs from 'fs';
-import { SeasonInfoDto, TradingAllInfoDto } from './dto/tradingAllInfo.dto';
+import {
+  AddressStatsDto,
+  SeasonInfoDto,
+  TradingAllInfoDto,
+} from './dto/tradingAllInfo.dto';
 @Injectable()
 export class TradingService {
   logger = new Logger(TradingService.name);
@@ -37,16 +41,19 @@ export class TradingService {
     pair: string,
     address?: string,
   ) {
-    const seasonInfo = await this.getPairInformation(pair, season);
+    const seasonInfo: SeasonInfoDto = await this.getPairInformation(
+      pair,
+      season,
+    );
 
-    const trading = await this.getTrading(
+    const trading: AddressStatsDto[] = await this.getTrading(
       season,
       pair,
       seasonInfo.startTimestamp,
       seasonInfo.endTimestamp,
       seasonInfo.rewards,
     );
-    const individual = this.calculateIndividualStats(
+    const individual: AddressStatsDto = this.calculateIndividualStats(
       seasonInfo,
       trading,
       address,
@@ -189,7 +196,6 @@ export class TradingService {
     const lowerAddress = address.toLowerCase();
 
     const position = allInfo.findIndex((el) => el.user === lowerAddress);
-    individual.position = allInfo.length + 1;
     if (position !== -1) {
       const volume = parseFloat(allInfo[position].volume);
       const rewards = volume / seasonInfo.rewards;
@@ -219,7 +225,8 @@ export class TradingService {
   }
 
   async getPairInformation(pair, season, withoutCache = false) {
-    const cachedValue = await this.cacheManager.get(`info-${season}-${pair}`);
+    const idCacheSeason = `info-${season}-${pair}`;
+    const cachedValue = await this.cacheManager.get(idCacheSeason);
     if (!withoutCache && cachedValue) {
       this.logger.log('Hit Pair Information cache');
       return cachedValue as SeasonInfoDto;
@@ -227,13 +234,27 @@ export class TradingService {
 
     const url = `${this.apeswapStrapiUrl}/tradings?pair=${pair}&season=${season}`;
     const { data } = await this.httpService.get(url).toPromise();
+
+    const seasonInfo =
+      data.length > 0
+        ? {
+            season: data[0].season,
+            pair: data[0].pair,
+            name: data[0].name,
+            startTimestamp: data[0].startTimestamp,
+            endTimestamp: data[0].endTimestamp,
+            finished: data[0].finished,
+            rewards: data[0].rewards,
+          }
+        : {
+            startTimestamp: null,
+            endTimestamp: null,
+          };
     if (data.length > 0)
-      await this.cacheManager.set(`info-${season}-${pair}`, data[0], {
+      await this.cacheManager.set(idCacheSeason, seasonInfo, {
         ttl: 660,
       });
 
-    return data.length > 0
-      ? (data[0] as SeasonInfoDto)
-      : { startTimestamp: null, endTimestamp: null };
+    return seasonInfo;
   }
 }

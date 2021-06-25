@@ -1,6 +1,5 @@
 import { CacheModule, Module, HttpModule } from '@nestjs/common';
 import { TradingService } from '../trading/trading.service';
-import { StatsModule } from 'src/stats/stats.module';
 import { TradingController } from './trading.controller';
 
 @Module({
@@ -9,7 +8,6 @@ import { TradingController } from './trading.controller';
       ttl: 60,
     }),
     HttpModule,
-    StatsModule,
   ],
   providers: [TradingService],
   controllers: [TradingController],
