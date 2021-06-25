@@ -28,11 +28,10 @@ export class NfasController {
 
   @Get('address/:address')
   async getNfasByAddress(
-    @Param('address') address: string,
-    @Query() query,
-  ): Promise<Nfa[] | null> {
+    @Param('address') address: string
+  ): Promise<any> {
     this.logger.debug('Called GET /nfas/address/:address');
-    return await this.nfasService.getNfasByAddress(address, query);
+    return await this.nfasService.getOwnedNfasByAddress(address);
   }
 
   @Get('process/:startBlock')

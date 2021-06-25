@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { NfasTrackingService } from './nfas-tracking.service';
 import { NfasController } from './nfas.controller';
 import { NfasService } from './nfas.service';
+import { NfaHolder, NfaHolderSchema } from './schema/nfa-owner.schema';
 import { NfaTracking, NfaTrackingSchema } from './schema/nfa-tracking.schema';
 import { Nfa, NfaSchema } from './schema/nfa.schema';
 
@@ -12,6 +13,7 @@ import { Nfa, NfaSchema } from './schema/nfa.schema';
     MongooseModule.forFeature([
       { name: Nfa.name, schema: NfaSchema },
       { name: NfaTracking.name, schema: NfaTrackingSchema },
+      { name: NfaHolder.name, schema: NfaHolderSchema },
     ]),
   ],
   controllers: [NfasController],
