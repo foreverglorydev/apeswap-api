@@ -613,4 +613,16 @@ export const incentivizedPools = [
     bonusEndBlock: 9330478,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 53,
+    name: 'GNANA --> HIFI',
+    address: '0x8e4f6c2e8d9c5ed20c2a9a6db6553655a66d8c1b',
+    stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0xe7d29d03330f214aea49776ec110b49239a93f3e',
+    rewardPerBlock: '52083333333333333333',
+    startBlock: 8612324,
+    bonusEndBlock: 9476324,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
