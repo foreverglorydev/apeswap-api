@@ -46,6 +46,81 @@ export function dayData(skip: number, startTime: number, endTime: number) {
   }`;
 }
 
+export function swapsData(
+  pair: string,
+  startTime: number,
+  endTime: number,
+  first = 1000,
+  skip = 0,
+) {
+  return `{
+    swaps(where: { pair:"${pair}" timestamp_gt: ${startTime} timestamp_lte: ${endTime}} first: ${first} skip: ${skip} orderBy: timestamp) {
+      id
+      pair {
+        id
+        token0 {
+          id
+        }
+        token1 {
+          id
+        }
+      }
+      transaction {
+        id
+      }
+      from
+      timestamp
+      sender
+      amountUSD
+    }
+  }`;
+}
+export function usersPairDayData(
+  pair: string,
+  startTime: number,
+  endTime: number,
+  first = 1000,
+  skip = 0,
+) {
+  return `{
+    userPairDayDatas
+      (orderBy: date, orderDirection: desc, 
+      where: {pair: "${pair}" date_gt: ${startTime} date_lte: ${endTime} } first: ${first} skip: ${skip}) {
+        id
+        user {
+          id
+        }
+        pair {
+          id
+        }
+        dailyVolumeUSD
+        date
+    }
+  }`;
+}
+export function userPairDayData(
+  pair: string,
+  startTime: number,
+  endTime: number,
+  address: string,
+) {
+  return `{
+    userPairDayDatas
+      (orderBy: date, orderDirection: desc, 
+      where: {pair: "${pair}" date_gt: ${startTime} date_lte: ${endTime} user: "${address}"} ) {
+        id
+        user {
+          id
+        }
+        pair {
+          id
+        }
+        dailyVolumeUSD
+        date
+    }
+  }`;
+}
+
 export const allPricesQuery = `{
   tokens(orderBy: tradeVolumeUSD orderDirection: desc first: 1000) {
     id

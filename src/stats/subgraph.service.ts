@@ -1,15 +1,19 @@
-import { Injectable, HttpService } from '@nestjs/common';
+import { Injectable, HttpService, Logger } from '@nestjs/common';
 import {
   dayData,
   pairsQuery,
   liquidityQuery,
   allPricesQuery,
+  swapsData,
+  usersPairDayData,
+  userPairDayData,
 } from './utils/subgraph.queries';
 
 @Injectable()
 export class SubgraphService {
-  graphUrl =
-    'https://graph2.apeswap.finance/subgraphs/name/ape-swap/apeswap-subgraph';
+  logger = new Logger(SubgraphService.name);
+  graphUrl = process.env.GRAPH_URL;
+
   constructor(private httpService: HttpService) {}
 
   async getVolumeData(): Promise<any> {
@@ -40,6 +44,70 @@ export class SubgraphService {
     const nowTimestamp = Math.round(new Date().getTime() / 1000);
     const { apeswapDayDatas } = await this.getDayData(yTimestamp, nowTimestamp);
     return apeswapDayDatas[1] || apeswapDayDatas[0];
+  }
+
+  async getPairSwapData(
+    pair: string,
+    startTime: number,
+    endTime: number,
+    first = 1000,
+    skip = 0,
+  ): Promise<any> {
+    const query = swapsData(pair, startTime, endTime, first, skip);
+    const { data } = await this.querySubraph(query);
+    let result = data.swaps;
+    if (result?.length === 1000) {
+      // Paginate
+      const swaps = await this.getPairSwapData(
+        pair,
+        startTime,
+        endTime,
+        first,
+        first + skip,
+      );
+      result = [...result, ...swaps];
+      this.logger.log(`swapsData result length: ${result.length}`);
+    }
+    return result;
+  }
+
+  async getUserDailyPairData(
+    pair: string,
+    startTime: number,
+    endTime: number,
+    first = 1000,
+    skip = 0,
+  ): Promise<any> {
+    const query = usersPairDayData(pair, startTime, endTime, first, skip);
+    this.logger.log(query);
+    const res = await this.querySubraph(query);
+    let result = res.data.userPairDayDatas;
+    if (result?.length === 1000) {
+      // Paginate
+      const userPairDayDatas = await this.getUserDailyPairData(
+        pair,
+        startTime,
+        endTime,
+        first,
+        first + skip,
+      );
+      result = [...result, ...userPairDayDatas];
+      this.logger.log(`getUserDailyPairData result length: ${result.length}`);
+    }
+    return result;
+  }
+
+  async getUserCurrentPairData(
+    pair: string,
+    startTime: number,
+    endTime: number,
+    address: string,
+  ): Promise<any> {
+    const query = userPairDayData(pair, startTime, endTime, address);
+    this.logger.log(query);
+    const res = await this.querySubraph(query);
+    const result = res.data.userPairDayDatas;
+    return result;
   }
 
   async getDailySummary() {
