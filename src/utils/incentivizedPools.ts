@@ -637,4 +637,16 @@ export const incentivizedPools = [
     bonusEndBlock: 11298755,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 56,
+    name: 'BANANA --> SCAM',
+    address: '0x49605d4d0bdf049a9c3f20f59e066662a086a9a8',
+    stakeToken: '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0x00aa85e010204068b7cc2235800b2d8036bdbf2e',
+    rewardPerBlock: '16666666666666',
+    startBlock: 8727620,
+    bonusEndBlock: 9591620,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
