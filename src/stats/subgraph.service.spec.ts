@@ -59,6 +59,14 @@ describe('SubgraphService', () => {
     expect(summary.pairs).toBeDefined;
   });
 
+  it('should be get swap data', async () => {
+    const swapData = await service.getPairSwapData(
+      '0x51e6d27fa57373d8d4c256231241053a70cb1d93',
+      1620529666,
+    );
+    console.log(swapData);
+  });
+
   it('should be get all price data', async () => {
     const objPrice = {
       derivedBNB: expect.any(String),

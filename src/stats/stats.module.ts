@@ -17,6 +17,7 @@ import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
     ]),
   ],
   providers: [StatsService, SubgraphService, PriceService],
+  exports: [SubgraphService],
   controllers: [StatsController],
 })
 export class StatsModule {}
