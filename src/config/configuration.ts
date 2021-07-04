@@ -30,6 +30,11 @@ export default () => ({
       adminAddress: '0xCaE366497aC10De7f1faeBBf496E7dBD7764C6b3',
       adminKey: process.env.LOTTERY_ADMIN_KEY,
     },
+    airdrop: {
+      account: '0x0341242Eb1995A9407F1bf632E8dA206858fBB3a',
+      key: process.env.AIRDROP_ADMIN_KEY,
+      contract: '0x8419080a815ac6b5da0c9284b5a83ba695b832c9',
+    },
     contracts: {
       masterApe: '0x5c8D727b265DBAfaba67E050f2f739cAeEB4A6F9',
       banana: '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95',
@@ -39,21 +44,12 @@ export default () => ({
       bananaBnb: '0xF65C1C0478eFDe3c19b49EcBE7ACc57BB6B1D713',
       burn: '0x000000000000000000000000000000000000dead',
       mulltiCall: '0x38ce767d81de3940CFa5020B55af1A400ED4F657',
+      airdrop: '0x8419080A815ac6B5da0C9284B5A83Ba695B832c9',
     },
     appNodes: [
       'https://bsc-dataseed.binance.org:443',
       'https://bsc-dataseed1.defibit.io:443',
       'https://bsc-dataseed1.ninicoin.io:443',
-      /* 'https://bsc-dataseed2.ninicoin.io:443',
-      'https://bsc-dataseed3.ninicoin.io:443',
-      'https://bsc-dataseed4.ninicoin.io:443',
-      'https://bsc-dataseed2.defibit.io:443',
-      'https://bsc-dataseed3.defibit.io:443',
-      'https://bsc-dataseed4.defibit.io:443',
-      'https://bsc-dataseed1.binance.org:443',
-      'https://bsc-dataseed2.binance.org:443',
-      'https://bsc-dataseed3.binance.org:443',
-      'https://bsc-dataseed4.binance.org:443', */
     ],
   },
 });
