@@ -663,7 +663,7 @@ export const incentivizedPools = [
   },
   {
     sousId: 58,
-    name: 'BANANA --> SKILL',
+    name: 'GNANA --> SKILL',
     address: '0x92f5927fb750593b00ac933d296d9230d6f8b421',
     stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
     stakeTokenIsLp: false,
@@ -671,6 +671,18 @@ export const incentivizedPools = [
     rewardPerBlock: '115740740740740740',
     startBlock: 8867286,
     bonusEndBlock: 9731286,
+    abi: BEP20_REWARD_APE_ABI,
+  },
+  {
+    sousId: 59,
+    name: 'BANANA --> GNT',
+    address: '0xfa1e8344e8316b4c7ca4d9f9359154bd3b42b427',
+    stakeToken: '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0xf750a26eb0acf95556e8529e72ed530f3b60f348',
+    rewardPerBlock: '5260942760416666666666',
+    startBlock: 8896083,
+    bonusEndBlock: 9760083,
     abi: BEP20_REWARD_APE_ABI,
   },
 ];
