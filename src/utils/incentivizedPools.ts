@@ -687,9 +687,9 @@ export const incentivizedPools = [
   },
   {
     sousId: 60,
-    name: 'GNANA --> PACOCA',
-    address: '0xd75033f41c4d3011b68cb2d6552dcf1cc1b19de3',
-    stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
+    name: 'BANANA --> PACOCA',
+    address: '0x32d5dae00cf9ec718e6054cbe5f307b9e8ed80e9',
+    stakeToken: '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95',
     stakeTokenIsLp: false,
     rewardToken: '0x55671114d774ee99d653d6c12460c780a67f1d18',
     rewardPerBlock: '980902777777777777',
