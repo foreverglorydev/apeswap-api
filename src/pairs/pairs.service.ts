@@ -168,8 +168,6 @@ export class PairsService {
       return {
         address: pool.address,
         token: pool.rewardToken,
-        name: pool.name,
-        staked: pool.stakeToken,
       };
     });
   }
