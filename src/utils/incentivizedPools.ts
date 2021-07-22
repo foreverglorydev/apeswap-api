@@ -783,7 +783,7 @@ export const incentivizedPools = [
   },
   {
     sousId: 68,
-    name: 'GNANA --> BIRD',
+    name: 'GNANA --> BIRB',
     address: '0xaffd843b548f70cc586cdecb2dd0e85be5349e96',
     stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
     stakeTokenIsLp: false,
