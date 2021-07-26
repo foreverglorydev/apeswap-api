@@ -29,7 +29,6 @@ export class NfasAuctionService {
     const sales = await this.nfaAuctionModel
       .find({ tokenId: index })
       .sort({ blockNumber: 'desc' });
-    this.logger.log(sales);
     return sales;
   }
 
@@ -39,7 +38,6 @@ export class NfasAuctionService {
     const sales = await this.nfaAuctionModel
       .find()
       .sort({ blockNumber: 'desc' });
-    this.logger.log(sales);
     return sales;
   }
 
@@ -68,13 +66,10 @@ export class NfasAuctionService {
 
   async processEvent(event) {
     const parsed = await this.parseEvent(event);
-    this.logger.log('Parsed event');
-    this.logger.log(parsed);
     return this.nfaAuctionModel.create(parsed);
   }
 
   async parseEvent(event) {
-    console.log(event);
     const parsed = this.iface.parseLog(event);
     const { bidder, amount, id } = parsed.args;
     const bidEvent = {
