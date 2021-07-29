@@ -805,4 +805,16 @@ export const incentivizedPools = [
     bonusEndBlock: 11267564,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 70,
+    name: 'GNANA --> MARU',
+    address: '0x51c58fb9a61c00e3e4cd09b499726ba1cd3dd261',
+    stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0x215f51990a0ca5aa360a177181f014e2da376e5e',
+    rewardPerBlock: '57870370370370370370',
+    startBlock: 9586814,
+    bonusEndBlock: 10450814,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
