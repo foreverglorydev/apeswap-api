@@ -9,7 +9,7 @@ import { NfaAuctionDocument, NfaAuction } from './schema/nfa-auction.schema';
 export class NfasAuctionService {
   logger = new Logger(NfasAuctionService.name);
   abi = [
-    'event HighestBidIncreased(address bidder, uint256 amount, uint256 id)',
+    'event HighestBidIncreased(address indexed bidder, uint256 amount, uint256 indexed id, uint indexed auctionNumber)',
   ];
 
   iface = new utils.Interface(this.abi);
@@ -48,7 +48,7 @@ export class NfasAuctionService {
       toBlock: startBlock + 1000,
       topics: [
         // the name of the event, parnetheses containing the data type of each event, no spaces
-        utils.id('HighestBidIncreased(address,uint256,uint256)'),
+        utils.id('HighestBidIncreased(address,uint256,uint256,uint256)'),
       ],
     };
     const events = await this.provider.getLogs(filter);
@@ -88,7 +88,7 @@ export class NfasAuctionService {
       address: this.auctionAddress,
       topics: [
         // the name of the event, parnetheses containing the data type of each event, no spaces
-        utils.id('HighestBidIncreased(address,uint256,uint256)'),
+        utils.id('HighestBidIncreased(address,uint256,uint256,uint256)'),
       ],
     };
     this.provider.on(filter, async (event) => {

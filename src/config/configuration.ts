@@ -17,7 +17,7 @@ export default () => ({
       bananaBnb: '0xF65C1C0478eFDe3c19b49EcBE7ACc57BB6B1D713',
       burn: '0x000000000000000000000000000000000000dead',
       mulltiCall: '0x67ADCB4dF3931b0C5Da724058ADC2174a9844412',
-      auction: '0xc65682508C49CFdE5c8b0bc0CE4A6917E9f1662d',
+      auction: '0xE67c71f7D629974ff5fbcbB4D32c665c8e67261F',
     },
     appNodes: [
       'https://data-seed-prebsc-2-s2.binance.org:8545',
