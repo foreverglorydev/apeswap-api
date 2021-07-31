@@ -71,11 +71,13 @@ export class NfasAuctionService {
 
   async parseEvent(event) {
     const parsed = this.iface.parseLog(event);
-    const { bidder, amount, id } = parsed.args;
+    const { bidder, amount, id, auctionNumber } = parsed.args;
     const bidEvent = {
+      contractAddress: event.address,
+      auctionNumber: auctionNumber.toNumber(),
       bidder,
       amount: amount.toString(),
-      tokenId: id.toString(),
+      tokenId: id.toNumber(),
       transactionHash: event.transactionHash,
       blockNumber: event.blockNumber
       

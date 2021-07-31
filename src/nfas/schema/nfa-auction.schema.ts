@@ -14,8 +14,14 @@ export class NfaAuction {
   @Prop({ required: true })
   tokenId: number;
 
+  @Prop({ required: true })
+  auctionNumber: number;
+
   @Prop({ required: true, unique: true })
   transactionHash: string;
+
+  @Prop({ required: true })
+  contractAddress: string;
 
   @Prop({ required: true })
   blockNumber: number;
