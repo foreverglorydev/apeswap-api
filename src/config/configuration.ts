@@ -40,6 +40,7 @@ export default () => ({
       bananaBnb: '0xF65C1C0478eFDe3c19b49EcBE7ACc57BB6B1D713',
       burn: '0x000000000000000000000000000000000000dead',
       mulltiCall: '0x38ce767d81de3940CFa5020B55af1A400ED4F657',
+      auction: '0x0c45D45D8c3b1EAA5e63AF64af5e7A74C16E29F0',
     },
     appNodes: [
       'https://bsc-dataseed.binance.org:443',
