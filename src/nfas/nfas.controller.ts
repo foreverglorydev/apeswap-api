@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { NfaSaleDto } from './dto/nfaSale.dto';
 import { Nfa } from './interfaces/nfas.interface';
+import { NfasAuctionService } from './nfas-auction.service';
 import { NfasTrackingService } from './nfas-tracking.service';
 import { NfasService } from './nfas.service';
 
@@ -18,6 +19,7 @@ export class NfasController {
   constructor(
     private nfasService: NfasService,
     private nfaTracking: NfasTrackingService,
+    private nfaAuction: NfasAuctionService,
   ) {}
 
   @Get()
@@ -45,6 +47,24 @@ export class NfasController {
   async fetchLastBlockLogs() {
     this.logger.debug('Called GET /nfas/currentSales');
     this.nfaTracking.fetchLastBlockLogs();
+  }
+
+  @Get('currentBids')
+  async fetchLastBids() {
+    this.logger.debug('Called GET /nfas/currentBids');
+    this.nfaAuction.fetchLastBlockLogs();
+  }
+
+  @Get('latestBids')
+  async getLastBids() {
+    this.logger.debug('Called GET /nfas/latestBids');
+    return this.nfaAuction.getAuctionHistory();
+  }
+
+  @Get('bids/:index')
+  async getNfaBods(@Param('index') index: number): Promise<any> {
+    this.logger.debug('Called GET /nfas/bids/:index');
+    return await this.nfaAuction.getNfaAuctionHistory(index);
   }
 
   @Get('transactions/:index')
