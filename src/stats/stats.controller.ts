@@ -27,6 +27,13 @@ export class StatsController {
     return this.statsService.getDefistationStats();
   }
 
+  @Get('/supply')
+  async getSupply(): Promise<number> {
+    this.logger.debug('Called GET /stats/supply');
+    const { circulatingSupply } = await this.statsService.getBurnAndSupply();
+    return circulatingSupply;
+  }
+
   @Get('/get')
   async get(): Promise<any> {
     this.logger.debug('Called GET /stats/get');
