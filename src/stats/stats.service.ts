@@ -747,6 +747,34 @@ export class StatsService {
     );
   }
 
+  async getGnanaFess() {
+    let fees = 0;
+    const pools = (
+      await Promise.all(
+        incentivizedPools
+          .filter(
+            ({ stakeToken }) =>
+              stakeToken.toLowerCase() ===
+              '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
+          )
+          .map(async (pool) => {
+            const poolContract = getContract(pool.abi, pool.address);
+            const longFees = await poolContract.methods
+              .getStakeTokenFeeBalance()
+              .call();
+            const poolFees = longFees / 10 ** 18;
+            fees += poolFees;
+            delete pool.abi;
+            return {
+              poolFees,
+              ...pool,
+            };
+          }),
+      )
+    ).sort((a, b) => b.poolFees - a.poolFees);
+    return { fees, pools };
+  }
+
   async calculateWalletStats(walletStats: WalletStats, poolPrices, wallet) {
     const masterApeContract = masterApeContractWeb();
     let totalApr = 0;

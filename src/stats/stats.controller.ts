@@ -27,6 +27,12 @@ export class StatsController {
     return this.statsService.getDefistationStats();
   }
 
+  @Get('/gnana')
+  async getGnanaStats(): Promise<any> {
+    this.logger.debug('Called GET /stats/gnana');
+    return this.statsService.getGnanaFess();
+  }
+
   @Get('/supply')
   async getSupply(): Promise<number> {
     this.logger.debug('Called GET /stats/supply');
