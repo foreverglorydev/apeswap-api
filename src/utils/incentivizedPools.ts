@@ -901,4 +901,16 @@ export const incentivizedPools = [
     bonusEndBlock: 12436178,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 78,
+    name: 'GNANA --> HOTCROSS',
+    address: '0x03f344ceb868841ffa262503fe1cf21b9cd5d7a8',
+    stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0x4fa7163e153419e0e1064e418dd7a99314ed27b6',
+    rewardPerBlock: '925925925925925925',
+    startBlock: 10033233,
+    bonusEndBlock: 10897233,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
