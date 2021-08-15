@@ -915,7 +915,7 @@ export const incentivizedPools = [
   },
   {
     sousId: 79,
-    name: 'GNANA --> LMT',
+    name: 'GNANA --> LMT', 
     address: '0x7ef515eac1cf68cde1bdbee2cda8707815e1a3c3',
     stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
     stakeTokenIsLp: false,
