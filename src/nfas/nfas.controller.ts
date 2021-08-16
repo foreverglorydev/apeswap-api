@@ -6,6 +6,8 @@ import {
   Logger,
   Post,
   Body,
+  UseInterceptors,
+  CacheInterceptor,
 } from '@nestjs/common';
 import { NfaSaleDto } from './dto/nfaSale.dto';
 import { Nfa } from './interfaces/nfas.interface';
@@ -56,6 +58,7 @@ export class NfasController {
   }
 
   @Get('latestBids')
+  @UseInterceptors(CacheInterceptor)
   async getLastBids() {
     this.logger.debug('Called GET /nfas/latestBids');
     return this.nfaAuction.getAuctionHistory();
