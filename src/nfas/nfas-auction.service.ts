@@ -13,7 +13,7 @@ export class NfasAuctionService {
   ];
 
   iface = new utils.Interface(this.abi);
-  
+
   constructor(
     private configService: ChainConfigService,
     @InjectModel(NfaAuction.name)
@@ -21,7 +21,7 @@ export class NfasAuctionService {
   ) {}
 
   auctionAddress = this.configService.get<string>(`auction.address`);
-  appNodes = this.configService.get<string>(`appNodes`);  
+  appNodes = this.configService.get<string>(`appNodes`);
   provider = new ethers.providers.JsonRpcProvider(this.appNodes[0]);
 
   // return all txn with "tokenId = index" where "value != 0"
@@ -33,8 +33,7 @@ export class NfasAuctionService {
   }
 
   // return all txn with "tokenId = index" in descending blockNumber
-  async getAuctionHistory(
-  ): Promise<NfaAuctionDocument[]> {
+  async getAuctionHistory(): Promise<NfaAuctionDocument[]> {
     const sales = await this.nfaAuctionModel
       .find()
       .sort({ blockNumber: 'desc' });
@@ -79,8 +78,7 @@ export class NfasAuctionService {
       amount: amount.toString(),
       tokenId: id.toNumber(),
       transactionHash: event.transactionHash,
-      blockNumber: event.blockNumber
-      
+      blockNumber: event.blockNumber,
     };
     return bidEvent;
   }

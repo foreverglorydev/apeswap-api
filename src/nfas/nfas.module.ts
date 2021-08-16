@@ -1,4 +1,4 @@
-import { HttpModule, Module } from '@nestjs/common';
+import { CacheModule, HttpModule, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { NfasAuctionService } from './nfas-auction.service';
@@ -11,6 +11,9 @@ import { Nfa, NfaSchema } from './schema/nfa.schema';
 
 @Module({
   imports: [
+    CacheModule.register({
+      ttl: 60,
+    }),
     HttpModule,
     MongooseModule.forFeature([
       { name: Nfa.name, schema: NfaSchema },
@@ -19,6 +22,11 @@ import { Nfa, NfaSchema } from './schema/nfa.schema';
     ]),
   ],
   controllers: [NfasController],
-  providers: [NfasService, NfasTrackingService, NfasAuctionService, ChainConfigService],
+  providers: [
+    NfasService,
+    NfasTrackingService,
+    NfasAuctionService,
+    ChainConfigService,
+  ],
 })
 export class NfasModule {}
