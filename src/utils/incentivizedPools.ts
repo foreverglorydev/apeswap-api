@@ -924,5 +924,5 @@ export const incentivizedPools = [
     startBlock: 10061826,
     bonusEndBlock: 11789826,
     abi: BEP20_REWARD_APE_ABI,
-  }, 
+  },
 ];
