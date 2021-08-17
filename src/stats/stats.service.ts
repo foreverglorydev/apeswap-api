@@ -55,8 +55,21 @@ export class StatsService {
   ) {}
 
   createGeneralStats(stats) {
-    return this.generalStatsModel.create(stats);
+    return this.generalStatsModel.updateOne(
+      {},
+      {
+        $set: stats,
+        $currentDate: {
+          createdAt: true,
+        },
+      },
+      {
+        upsert: true,
+        timestamps: true,
+      },
+    );
   }
+
   findOne() {
     return this.generalStatsModel.findOne();
   }
@@ -77,7 +90,7 @@ export class StatsService {
   async verifyStats() {
     const now = Date.now();
     const stats: any = await this.findOne();
-    if (!stats) return null;
+    if (!stats?.createdAt) return null;
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
@@ -299,8 +312,6 @@ export class StatsService {
     });
 
     await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
-    this.logger.log('Remove last stats');
-    await this.cleanStats();
     await this.createGeneralStats(poolPrices);
 
     return poolPrices;
