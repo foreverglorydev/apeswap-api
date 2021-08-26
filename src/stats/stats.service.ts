@@ -266,7 +266,10 @@ export class StatsService {
     const [
       tokens,
       { burntAmount, totalSupply, circulatingSupply },
-    ] = await Promise.all([this.getTokens(poolInfos), this.getBurnAndSupply()]);
+      ] = await Promise.all([
+        this.getTokens(poolInfos),
+        this.getBurnAndSupply(),
+      ]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
@@ -321,7 +324,7 @@ export class StatsService {
     const poolInfo = await masterApeContract.methods.poolInfo(poolIndex).call();
     // Determine if Bep20 or Lp token
     const poolToken =
-      poolIndex !== 0 && poolIndex !== 75
+      poolIndex !== 0 && poolIndex !== 75 && poolIndex !== 112
         ? await this.getLpInfo(poolInfo.lpToken, masterApeContractAddress())
         : await this.getTokenInfo(poolInfo.lpToken, masterApeContractAddress());
 
@@ -617,7 +620,8 @@ export class StatsService {
         pool.rewardToken,
       )?.usd;
       const apr = active
-        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
+          ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
+            stakedTvl
         : 0;
 
       return {
