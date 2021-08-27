@@ -212,6 +212,7 @@ export class StatsService {
   }
 
   async getCalculateStats() {
+    this.getIncentivizedPools();
     const cachedValue = await this.cacheManager.get('calculateStats');
     if (cachedValue) {
       this.logger.log('Hit calculateStats() cache');
@@ -266,10 +267,7 @@ export class StatsService {
     const [
       tokens,
       { burntAmount, totalSupply, circulatingSupply },
-      ] = await Promise.all([
-        this.getTokens(poolInfos),
-        this.getBurnAndSupply(),
-      ]);
+    ] = await Promise.all([this.getTokens(poolInfos), this.getBurnAndSupply()]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
@@ -620,8 +618,7 @@ export class StatsService {
         pool.rewardToken,
       )?.usd;
       const apr = active
-          ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
-            stakedTvl
+        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
         : 0;
 
       return {
@@ -823,4 +820,6 @@ export class StatsService {
 
     return walletStats;
   }
+
+  async getIncentivizedPools() {}
 }
