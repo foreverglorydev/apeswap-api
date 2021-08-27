@@ -55,8 +55,21 @@ export class StatsService {
   ) {}
 
   createGeneralStats(stats) {
-    return this.generalStatsModel.create(stats);
+    return this.generalStatsModel.updateOne(
+      {},
+      {
+        $set: stats,
+        $currentDate: {
+          createdAt: true,
+        },
+      },
+      {
+        upsert: true,
+        timestamps: true,
+      },
+    );
   }
+
   findOne() {
     return this.generalStatsModel.findOne();
   }
@@ -77,7 +90,7 @@ export class StatsService {
   async verifyStats() {
     const now = Date.now();
     const stats: any = await this.findOne();
-    if (!stats) return null;
+    if (!stats?.createdAt) return null;
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
@@ -253,7 +266,10 @@ export class StatsService {
     const [
       tokens,
       { burntAmount, totalSupply, circulatingSupply },
-    ] = await Promise.all([this.getTokens(poolInfos), this.getBurnAndSupply()]);
+      ] = await Promise.all([
+        this.getTokens(poolInfos),
+        this.getBurnAndSupply(),
+      ]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
@@ -299,8 +315,6 @@ export class StatsService {
     });
 
     await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
-    this.logger.log('Remove last stats');
-    await this.cleanStats();
     await this.createGeneralStats(poolPrices);
 
     return poolPrices;
@@ -310,7 +324,7 @@ export class StatsService {
     const poolInfo = await masterApeContract.methods.poolInfo(poolIndex).call();
     // Determine if Bep20 or Lp token
     const poolToken =
-      poolIndex !== 0 && poolIndex !== 75
+      poolIndex !== 0 && poolIndex !== 75 && poolIndex !== 112
         ? await this.getLpInfo(poolInfo.lpToken, masterApeContractAddress())
         : await this.getTokenInfo(poolInfo.lpToken, masterApeContractAddress());
 
@@ -606,7 +620,8 @@ export class StatsService {
         pool.rewardToken,
       )?.usd;
       const apr = active
-        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
+          ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
+            stakedTvl
         : 0;
 
       return {

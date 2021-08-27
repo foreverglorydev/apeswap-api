@@ -9,7 +9,9 @@ export class NfasTrackingService {
   nfa_address = '0x6eca7754007d22d3F557740d06FeD4A031BeFE1e';
   wbnb_address = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
   logger = new Logger(NfasTrackingService.name);
-  provider = new ethers.providers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
+  provider = new ethers.providers.JsonRpcProvider(
+    'https://bsc-dataseed.binance.org/',
+  );
   abi = [
     'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
   ];
