@@ -41,6 +41,9 @@ export class GeneralStats {
   @Prop({ required: true })
   incentivizedPools: [];
 
+  @Prop({ required: true })
+  burningPools: [];
+
   @Prop({ default: Date.now })
   createdAt: Date;
 }

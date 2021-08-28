@@ -13,6 +13,7 @@ import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
 import { incentivizedPools } from 'src/utils/incentivizedPools';
+import { burningPools } from 'src/utils/burningPools';
 import {
   getParameterCaseInsensitive,
   createLpPairName,
@@ -266,10 +267,7 @@ export class StatsService {
     const [
       tokens,
       { burntAmount, totalSupply, circulatingSupply },
-      ] = await Promise.all([
-        this.getTokens(poolInfos),
-        this.getBurnAndSupply(),
-      ]);
+    ] = await Promise.all([this.getTokens(poolInfos), this.getBurnAndSupply()]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
@@ -283,6 +281,7 @@ export class StatsService {
       pools: [],
       farms: [],
       incentivizedPools: [],
+      burningPools: [],
     };
 
     for (let i = 0; i < poolInfos.length; i++) {
@@ -305,10 +304,16 @@ export class StatsService {
 
     await Promise.all([
       this.mappingIncetivizedPools(poolPrices, prices),
+      this.mappingBurningPools(poolPrices, prices),
       this.getTVLData(poolPrices),
     ]);
 
     poolPrices.incentivizedPools.forEach((pool) => {
+      if (!pool.t0Address) {
+        poolPrices.tvl += pool.stakedTvl;
+      }
+    });
+    poolPrices.burningPools.forEach((pool) => {
       if (!pool.t0Address) {
         poolPrices.tvl += pool.stakedTvl;
       }
@@ -510,6 +515,15 @@ export class StatsService {
       (x) => x,
     ); //filter null pools
   }
+  async mappingBurningPools(poolPrices, prices) {
+    const currentBlockNumber = await getCurrentBlock();
+    poolPrices.burningPools = await Promise.all(
+      burningPools.map(async (pool) =>
+        this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
+      ),
+    );
+    poolPrices.burningPools = poolPrices.burningPools.filter((x) => x); //filter null pools
+  }
 
   async getIncentivizedPoolInfo(pool, prices, currentBlockNumber) {
     const active =
@@ -620,8 +634,7 @@ export class StatsService {
         pool.rewardToken,
       )?.usd;
       const apr = active
-          ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
-            stakedTvl
+        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
         : 0;
 
       return {

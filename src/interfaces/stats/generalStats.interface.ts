@@ -15,4 +15,5 @@ export interface GeneralStats {
   pools: PoolStats[];
   farms: FarmStats[];
   incentivizedPools: IncentivizedPoolStats[];
+  burningPools: IncentivizedPoolStats[];
 }
