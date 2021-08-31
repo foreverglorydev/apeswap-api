@@ -1048,13 +1048,13 @@ export const incentivizedPools = [
   {
     sousId: 90,
     name: 'GNANA --> POLAR',
-    address: '0xced71d65f3fc86767d26152ab0987b29c089ae85',
+    address: '0xcfaa62b60575c0808b24b2253e107fc8aa992ef4',
     stakeToken: '0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299',
     stakeTokenIsLp: false,
-    rewardToken: '0x29bc49d43e0915fea4e81551ba5dee5ebf9b18dd',
+    rewardToken: '0xc64c9b30c981fc2ee4e13d0ca3f08258e725fd24',
     rewardPerBlock: '964506172839506172',
-    startBlock: 10483832,
-    bonusEndBlock: 11779832,
+    startBlock: 10518601,
+    bonusEndBlock: 11814601,
     abi: BEP20_REWARD_APE_ABI,
   },
 ];
