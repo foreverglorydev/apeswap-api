@@ -39,6 +39,7 @@ import {
 } from './schema/generalStats.schema';
 import { SubgraphService } from './subgraph.service';
 import { Cron } from '@nestjs/schedule';
+import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 
 @Injectable()
 export class StatsService {
@@ -212,7 +213,6 @@ export class StatsService {
   }
 
   async getCalculateStats() {
-    this.getIncentivizedPools();
     const cachedValue = await this.cacheManager.get('calculateStats');
     if (cachedValue) {
       this.logger.log('Hit calculateStats() cache');
@@ -499,6 +499,8 @@ export class StatsService {
   }
   async mappingIncetivizedPools(poolPrices, prices) {
     const currentBlockNumber = await getCurrentBlock();
+    // const pools = await this.getIncentivizedPools();
+    // console.log('length', pools.length);
     poolPrices.incentivizedPools = await Promise.all(
       incentivizedPools.map(async (pool) =>
         this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
@@ -821,5 +823,43 @@ export class StatsService {
     return walletStats;
   }
 
-  async getIncentivizedPools() {}
+  async getIncentivizedPools() {
+    const cachedValue = await this.cacheManager.get('pools');
+    if (cachedValue) {
+      this.logger.log('Hit getIncentivizedPools() cache');
+      return cachedValue;
+    }
+    const { data } = await this.httpService
+      .get(
+        'https://raw.githubusercontent.com/ApeSwapFinance/-apeswap-yields/main/pools.json',
+      )
+      .toPromise();
+
+    const pools = data.map((pool) => ({
+      sousId: pool.sousId,
+      name: pool.name,
+      address: pool.contractAddress[this.chainId],
+      stakeToken: pool.stakingTokenAddress[this.chainId],
+      stakeTokenIsLp: pool.stakeTokenIsLp,
+      rewardToken: pool.rewardToken,
+      rewardPerBlock: pool.rewardPerBlock,
+      startBlock: pool.startBlock,
+      bonusEndBlock: pool.bonusEndBlock,
+      abi: this.getABI(pool.abi),
+    }));
+
+    await this.cacheManager.set('pools', pools, { ttl: 180 });
+
+    return pools;
+  }
+
+  getABI(value) {
+    switch (value) {
+      case 'BEP20_REWARD_APE_ABI':
+        return BEP20_REWARD_APE_ABI;
+
+      default:
+        return null;
+    }
+  }
 }
