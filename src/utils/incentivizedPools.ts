@@ -1093,4 +1093,16 @@ export const incentivizedPools = [
     bonusEndBlock: 11901421,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 94,
+    name: 'BANANA --> KRW',
+    address: '0x272d18f546CFF72D1a5bBcA9e0E25F97A71FcA1a',
+    stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0x1446f3CEdf4d86a9399E49f7937766E6De2A3AAB',
+    rewardPerBlock: '14467592592592592592',
+    startBlock: 10658860,
+    bonusEndBlock: 11522860,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
