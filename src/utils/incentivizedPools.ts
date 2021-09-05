@@ -1108,11 +1108,11 @@ export const incentivizedPools = [
   {
     sousId: 95,
     name: 'BANANA --> PEAR',
-    address: '0x51416a1b4B9D635738F54C3A7aEc6EB27E127491',
+    address: '0x9ab78C2209ad2Bd50de93Aa449f1C7898DBf7138',
     stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
     stakeTokenIsLp: false,
     rewardToken: '0xdf7C18ED59EA738070E665Ac3F5c258dcc2FBad8',
-    rewardPerBlock: '9259259259259259', // in wei
+    rewardPerBlock: '8714740740740740', // in wei
     startBlock: 10660658,
     bonusEndBlock: 11092658,
     abi: BEP20_REWARD_APE_ABI,
