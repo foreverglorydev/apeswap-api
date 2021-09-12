@@ -910,7 +910,7 @@ export const incentivizedPools = [
     rewardToken: '0x4fa7163e153419e0e1064e418dd7a99314ed27b6',
     rewardPerBlock: '925925925925925925',
     startBlock: 10033233,
-    bonusEndBlock: 10897233,
+    bonusEndBlock: 12106833,
     abi: BEP20_REWARD_APE_ABI,
   },
   {
@@ -1199,6 +1199,18 @@ export const incentivizedPools = [
     rewardPerBlock: '330932291666666666',
     startBlock: 10856023,
     bonusEndBlock: 12584023,
+    abi: BEP20_REWARD_APE_ABI,
+  },
+  {
+    sousId: 104,
+    name: 'BANANA --> SFUND',
+    address: '0xce12fb8d5e3f1acb469c8b9f657fd8188ca21e87',
+    stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0x477bc8d23c634c154061869478bce96be6045d12',
+    rewardPerBlock: '40509259259259259',
+    startBlock: 10862023,
+    bonusEndBlock: 11726023,
     abi: BEP20_REWARD_APE_ABI,
   },
 ];
