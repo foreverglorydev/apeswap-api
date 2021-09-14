@@ -1225,4 +1225,16 @@ export const incentivizedPools = [
     bonusEndBlock: 12618709,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 106,
+    name: 'GNANA --> POTS',
+    address: '0x84cda09920232b5b138180b55759b218bf243645',
+    stakeToken: '0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0x3Fcca8648651E5b974DD6d3e50F61567779772A8',
+    rewardPerBlock: '13611111111111111',
+    startBlock: 10919463,
+    bonusEndBlock: 11783463,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
