@@ -1237,4 +1237,16 @@ export const incentivizedPools = [
     bonusEndBlock: 11783463,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 107,
+    name: 'GNANA --> FRMX',
+    address: '0xac19462e8c9207cd1613292b93b5f7c65f1a597a',
+    stakeToken: '0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0x8523518001ad5d24b2A04e8729743C0643A316c0',
+    rewardPerBlock: '11226851851851',
+    startBlock: 10948235,
+    bonusEndBlock: 12676235,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
