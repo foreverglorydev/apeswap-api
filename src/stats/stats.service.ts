@@ -12,7 +12,6 @@ import { PriceService } from './price.service';
 import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
-import { incentivizedPools } from 'src/utils/incentivizedPools';
 import {
   getParameterCaseInsensitive,
   createLpPairName,
@@ -499,10 +498,9 @@ export class StatsService {
   }
   async mappingIncetivizedPools(poolPrices, prices) {
     const currentBlockNumber = await getCurrentBlock();
-    // const pools = await this.getIncentivizedPools();
-    // console.log('length', pools.length);
+    const pools = await this.getIncentivizedPools();
     poolPrices.incentivizedPools = await Promise.all(
-      incentivizedPools.map(async (pool) =>
+      pools.map(async (pool) =>
         this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
       ),
     );
@@ -831,7 +829,7 @@ export class StatsService {
     }
     const { data } = await this.httpService
       .get(
-        'https://raw.githubusercontent.com/ApeSwapFinance/-apeswap-yields/main/pools.json',
+        'https://raw.githubusercontent.com/ApeSwapFinance/apeswap-yields/main/config/pools.json',
       )
       .toPromise();
 
@@ -839,16 +837,16 @@ export class StatsService {
       sousId: pool.sousId,
       name: pool.name,
       address: pool.contractAddress[this.chainId],
-      stakeToken: pool.stakingTokenAddress[this.chainId],
-      stakeTokenIsLp: pool.stakeTokenIsLp,
-      rewardToken: pool.rewardToken,
+      stakeToken: pool.stakingToken.address[this.chainId],
+      stakeTokenIsLp: pool.stakingToken.lpToken,
+      rewardToken: pool.rewardToken.address[this.chainId],
       rewardPerBlock: pool.rewardPerBlock,
       startBlock: pool.startBlock,
       bonusEndBlock: pool.bonusEndBlock,
       abi: this.getABI(pool.abi),
     }));
 
-    await this.cacheManager.set('pools', pools, { ttl: 180 });
+    await this.cacheManager.set('pools', pools, { ttl: 300 });
 
     return pools;
   }
@@ -859,7 +857,7 @@ export class StatsService {
         return BEP20_REWARD_APE_ABI;
 
       default:
-        return null;
+        return BEP20_REWARD_APE_ABI;
     }
   }
 }
