@@ -44,6 +44,7 @@ import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 export class StatsService {
   private readonly logger = new Logger(StatsService.name);
   private readonly chainId = parseInt(process.env.CHAIN_ID);
+  private readonly POOL_LIST_URL = process.env.POOL_LIST_URL;
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -827,11 +828,7 @@ export class StatsService {
       this.logger.log('Hit getIncentivizedPools() cache');
       return cachedValue;
     }
-    const { data } = await this.httpService
-      .get(
-        'https://raw.githubusercontent.com/ApeSwapFinance/apeswap-yields/main/config/pools.json',
-      )
-      .toPromise();
+    const { data } = await this.httpService.get(this.POOL_LIST_URL).toPromise();
 
     const pools = data.map((pool) => ({
       sousId: pool.sousId,
@@ -846,7 +843,7 @@ export class StatsService {
       abi: this.getABI(pool.abi),
     }));
 
-    await this.cacheManager.set('pools', pools, { ttl: 300 });
+    await this.cacheManager.set('pools', pools, { ttl: 30 });
 
     return pools;
   }
