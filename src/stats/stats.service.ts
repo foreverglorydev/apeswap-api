@@ -823,11 +823,6 @@ export class StatsService {
   }
 
   async getIncentivizedPools() {
-    const cachedValue = await this.cacheManager.get('pools');
-    if (cachedValue) {
-      this.logger.log('Hit getIncentivizedPools() cache');
-      return cachedValue;
-    }
     const { data } = await this.httpService.get(this.POOL_LIST_URL).toPromise();
 
     const pools = data.map((pool) => ({
@@ -842,8 +837,6 @@ export class StatsService {
       bonusEndBlock: pool.bonusEndBlock,
       abi: this.getABI(pool.abi),
     }));
-
-    await this.cacheManager.set('pools', pools, { ttl: 30 });
 
     return pools;
   }
