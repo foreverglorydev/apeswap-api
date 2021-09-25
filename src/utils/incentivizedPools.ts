@@ -1297,4 +1297,16 @@ export const incentivizedPools = [
     bonusEndBlock: 15526186,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 112,
+    name: 'GNANA --> GUMMY',
+    address: '0xc8ff8674a03672c36d6b5e2cbbf8f7967b14aef6',
+    stakeToken: '0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0x10d3e0c38c286a04aee44d9b01cac916b56ee05a',
+    rewardPerBlock: '13709852430555555555',
+    startBlock: 11234750,
+    bonusEndBlock: 16418750,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
