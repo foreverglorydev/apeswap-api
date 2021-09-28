@@ -11,6 +11,7 @@ import { NfasModule } from './nfas/nfas.module';
 import { ApestrongModule } from './apestrong/apestrong.module';
 import configuration from './config/configuration';
 import { TradingModule } from './trading/trading.module';
+import { IazoModule } from './iazo/iazo.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { TradingModule } from './trading/trading.module';
     NfasModule,
     TradingModule,
     ApestrongModule,
+    IazoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
