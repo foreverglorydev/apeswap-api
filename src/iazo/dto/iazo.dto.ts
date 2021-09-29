@@ -2,10 +2,11 @@ export class IazoDto {
   token1: string;
   token2: string;
   owner: string;
-  startDate: Date;
-  endDate: Date;
+  startDate: number;
+  endDate: number;
   startBlock: number;
   endBlock: number;
+  duration: number;
   totalPresale: number;
   pricePresale: number;
   limitDefault: number;
@@ -21,6 +22,7 @@ export class IazoDto {
   telegram: string;
   medium: string;
   description?: string;
+  pathFile?: string;
 }
 
 export class Iazo extends IazoDto {

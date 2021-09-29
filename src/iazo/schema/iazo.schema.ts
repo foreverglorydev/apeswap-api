@@ -15,16 +15,19 @@ export class Iazo {
   owner: string;
 
   @Prop({ required: true })
-  startDate: Date;
+  startDate: number;
 
   @Prop({ required: true })
-  endDate: Date;
+  endDate: number;
 
-  @Prop({ required: true })
+  @Prop({ default: null })
   startBlock: number;
 
-  @Prop({ required: true })
+  @Prop({ default: null })
   endBlock: number;
+
+  @Prop({ required: true })
+  duration: number;
 
   @Prop({ required: true })
   totalPresale: number;
@@ -91,6 +94,9 @@ export class Iazo {
 
   @Prop({ default: null })
   comments: string;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
 }
 
 export const IazoSchema = SchemaFactory.createForClass(Iazo);

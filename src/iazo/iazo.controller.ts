@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { IazoDto } from './dto/iazo.dto';
 import { IazoService } from './iazo.service';
 
@@ -7,8 +16,12 @@ export class IazoController {
   constructor(private iazoService: IazoService) {}
 
   @Post('')
-  async createIazo(@Body() iazoDto: IazoDto) {
-    await this.iazoService.createIazo(iazoDto);
+  @UseInterceptors(FileInterceptor('file'))
+  async createIazo(
+    @Body() iazoDto: IazoDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    await this.iazoService.createIazo(iazoDto, file);
     return iazoDto;
   }
 

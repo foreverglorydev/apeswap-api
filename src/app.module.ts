@@ -12,6 +12,8 @@ import { ApestrongModule } from './apestrong/apestrong.module';
 import configuration from './config/configuration';
 import { TradingModule } from './trading/trading.module';
 import { IazoModule } from './iazo/iazo.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { Cloudinary } from './cloudinary/cloudinary';
 
 @Module({
   imports: [
@@ -29,8 +31,9 @@ import { IazoModule } from './iazo/iazo.module';
     TradingModule,
     ApestrongModule,
     IazoModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, Cloudinary],
 })
 export class AppModule {}
