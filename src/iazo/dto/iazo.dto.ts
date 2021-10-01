@@ -6,7 +6,7 @@ export class IazoDto {
   endDate: number;
   startBlock: number;
   endBlock: number;
-  duration: number;
+  duration?: number;
   totalPresale: number;
   pricePresale: number;
   limitDefault: number;

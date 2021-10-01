@@ -12,9 +12,9 @@ import { ApestrongModule } from './apestrong/apestrong.module';
 import configuration from './config/configuration';
 import { TradingModule } from './trading/trading.module';
 import { IazoModule } from './iazo/iazo.module';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
-import { Cloudinary } from './cloudinary/cloudinary';
-
+import { CloudinaryModule } from './services/cloudinary/cloudinary.module';
+import { Cloudinary } from './services/cloudinary/cloudinary';
+import { MailgunModule } from './services/mailgun/mailgun.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -32,6 +32,7 @@ import { Cloudinary } from './cloudinary/cloudinary';
     ApestrongModule,
     IazoModule,
     CloudinaryModule,
+    MailgunModule,
   ],
   controllers: [AppController],
   providers: [AppService, Cloudinary],

@@ -28,6 +28,7 @@
     "@nestjs/mongoose": "^7.2.3",
     "@nestjs/platform-express": "^7.5.1",
     "@nestjs/schedule": "^0.4.2",
+    "@nextnm/nestjs-mailgun": "^1.1.1",
     "@types/pg": "^8.6.0",
     "cache-manager": "^3.4.1",
     "cloudinary": "^1.27.0",

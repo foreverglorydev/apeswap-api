@@ -3,7 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { IazoController } from './iazo.controller';
 import { IazoService } from './iazo.service';
 import { Iazo, IazoSchema } from './schema/iazo.schema';
-import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { CloudinaryModule } from '../services/cloudinary/cloudinary.module';
+import { MailgunModule } from 'src/services/mailgun/mailgun.module';
 @Module({
   imports: [
     CacheModule.register({
@@ -12,6 +13,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
     HttpModule,
     MongooseModule.forFeature([{ name: Iazo.name, schema: IazoSchema }]),
     CloudinaryModule,
+    MailgunModule,
   ],
   controllers: [IazoController],
   providers: [IazoService],
