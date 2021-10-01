@@ -24,9 +24,9 @@ export class IazoService {
   async createIazo(iazoDto: Iazo, file) {
     this.dataValidate = [];
     await this.validateData(iazoDto);
-    // const uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
+    const uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
     iazoDto.status = 'Pending';
-    // iazoDto.pathFile = uploadFile.url;
+    iazoDto.pathFile = uploadFile.url;
     const { startBlockTime, endBlockTime } = await this.calculateBlock(
       iazoDto.startDate,
       iazoDto.endDate,

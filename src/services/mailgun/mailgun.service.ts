@@ -19,8 +19,8 @@ export class MailgunService {
     try {
       console.log('sending email');
       const options: EmailOptions = {
-        from: 'no-reply@apeswap-test.finance',
-        to: 'casor06@gmail.com',
+        from: process.env.MAILGUN_FROM_EMAIL,
+        to: process.env.MAILGUN_TO_EMAIL,
         subject: 'New iazo',
         template: 'iazo',
         'h:X-Mailgun-Variables': JSON.stringify(data),
