@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -15,6 +15,7 @@ import { IazoModule } from './iazo/iazo.module';
 import { CloudinaryModule } from './services/cloudinary/cloudinary.module';
 import { Cloudinary } from './services/cloudinary/cloudinary';
 import { MailgunModule } from './services/mailgun/mailgun.module';
+import { AuthStrapiMiddleware } from './middleware/auth-strapi';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -37,4 +38,13 @@ import { MailgunModule } from './services/mailgun/mailgun.module';
   controllers: [AppController],
   providers: [AppService, Cloudinary],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthStrapiMiddleware)
+      .forRoutes(
+        { path: 'iazo/staff', method: RequestMethod.GET },
+        { path: 'iazo/staff', method: RequestMethod.POST },
+      );
+  }
+}

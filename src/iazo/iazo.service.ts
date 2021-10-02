@@ -34,7 +34,7 @@ export class IazoService {
     iazoDto.startBlock = startBlockTime;
     iazoDto.endBlock = endBlockTime;
     // notification Discord
-    this.mailgunService.notifyByEmail(iazoDto);
+    this.mailgunService.notifyByEmail('New IAZO', 'iazo', iazoDto);
     return this.iazoModel.create(iazoDto);
   }
 
@@ -46,8 +46,24 @@ export class IazoService {
     return await this.searchIaoz({ owner: ownerAddress });
   }
 
-  async detailIaoz(idIaoz) {
-    return await this.iazoModel.findById(idIaoz);
+  async detailIaoz(iazoId) {
+    return await this.iazoModel.findById(iazoId);
+  }
+
+  async fetchIazoStaff() {
+    return this.iazoModel.find();
+  }
+
+  async approveIazo(_id, approveIazoDto) {
+    const subject =
+      approveIazoDto.status === 'Rejected' ? 'Rejected IAZO' : 'Approved IAZO';
+    const data = {
+      approved: approveIazoDto.status === 'Approved',
+      rejected: approveIazoDto.status === 'Rejected',
+      comments: approveIazoDto.comments,
+    };
+    this.mailgunService.notifyByEmail(subject, 'iazo_approve', data);
+    return await this.iazoModel.updateOne({ _id }, approveIazoDto);
   }
 
   async calculateBlock(startTimestamp, endTimestamp) {

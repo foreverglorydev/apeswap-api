@@ -10,7 +10,7 @@ export class MailgunService {
     private mailgun,
   ) {}
 
-  async notifyByEmail(data) {
+  async notifyByEmail(subject, template, data) {
     this.mail = new this.mailgun({
       DOMAIN: process.env.MAILGUN_DOMAIN,
       API_KEY: process.env.MAILGUN_API_KEY,
@@ -21,8 +21,8 @@ export class MailgunService {
       const options: EmailOptions = {
         from: process.env.MAILGUN_FROM_EMAIL,
         to: process.env.MAILGUN_TO_EMAIL,
-        subject: 'New iazo',
-        template: 'iazo',
+        subject: subject,
+        template: template,
         'h:X-Mailgun-Variables': JSON.stringify(data),
       };
       await this.mail.sendEmail(options);

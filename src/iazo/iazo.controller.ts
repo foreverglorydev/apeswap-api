@@ -2,12 +2,14 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApproveIazoDto } from './dto/approveIazo.dto';
 import { IazoDto } from './dto/iazo.dto';
 import { IazoService } from './iazo.service';
 
@@ -28,6 +30,19 @@ export class IazoController {
   @Get('')
   async fetchIaozs() {
     return await this.iazoService.fetchIaozs();
+  }
+
+  @Get('staff/')
+  async fetchIazoStaff() {
+    return await this.iazoService.fetchIazoStaff();
+  }
+
+  @Post('staff/:id/approve')
+  async approveIazo(
+    @Param('id') iazoId: string,
+    @Body() approveIazoDto: ApproveIazoDto,
+  ) {
+    return await this.iazoService.approveIazo(iazoId, approveIazoDto);
   }
 
   @Get(':address')
