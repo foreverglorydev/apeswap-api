@@ -66,6 +66,10 @@ export class IazoService {
     return await this.iazoModel.updateOne({ _id }, approveIazoDto);
   }
 
+  async updateTagsIazo(_id, tags) {
+    return await this.iazoModel.updateOne({ _id }, { tags: tags.tags });
+  }
+
   async calculateBlock(startTimestamp, endTimestamp) {
     const block = await this.web3.eth.getBlockNumber();
     const blockTimestamp = await (await this.web3.eth.getBlock(block))

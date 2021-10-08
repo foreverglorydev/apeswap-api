@@ -97,6 +97,9 @@ export class Iazo {
 
   @Prop({ default: Date.now })
   createdAt: Date;
+
+  @Prop()
+  tags: [string];
 }
 
 export const IazoSchema = SchemaFactory.createForClass(Iazo);

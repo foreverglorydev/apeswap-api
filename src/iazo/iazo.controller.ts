@@ -5,6 +5,7 @@ import {
   Headers,
   Param,
   Post,
+  Put,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -43,6 +44,11 @@ export class IazoController {
     @Body() approveIazoDto: ApproveIazoDto,
   ) {
     return await this.iazoService.approveIazo(iazoId, approveIazoDto);
+  }
+
+  @Put('staff/:id/tags')
+  async updateTagsIazo(@Param('id') iazoId: string, @Body() tags: [string]) {
+    return await this.iazoService.updateTagsIazo(iazoId, tags);
   }
 
   @Get(':address')
