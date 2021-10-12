@@ -1404,5 +1404,17 @@ export const incentivizedPools = [
     startBlock: 11688720,
     bonusEndBlock: 16008720,
     abi: BEP20_REWARD_APE_ABI,
-  }
+  },
+  {
+    sousId: 121,
+    name: 'BANANA --> THG',
+    address: '0xcf44a7c1d8277b27c47195f0907a5b93e63d3dd0',
+    stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0x9fD87aEfe02441B123c3c32466cD9dB4c578618f',
+    rewardPerBlock: '25462962962962962',
+    startBlock: 11720672,
+    bonusEndBlock: 14312672,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
