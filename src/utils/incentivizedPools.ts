@@ -238,7 +238,7 @@ export const incentivizedPools = [
     rewardToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
     rewardPerBlock: '150000000000000000',
     startBlock: 6770043,
-    bonusEndBlock: 11817475,
+    bonusEndBlock: 12198501,
     abi: BEP20_REWARD_APE_ABI,
   },
   {
@@ -1415,6 +1415,18 @@ export const incentivizedPools = [
     rewardPerBlock: '25462962962962962',
     startBlock: 11720672,
     bonusEndBlock: 14312672,
+    abi: BEP20_REWARD_APE_ABI,
+  },
+  {
+    sousId: 122,
+    name: 'BANANA --> WSG',
+    address: '0xde99115c3f8ee876b5520779665088f70f647a6d',
+    stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
+    stakeTokenIsLp: false,
+    rewardToken: '0xA58950F05FeA2277d2608748412bf9F802eA4901',
+    rewardPerBlock: '570041232638888888888888',
+    startBlock: 11777612,
+    bonusEndBlock: 15233612,
     abi: BEP20_REWARD_APE_ABI,
   },
 ];
