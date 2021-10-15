@@ -1429,4 +1429,16 @@ export const incentivizedPools = [
     bonusEndBlock: 15233612,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 124,
+    name: 'GNANA --> OTAKU',
+    address: '0xcfaE247209b2F3c175DDACa619a7874447e534Cd',
+    stakeToken: '0xddb3bd8645775f59496c821e4f55a7ea6a6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0x484215873a674f9af73367a8f94c2c591e997521',
+    rewardPerBlock: '1316145833333333333',
+    startBlock: 11802141,
+    bonusEndBlock: 13962141,
+    abi: BEP20_REWARD_APE_ABI,
+  },
 ];
