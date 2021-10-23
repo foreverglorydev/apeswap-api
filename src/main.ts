@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NfasAuctionService } from './nfas/nfas-auction.service';
@@ -10,6 +11,7 @@ async function bootstrap() {
   const auctionService = app.get(NfasAuctionService);
   trackingService.listenToEvents();
   auctionService.listenToEvents();
+  app.useGlobalPipes(new ValidationPipe());
   await app.listen(process.env.PORT || 8080);
 }
 bootstrap();

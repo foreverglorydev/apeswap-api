@@ -12,6 +12,9 @@ export class Iazo {
   token2: string;
 
   @Prop({ required: true })
+  iazoAddress: string;
+
+  @Prop({ required: true })
   owner: string;
 
   @Prop({ required: true })
