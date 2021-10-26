@@ -39,6 +39,7 @@ import {
 } from './schema/generalStats.schema';
 import { SubgraphService } from './subgraph.service';
 import { Cron } from '@nestjs/schedule';
+import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
 
 @Injectable()
 export class StatsService {
@@ -149,6 +150,30 @@ export class StatsService {
     const { volume, pairs } = summary;
     const data = { pools, farms, incentivizedPools, pairs };
     return { tvl, volume: parseInt(volume), data };
+  }
+
+  async getTvlStats(): Promise<GeneralStatsChain> {
+    try {
+      const cachedValue = await this.cacheManager.get('calculateTVLStats');
+      if (cachedValue) {
+        this.logger.log('Hit getTvlStats() cache');
+        return cachedValue as GeneralStatsChain;
+      }
+      const polygonTvl = await this.subgraphService.getLiquidityPolygonData();
+      const bscTvl = await this.subgraphService.getVolumeData();
+      const tvl: GeneralStatsChain = {
+        tvl: polygonTvl.liquidity + bscTvl.liquidity,
+        totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
+        totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
+        bsc: bscTvl,
+        polygon: polygonTvl,
+      };
+      await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
+      return tvl;
+    } catch (e) {
+      this.logger.error('Something went wrong calculating stats');
+      console.log(e);
+    }
   }
 
   async getAllStats(): Promise<GeneralStats> {
@@ -266,10 +291,7 @@ export class StatsService {
     const [
       tokens,
       { burntAmount, totalSupply, circulatingSupply },
-      ] = await Promise.all([
-        this.getTokens(poolInfos),
-        this.getBurnAndSupply(),
-      ]);
+    ] = await Promise.all([this.getTokens(poolInfos), this.getBurnAndSupply()]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
@@ -303,10 +325,7 @@ export class StatsService {
       poolPrices.tvl += pool.stakedTvl;
     });
 
-    await Promise.all([
-      this.mappingIncetivizedPools(poolPrices, prices),
-      this.getTVLData(poolPrices),
-    ]);
+    await Promise.all([this.mappingIncetivizedPools(poolPrices, prices)]);
 
     poolPrices.incentivizedPools.forEach((pool) => {
       if (!pool.t0Address) {
@@ -620,8 +639,7 @@ export class StatsService {
         pool.rewardToken,
       )?.usd;
       const apr = active
-          ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
-            stakedTvl
+        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
         : 0;
 
       return {
@@ -743,16 +761,6 @@ export class StatsService {
         abi: pool.abi,
       };
     }
-  }
-
-  async getTVLData(poolPrices): Promise<any> {
-    const {
-      liquidity,
-      totalVolume,
-    } = await this.subgraphService.getVolumeData();
-    poolPrices.tvl += liquidity;
-    poolPrices.totalLiquidity += liquidity;
-    poolPrices.totalVolume += totalVolume;
   }
 
   async getTokenBalanceOfAddress(tokenContract, address): Promise<any> {
