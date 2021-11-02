@@ -19,6 +19,7 @@ import {
 } from 'src/utils/helpers';
 import { multicall } from 'src/utils/lib/multicall';
 import {
+  gBananaTreasury,
   masterApeContractWeb,
   bananaAddress,
   goldenBananaAddress,
@@ -159,14 +160,32 @@ export class StatsService {
         this.logger.log('Hit getTvlStats() cache');
         return cachedValue as GeneralStatsChain;
       }
-      const polygonTvl = await this.subgraphService.getLiquidityPolygonData();
-      const bscTvl = await this.subgraphService.getVolumeData();
+      const [
+        polygonTvl,
+        bscTvl,
+        { burntAmount, totalSupply, circulatingSupply },
+        prices,
+        { circulatingSupply: gnanaCirculatingSupply },
+      ] = await Promise.all([
+        this.subgraphService.getLiquidityPolygonData(),
+        this.subgraphService.getVolumeData(),
+        this.getBurnAndSupply(),
+        this.priceService.getTokenPrices(),
+        this.getGnanaSupply(),
+      ]);
+      const priceUSD = prices[bananaAddress()].usd;
+
       const tvl: GeneralStatsChain = {
         tvl: polygonTvl.liquidity + bscTvl.liquidity,
         totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
         totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
         bsc: bscTvl,
         polygon: polygonTvl,
+        burntAmount,
+        totalSupply,
+        circulatingSupply,
+        marketCap: circulatingSupply * priceUSD,
+        gnanaCirculatingSupply,
       };
       await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
       return tvl;
@@ -495,6 +514,25 @@ export class StatsService {
     return {
       burntAmount,
       totalSupply,
+      circulatingSupply,
+    };
+  }
+
+  async getGnanaSupply() {
+    const gnanaContract = getContract(ERC20_ABI, goldenBananaAddress());
+
+    const decimals = await gnanaContract.methods.decimals().call();
+
+    const [treasury, supply] = await Promise.all([
+      gnanaContract.methods.balanceOf(gBananaTreasury()).call(),
+      gnanaContract.methods.totalSupply().call(),
+    ]);
+
+    const treasuryAmount = treasury / 10 ** decimals;
+    const totalSupply = supply / 10 ** decimals;
+    const circulatingSupply = totalSupply - treasuryAmount;
+
+    return {
       circulatingSupply,
     };
   }

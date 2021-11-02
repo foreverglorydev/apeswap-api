@@ -10,4 +10,9 @@ export interface GeneralStatsChain {
   totalVolume: number;
   bsc: StatsChain;
   polygon: StatsChain;
+  burntAmount: number;
+  totalSupply: number;
+  circulatingSupply: number;
+  marketCap: number;
+  gnanaCirculatingSupply: number;
 }
