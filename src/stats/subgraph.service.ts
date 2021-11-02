@@ -7,17 +7,28 @@ import {
   swapsData,
   usersPairDayData,
   userPairDayData,
+  polygonLiquidityQuery,
 } from './utils/subgraph.queries';
 
 @Injectable()
 export class SubgraphService {
   logger = new Logger(SubgraphService.name);
   graphUrl = process.env.GRAPH_URL;
+  polygonGraphUrl = process.env.POLYGON_GRAPH_URL;
 
   constructor(private httpService: HttpService) {}
 
   async getVolumeData(): Promise<any> {
     const { data } = await this.querySubraph(liquidityQuery);
+    const volumeData = {
+      liquidity: parseFloat(data.uniswapFactory.totalLiquidityUSD),
+      totalVolume: parseFloat(data.uniswapFactory.totalVolumeUSD),
+    };
+    return volumeData;
+  }
+
+  async getLiquidityPolygonData(): Promise<any> {
+    const { data } = await this.queryPolygonSubraph(polygonLiquidityQuery);
     const volumeData = {
       liquidity: parseFloat(data.uniswapFactory.totalLiquidityUSD),
       totalVolume: parseFloat(data.uniswapFactory.totalVolumeUSD),
@@ -131,6 +142,13 @@ export class SubgraphService {
   async querySubraph(query): Promise<any> {
     const { data } = await this.httpService
       .post(this.graphUrl, { query })
+      .toPromise();
+    return data;
+  }
+
+  async queryPolygonSubraph(query): Promise<any> {
+    const { data } = await this.httpService
+      .post(this.polygonGraphUrl, { query })
       .toPromise();
     return data;
   }

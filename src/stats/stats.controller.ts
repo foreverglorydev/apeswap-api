@@ -7,6 +7,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
+import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { StatsService } from './stats.service';
 
@@ -19,6 +20,12 @@ export class StatsController {
   async getAllStats(): Promise<GeneralStats> {
     this.logger.debug('Called GET /stats');
     return await this.statsService.getAllStats();
+  }
+
+  @Get('/tvl')
+  async getTvlStats(): Promise<GeneralStatsChain> {
+    this.logger.debug('Called GET /tvl');
+    return await this.statsService.getTvlStats();
   }
 
   @Get('/overall')
