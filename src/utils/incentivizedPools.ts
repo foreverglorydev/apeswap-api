@@ -1527,14 +1527,14 @@ export const incentivizedPools = [
   },
   {
     sousId: 132,
-    name: 'GNANA --> WING',
-    address: '0x19407aa76041A0996bfBE813218467D84a160e4E',
-    stakeToken: '0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299',
+    name: 'BANANA --> WING',
+    address: '0x656e0f20509b3eb04dbccae5a0e6c2a08e615e20',
+    stakeToken: '0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95',
     stakeTokenIsLp: false,
     rewardToken: '0x3CB7378565718c64Ab86970802140Cc48eF1f969',
     rewardPerBlock: '2113985',
-    startBlock: 12338830,
-    bonusEndBlock: 14930830,
+    startBlock: 12338557,
+    bonusEndBlock: 14930557,
     abi: BEP20_REWARD_APE_ABI,
   }
 ];
