@@ -222,9 +222,9 @@ export class StatsService {
       this.getGnanaSupply(),
     ]);
     const priceUSD = prices[bananaAddress()].usd;
-
+    const poolsTvlBsc = await this.getTvlBsc();
     const tvl: GeneralStatsChain = {
-      tvl: polygonTvl.liquidity + bscTvl.liquidity,
+      tvl: polygonTvl.liquidity + poolsTvlBsc,
       totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
       totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
       bsc: bscTvl,
@@ -238,6 +238,12 @@ export class StatsService {
     await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
     await this.createTvlStats(tvl);
     return tvl;
+  }
+
+  async getTvlBsc() {
+    const infoStats = await this.findGeneralStats();
+    if (!infoStats) return 0;
+    return infoStats.tvl;
   }
   async getAllStats(): Promise<GeneralStats> {
     try {
