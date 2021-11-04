@@ -224,7 +224,7 @@ export class StatsService {
     const priceUSD = prices[bananaAddress()].usd;
     const poolsTvlBsc = await this.getTvlBsc();
     const tvl: GeneralStatsChain = {
-      tvl: polygonTvl.liquidity + poolsTvlBsc,
+      tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
       totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
       totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
       bsc: bscTvl,
