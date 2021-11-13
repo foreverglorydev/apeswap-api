@@ -1585,4 +1585,16 @@ export const incentivizedPools = [
     bonusEndBlock: 16834950,
     abi: BEP20_REWARD_APE_ABI,
   },
+  {
+    sousId: 137,
+    name: 'GNANA --> LICO',
+    address: '0x7077d94ca36cdcce214a9073fe9e4a865332bfc2',
+    stakeToken: '0xdDb3Bd8645775F59496c821E4F55A7eA6A6dc299',
+    stakeTokenIsLp: false,
+    rewardToken: '0x4F3266a56589357B4f8082918b14B923693e57f0',
+    rewardPerBlock: '34722222222222222',
+    startBlock: 12626034,
+    bonusEndBlock: 16946034,
+    abi: BEP20_REWARD_APE_ABI,
+  }
 ];
