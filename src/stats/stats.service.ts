@@ -188,6 +188,18 @@ export class StatsService {
     return { tvl, volume: parseInt(volume), data };
   }
 
+  async getFarmPrices(): Promise<any> {
+    const farmPrices = {};
+    const allStats = await this.getAllStats();
+    const { farms } = allStats;
+
+    farms.forEach((farm) => {
+      farmPrices[farm.poolIndex] = farm.price;
+    });
+
+    return farmPrices;
+  }
+
   async getTvlStats(): Promise<GeneralStatsChain> {
     try {
       const cachedValue = await this.cacheManager.get('calculateTVLStats');

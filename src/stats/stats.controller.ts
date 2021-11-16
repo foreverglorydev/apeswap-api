@@ -41,6 +41,12 @@ export class StatsController {
     return circulatingSupply;
   }
 
+  @Get('/farmPrices')
+  async getFarmPrices(): Promise<any> {
+    this.logger.debug('Called GET /stats/farmPrices');
+    return await this.statsService.getFarmPrices();
+  }
+
   @Get('/get')
   async get(): Promise<any> {
     this.logger.debug('Called GET /stats/get');
