@@ -18,6 +18,7 @@ import {
 } from 'src/utils/helpers';
 import { multicall } from 'src/utils/lib/multicall';
 import {
+  gBananaTreasury,
   masterApeContractWeb,
   bananaAddress,
   goldenBananaAddress,
@@ -39,6 +40,8 @@ import {
 import { SubgraphService } from './subgraph.service';
 import { Cron } from '@nestjs/schedule';
 import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
+import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
+import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
 
 @Injectable()
 export class StatsService {
@@ -51,10 +54,41 @@ export class StatsService {
     private httpService: HttpService,
     @InjectModel(GeneralStatsDB.name)
     private generalStatsModel: Model<GeneralStatsDocument>,
+    @InjectModel(TvlStats.name)
+    private tvlStatsModel: Model<TvlStatsDocument>,
     private subgraphService: SubgraphService,
     private priceService: PriceService,
   ) {}
 
+  createTvlStats(stats) {
+    return this.tvlStatsModel.updateOne(
+      {},
+      {
+        $set: stats,
+        $currentDate: {
+          createdAt: true,
+        },
+      },
+      {
+        upsert: true,
+        timestamps: true,
+      },
+    );
+  }
+
+  findTvlStats() {
+    return this.tvlStatsModel.findOne();
+  }
+  updateTvlCreatedAtStats() {
+    return this.tvlStatsModel.updateOne(
+      {},
+      {
+        $currentDate: {
+          createdAt: true,
+        },
+      },
+    );
+  }
   createGeneralStats(stats) {
     return this.generalStatsModel.updateOne(
       {},
@@ -71,7 +105,7 @@ export class StatsService {
     );
   }
 
-  findOne() {
+  findGeneralStats() {
     return this.generalStatsModel.findOne();
   }
   updateCreatedAtStats() {
@@ -88,9 +122,12 @@ export class StatsService {
     return this.generalStatsModel.deleteMany();
   }
 
-  async verifyStats() {
+  async verifyStats(model) {
     const now = Date.now();
-    const stats: any = await this.findOne();
+    const stats: any =
+      model === 'general'
+        ? await this.findGeneralStats()
+        : await this.findTvlStats();
     if (!stats?.createdAt) return null;
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
@@ -152,6 +189,75 @@ export class StatsService {
     return { tvl, volume: parseInt(volume), data };
   }
 
+  async getFarmPrices(): Promise<any> {
+    const farmPrices = {};
+    const allStats = await this.getAllStats();
+    const { farms } = allStats;
+
+    farms.forEach((farm) => {
+      farmPrices[farm.poolIndex] = farm.price;
+    });
+
+    return farmPrices;
+  }
+
+  async getTvlStats(): Promise<GeneralStatsChain> {
+    try {
+      const cachedValue = await this.cacheManager.get('calculateTVLStats');
+      if (cachedValue) {
+        this.logger.log('Hit getTvlStats() cache');
+        return cachedValue as GeneralStatsChain;
+      }
+      const infoTvlStats = await this.verifyStats('tvl');
+      if (infoTvlStats) return infoTvlStats;
+      await this.updateTvlCreatedAtStats();
+      this.calculateTvlStats();
+      const tvl: any = await this.findTvlStats();
+      return tvl;
+    } catch (e) {
+      this.logger.error('Something went wrong calculating stats');
+      console.log(e);
+    }
+  }
+
+  async calculateTvlStats() {
+    const [
+      polygonTvl,
+      bscTvl,
+      { burntAmount, totalSupply, circulatingSupply },
+      prices,
+      { circulatingSupply: gnanaCirculatingSupply },
+    ] = await Promise.all([
+      this.subgraphService.getLiquidityPolygonData(),
+      this.subgraphService.getVolumeData(),
+      this.getBurnAndSupply(),
+      this.priceService.getTokenPrices(),
+      this.getGnanaSupply(),
+    ]);
+    const priceUSD = prices[bananaAddress()].usd;
+    const poolsTvlBsc = await this.getTvlBsc();
+    const tvl: GeneralStatsChain = {
+      tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
+      totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
+      totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
+      bsc: bscTvl,
+      polygon: polygonTvl,
+      burntAmount,
+      totalSupply,
+      circulatingSupply,
+      marketCap: circulatingSupply * priceUSD,
+      gnanaCirculatingSupply,
+    };
+    await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
+    await this.createTvlStats(tvl);
+    return tvl;
+  }
+
+  async getTvlBsc() {
+    const infoStats = await this.findGeneralStats();
+    if (!infoStats) return 0;
+    return infoStats.tvl;
+  }
   async getAllStats(): Promise<GeneralStats> {
     try {
       const poolPrices: GeneralStats = await this.getCalculateStats();
@@ -219,12 +325,12 @@ export class StatsService {
       return cachedValue as GeneralStats;
     }
 
-    const infoStats = await this.verifyStats();
+    const infoStats = await this.verifyStats('general');
     if (infoStats) return infoStats;
 
     await this.updateCreatedAtStats();
     this.calculateStats();
-    const generalStats: any = await this.findOne();
+    const generalStats: any = await this.findGeneralStats();
     return generalStats;
   }
 
@@ -301,10 +407,7 @@ export class StatsService {
       poolPrices.tvl += pool.stakedTvl;
     });
 
-    await Promise.all([
-      this.mappingIncetivizedPools(poolPrices, prices),
-      this.getTVLData(poolPrices),
-    ]);
+    await Promise.all([this.mappingIncetivizedPools(poolPrices, prices)]);
 
     poolPrices.incentivizedPools.forEach((pool) => {
       if (!pool.t0Address) {
@@ -474,6 +577,25 @@ export class StatsService {
     return {
       burntAmount,
       totalSupply,
+      circulatingSupply,
+    };
+  }
+
+  async getGnanaSupply() {
+    const gnanaContract = getContract(ERC20_ABI, goldenBananaAddress());
+
+    const decimals = await gnanaContract.methods.decimals().call();
+
+    const [treasury, supply] = await Promise.all([
+      gnanaContract.methods.balanceOf(gBananaTreasury()).call(),
+      gnanaContract.methods.totalSupply().call(),
+    ]);
+
+    const treasuryAmount = treasury / 10 ** decimals;
+    const totalSupply = supply / 10 ** decimals;
+    const circulatingSupply = totalSupply - treasuryAmount;
+
+    return {
       circulatingSupply,
     };
   }
@@ -741,16 +863,6 @@ export class StatsService {
         abi: pool.abi,
       };
     }
-  }
-
-  async getTVLData(poolPrices): Promise<any> {
-    const {
-      liquidity,
-      totalVolume,
-    } = await this.subgraphService.getVolumeData();
-    poolPrices.tvl += liquidity;
-    poolPrices.totalLiquidity += liquidity;
-    poolPrices.totalVolume += totalVolume;
   }
 
   async getTokenBalanceOfAddress(tokenContract, address): Promise<any> {
