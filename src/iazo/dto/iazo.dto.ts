@@ -10,7 +10,9 @@ import {
   Validate,
 } from 'class-validator';
 import { IsAddress } from 'src/utils/validator/isAddress';
+import { IsValidateBoolean } from 'src/utils/validator/isValidateBoolean';
 import { IsValidateDate } from 'src/utils/validator/isValidateDate';
+import { IsValidateNumber } from 'src/utils/validator/isValidateNumber';
 
 export class IazoDto {
   @Validate(IsAddress)
@@ -35,42 +37,34 @@ export class IazoDto {
 
   endBlock?: number;
 
-  @IsOptional()
-  @Min(0)
+  @Validate(IsValidateNumber)
   duration?: number;
 
-  @IsNumber()
-  @IsPositive()
+  @Validate(IsValidateNumber)
   totalPresale: number;
 
-  @IsNumber()
-  @IsPositive()
+  @Validate(IsValidateNumber)
   pricePresale: number;
 
-  @IsNumber()
-  @IsPositive()
+  @Validate(IsValidateNumber)
   limitDefault: number;
 
-  @IsNumber()
-  @IsPositive()
+  @Validate(IsValidateNumber)
   softcap: number;
 
-  @IsNumber()
-  @IsPositive()
+  @Validate(IsValidateNumber)
   hardcap: number;
 
-  @IsBoolean()
+  @Validate(IsValidateBoolean)
   burnRemaining: boolean;
 
-  @IsNumber()
-  @Min(0)
+  @Validate(IsValidateNumber)
   percentageLock: number;
 
-  @IsNumber()
-  @IsPositive()
+  @Validate(IsValidateNumber)
   priceListing: number;
 
-  @IsNumber()
+  @Validate(IsValidateNumber)
   lockTime: number;
 
   @IsNotEmpty()
@@ -88,7 +82,6 @@ export class IazoDto {
   @IsNotEmpty()
   medium: string;
 
-  @IsOptional()
   @IsNotEmpty()
   description?: string;
 

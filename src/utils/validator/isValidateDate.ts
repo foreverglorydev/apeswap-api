@@ -6,7 +6,7 @@ import {
 
 @ValidatorConstraint({ name: 'isValidateDate', async: false })
 export class IsValidateDate implements ValidatorConstraintInterface {
-  validate(date: number) {
+  validate(date: string) {
     const now = new Date();
     if (isNaN(new Date(Number(date)).getTime())) return false;
     if (Number(date) * 1000 < now.getTime()) return false;
