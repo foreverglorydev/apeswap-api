@@ -17,7 +17,7 @@ export class IazoService {
   ) {}
   web3 = getWeb3();
   dataValidate = [];
-  async searchIaoz(filter) {
+  async searchIaoz(filter = {}) {
     return this.iazoModel.find(filter);
   }
 
@@ -37,7 +37,7 @@ export class IazoService {
   }
 
   async fetchIaozs() {
-    return await this.searchIaoz({ approvedAt: { $ne: null } });
+    return await this.searchIaoz();
   }
 
   async getIaozUser(ownerAddress) {
