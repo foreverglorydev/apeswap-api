@@ -12,7 +12,6 @@ import { PriceService } from './price.service';
 import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
-import { incentivizedPools } from 'src/utils/incentivizedPools';
 import {
   getParameterCaseInsensitive,
   createLpPairName,
@@ -40,6 +39,7 @@ import {
 } from './schema/generalStats.schema';
 import { SubgraphService } from './subgraph.service';
 import { Cron } from '@nestjs/schedule';
+import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
 
@@ -47,6 +47,7 @@ import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
 export class StatsService {
   private readonly logger = new Logger(StatsService.name);
   private readonly chainId = parseInt(process.env.CHAIN_ID);
+  private readonly POOL_LIST_URL = process.env.POOL_LIST_URL;
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -620,8 +621,9 @@ export class StatsService {
   }
   async mappingIncetivizedPools(poolPrices, prices) {
     const currentBlockNumber = await getCurrentBlock();
+    const pools = await this.getIncentivizedPools();
     poolPrices.incentivizedPools = await Promise.all(
-      incentivizedPools.map(async (pool) =>
+      pools.map(async (pool) =>
         this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
       ),
     );
@@ -930,5 +932,34 @@ export class StatsService {
     walletStats.aggregateAprPerMonth = (walletStats.aggregateApr * 30) / 365;
 
     return walletStats;
+  }
+
+  async getIncentivizedPools() {
+    const { data } = await this.httpService.get(this.POOL_LIST_URL).toPromise();
+
+    const pools = data.map((pool) => ({
+      sousId: pool.sousId,
+      name: pool.name,
+      address: pool.contractAddress[this.chainId],
+      stakeToken: pool.stakingToken.address[this.chainId],
+      stakeTokenIsLp: pool.stakingToken.lpToken,
+      rewardToken: pool.rewardToken.address[this.chainId],
+      rewardPerBlock: pool.rewardPerBlock,
+      startBlock: pool.startBlock,
+      bonusEndBlock: pool.bonusEndBlock,
+      abi: this.getABI(pool.abi),
+    }));
+
+    return pools;
+  }
+
+  getABI(value) {
+    switch (value) {
+      case 'BEP20_REWARD_APE_ABI':
+        return BEP20_REWARD_APE_ABI;
+
+      default:
+        return BEP20_REWARD_APE_ABI;
+    }
   }
 }
