@@ -936,19 +936,20 @@ export class StatsService {
 
   async getIncentivizedPools() {
     const { data } = await this.httpService.get(this.POOL_LIST_URL).toPromise();
-
-    const pools = data.map((pool) => ({
-      sousId: pool.sousId,
-      name: pool.name,
-      address: pool.contractAddress[this.chainId],
-      stakeToken: pool.stakingToken.address[this.chainId],
-      stakeTokenIsLp: pool.stakingToken.lpToken,
-      rewardToken: pool.rewardToken.address[this.chainId],
-      rewardPerBlock: pool.rewardPerBlock,
-      startBlock: pool.startBlock,
-      bonusEndBlock: pool.bonusEndBlock,
-      abi: this.getABI(pool.abi),
-    }));
+    const pools = data
+      .map((pool) => ({
+        sousId: pool.sousId,
+        name: pool.name,
+        address: pool.contractAddress[this.chainId],
+        stakeToken: pool.stakingToken.address[this.chainId],
+        stakeTokenIsLp: pool.stakingToken.lpToken,
+        rewardToken: pool.rewardToken.address[this.chainId],
+        rewardPerBlock: pool.rewardPerBlock,
+        startBlock: pool.startBlock,
+        bonusEndBlock: pool.bonusEndBlock,
+        abi: this.getABI(pool.abi),
+      }))
+      .filter(({ sousId }) => sousId !== 0);
 
     return pools;
   }
