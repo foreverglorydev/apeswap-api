@@ -256,7 +256,7 @@ export class StatsService {
   async getTvlBsc() {
     const infoStats = await this.findGeneralStats();
     if (!infoStats) return 0;
-    return infoStats.tvl;
+    return infoStats.poolsTvl;
   }
   async getAllStats(): Promise<GeneralStats> {
     try {
@@ -373,13 +373,19 @@ export class StatsService {
     const [
       tokens,
       { burntAmount, totalSupply, circulatingSupply },
-    ] = await Promise.all([this.getTokens(poolInfos), this.getBurnAndSupply()]);
+      { tvl, totalLiquidity, totalVolume },
+    ] = await Promise.all([
+      this.getTokens(poolInfos),
+      this.getBurnAndSupply(),
+      this.getTvlStats(),
+    ]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
-      tvl: 0,
-      totalLiquidity: 0,
-      totalVolume: 0,
+      tvl,
+      poolsTvl: 0,
+      totalLiquidity,
+      totalVolume,
       burntAmount,
       totalSupply,
       circulatingSupply,
@@ -403,8 +409,9 @@ export class StatsService {
         );
       }
     }
+
     poolPrices.pools.forEach((pool) => {
-      poolPrices.tvl += pool.stakedTvl;
+      poolPrices.poolsTvl += pool.stakedTvl;
     });
 
     await Promise.all([this.mappingIncetivizedPools(poolPrices, prices)]);

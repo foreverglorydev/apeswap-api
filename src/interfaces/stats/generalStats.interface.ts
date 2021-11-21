@@ -9,6 +9,7 @@ export interface GeneralStats {
   readonly circulatingSupply: number;
   readonly marketCap: number;
   tvl: number;
+  poolsTvl: number;
   readonly tvlInBnb?: number;
   totalLiquidity: number;
   totalVolume: number;
