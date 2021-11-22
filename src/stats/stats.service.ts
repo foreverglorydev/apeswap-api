@@ -418,7 +418,7 @@ export class StatsService {
 
     poolPrices.incentivizedPools.forEach((pool) => {
       if (!pool.t0Address) {
-        poolPrices.tvl += pool.stakedTvl;
+        poolPrices.poolsTvl += pool.stakedTvl;
       }
     });
 
