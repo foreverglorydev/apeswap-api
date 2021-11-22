@@ -23,6 +23,9 @@ export class GeneralStats {
   @Prop({ required: true })
   tvl: number;
 
+  @Prop({ required: true })
+  poolsTvl: number;
+
   @Prop()
   tvlInBnb: number;
 

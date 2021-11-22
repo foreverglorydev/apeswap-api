@@ -12,13 +12,13 @@ import { PriceService } from './price.service';
 import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
-import { incentivizedPools } from 'src/utils/incentivizedPools';
 import {
   getParameterCaseInsensitive,
   createLpPairName,
 } from 'src/utils/helpers';
 import { multicall } from 'src/utils/lib/multicall';
 import {
+  gBananaTreasury,
   masterApeContractWeb,
   bananaAddress,
   goldenBananaAddress,
@@ -39,21 +39,56 @@ import {
 } from './schema/generalStats.schema';
 import { SubgraphService } from './subgraph.service';
 import { Cron } from '@nestjs/schedule';
+import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
+import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
+import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
 
 @Injectable()
 export class StatsService {
   private readonly logger = new Logger(StatsService.name);
   private readonly chainId = parseInt(process.env.CHAIN_ID);
+  private readonly POOL_LIST_URL = process.env.POOL_LIST_URL;
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private httpService: HttpService,
     @InjectModel(GeneralStatsDB.name)
     private generalStatsModel: Model<GeneralStatsDocument>,
+    @InjectModel(TvlStats.name)
+    private tvlStatsModel: Model<TvlStatsDocument>,
     private subgraphService: SubgraphService,
     private priceService: PriceService,
   ) {}
 
+  createTvlStats(stats) {
+    return this.tvlStatsModel.updateOne(
+      {},
+      {
+        $set: stats,
+        $currentDate: {
+          createdAt: true,
+        },
+      },
+      {
+        upsert: true,
+        timestamps: true,
+      },
+    );
+  }
+
+  findTvlStats() {
+    return this.tvlStatsModel.findOne();
+  }
+  updateTvlCreatedAtStats() {
+    return this.tvlStatsModel.updateOne(
+      {},
+      {
+        $currentDate: {
+          createdAt: true,
+        },
+      },
+    );
+  }
   createGeneralStats(stats) {
     return this.generalStatsModel.updateOne(
       {},
@@ -70,7 +105,7 @@ export class StatsService {
     );
   }
 
-  findOne() {
+  findGeneralStats() {
     return this.generalStatsModel.findOne();
   }
   updateCreatedAtStats() {
@@ -87,9 +122,12 @@ export class StatsService {
     return this.generalStatsModel.deleteMany();
   }
 
-  async verifyStats() {
+  async verifyStats(model) {
     const now = Date.now();
-    const stats: any = await this.findOne();
+    const stats: any =
+      model === 'general'
+        ? await this.findGeneralStats()
+        : await this.findTvlStats();
     if (!stats?.createdAt) return null;
 
     const lastCreatedAt = new Date(stats.createdAt).getTime();
@@ -151,6 +189,75 @@ export class StatsService {
     return { tvl, volume: parseInt(volume), data };
   }
 
+  async getFarmPrices(): Promise<any> {
+    const farmPrices = {};
+    const allStats = await this.getAllStats();
+    const { farms } = allStats;
+
+    farms.forEach((farm) => {
+      farmPrices[farm.poolIndex] = farm.price;
+    });
+
+    return farmPrices;
+  }
+
+  async getTvlStats(): Promise<GeneralStatsChain> {
+    try {
+      const cachedValue = await this.cacheManager.get('calculateTVLStats');
+      if (cachedValue) {
+        this.logger.log('Hit getTvlStats() cache');
+        return cachedValue as GeneralStatsChain;
+      }
+      const infoTvlStats = await this.verifyStats('tvl');
+      if (infoTvlStats) return infoTvlStats;
+      await this.updateTvlCreatedAtStats();
+      this.calculateTvlStats();
+      const tvl: any = await this.findTvlStats();
+      return tvl;
+    } catch (e) {
+      this.logger.error('Something went wrong calculating stats');
+      console.log(e);
+    }
+  }
+
+  async calculateTvlStats() {
+    const [
+      polygonTvl,
+      bscTvl,
+      { burntAmount, totalSupply, circulatingSupply },
+      prices,
+      { circulatingSupply: gnanaCirculatingSupply },
+    ] = await Promise.all([
+      this.subgraphService.getLiquidityPolygonData(),
+      this.subgraphService.getVolumeData(),
+      this.getBurnAndSupply(),
+      this.priceService.getTokenPrices(),
+      this.getGnanaSupply(),
+    ]);
+    const priceUSD = prices[bananaAddress()].usd;
+    const poolsTvlBsc = await this.getTvlBsc();
+    const tvl: GeneralStatsChain = {
+      tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
+      totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
+      totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
+      bsc: bscTvl,
+      polygon: polygonTvl,
+      burntAmount,
+      totalSupply,
+      circulatingSupply,
+      marketCap: circulatingSupply * priceUSD,
+      gnanaCirculatingSupply,
+    };
+    await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
+    await this.createTvlStats(tvl);
+    return tvl;
+  }
+
+  async getTvlBsc() {
+    const infoStats = await this.findGeneralStats();
+    if (!infoStats) return 0;
+    return infoStats.poolsTvl;
+  }
   async getAllStats(): Promise<GeneralStats> {
     try {
       const poolPrices: GeneralStats = await this.getCalculateStats();
@@ -218,12 +325,12 @@ export class StatsService {
       return cachedValue as GeneralStats;
     }
 
-    const infoStats = await this.verifyStats();
+    const infoStats = await this.verifyStats('general');
     if (infoStats) return infoStats;
 
     await this.updateCreatedAtStats();
     this.calculateStats();
-    const generalStats: any = await this.findOne();
+    const generalStats: any = await this.findGeneralStats();
     return generalStats;
   }
 
@@ -266,16 +373,19 @@ export class StatsService {
     const [
       tokens,
       { burntAmount, totalSupply, circulatingSupply },
-      ] = await Promise.all([
-        this.getTokens(poolInfos),
-        this.getBurnAndSupply(),
-      ]);
+      { tvl, totalLiquidity, totalVolume },
+    ] = await Promise.all([
+      this.getTokens(poolInfos),
+      this.getBurnAndSupply(),
+      this.getTvlStats(),
+    ]);
 
     const poolPrices: GeneralStats = {
       bananaPrice: priceUSD,
-      tvl: 0,
-      totalLiquidity: 0,
-      totalVolume: 0,
+      tvl,
+      poolsTvl: 0,
+      totalLiquidity,
+      totalVolume,
       burntAmount,
       totalSupply,
       circulatingSupply,
@@ -299,18 +409,16 @@ export class StatsService {
         );
       }
     }
+
     poolPrices.pools.forEach((pool) => {
-      poolPrices.tvl += pool.stakedTvl;
+      poolPrices.poolsTvl += pool.stakedTvl;
     });
 
-    await Promise.all([
-      this.mappingIncetivizedPools(poolPrices, prices),
-      this.getTVLData(poolPrices),
-    ]);
+    await Promise.all([this.mappingIncetivizedPools(poolPrices, prices)]);
 
     poolPrices.incentivizedPools.forEach((pool) => {
       if (!pool.t0Address) {
-        poolPrices.tvl += pool.stakedTvl;
+        poolPrices.poolsTvl += pool.stakedTvl;
       }
     });
 
@@ -480,6 +588,25 @@ export class StatsService {
     };
   }
 
+  async getGnanaSupply() {
+    const gnanaContract = getContract(ERC20_ABI, goldenBananaAddress());
+
+    const decimals = await gnanaContract.methods.decimals().call();
+
+    const [treasury, supply] = await Promise.all([
+      gnanaContract.methods.balanceOf(gBananaTreasury()).call(),
+      gnanaContract.methods.totalSupply().call(),
+    ]);
+
+    const treasuryAmount = treasury / 10 ** decimals;
+    const totalSupply = supply / 10 ** decimals;
+    const circulatingSupply = totalSupply - treasuryAmount;
+
+    return {
+      circulatingSupply,
+    };
+  }
+
   async getTokens(poolInfos) {
     const tokens = {};
     // eslint-disable-next-line prefer-spread
@@ -501,8 +628,9 @@ export class StatsService {
   }
   async mappingIncetivizedPools(poolPrices, prices) {
     const currentBlockNumber = await getCurrentBlock();
+    const pools = await this.getIncentivizedPools();
     poolPrices.incentivizedPools = await Promise.all(
-      incentivizedPools.map(async (pool) =>
+      pools.map(async (pool) =>
         this.getIncentivizedPoolInfo(pool, prices, currentBlockNumber),
       ),
     );
@@ -620,8 +748,7 @@ export class StatsService {
         pool.rewardToken,
       )?.usd;
       const apr = active
-          ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) /
-            stakedTvl
+        ? (rewardTokenPrice * ((rewardsPerBlock * 86400) / 3) * 365) / stakedTvl
         : 0;
 
       return {
@@ -745,16 +872,6 @@ export class StatsService {
     }
   }
 
-  async getTVLData(poolPrices): Promise<any> {
-    const {
-      liquidity,
-      totalVolume,
-    } = await this.subgraphService.getVolumeData();
-    poolPrices.tvl += liquidity;
-    poolPrices.totalLiquidity += liquidity;
-    poolPrices.totalVolume += totalVolume;
-  }
-
   async getTokenBalanceOfAddress(tokenContract, address): Promise<any> {
     const decimals = await tokenContract.methods.decimals().call();
     return (
@@ -822,5 +939,35 @@ export class StatsService {
     walletStats.aggregateAprPerMonth = (walletStats.aggregateApr * 30) / 365;
 
     return walletStats;
+  }
+
+  async getIncentivizedPools() {
+    const { data } = await this.httpService.get(this.POOL_LIST_URL).toPromise();
+    const pools = data
+      .map((pool) => ({
+        sousId: pool.sousId,
+        name: pool.name,
+        address: pool.contractAddress[this.chainId],
+        stakeToken: pool.stakingToken.address[this.chainId],
+        stakeTokenIsLp: pool.stakingToken.lpToken,
+        rewardToken: pool.rewardToken.address[this.chainId],
+        rewardPerBlock: pool.rewardPerBlock,
+        startBlock: pool.startBlock,
+        bonusEndBlock: pool.bonusEndBlock,
+        abi: this.getABI(pool.abi),
+      }))
+      .filter(({ sousId }) => sousId !== 0);
+
+    return pools;
+  }
+
+  getABI(value) {
+    switch (value) {
+      case 'BEP20_REWARD_APE_ABI':
+        return BEP20_REWARD_APE_ABI;
+
+      default:
+        return BEP20_REWARD_APE_ABI;
+    }
   }
 }

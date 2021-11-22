@@ -7,6 +7,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
+import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { StatsService } from './stats.service';
 
@@ -21,6 +22,12 @@ export class StatsController {
     return await this.statsService.getAllStats();
   }
 
+  @Get('/tvl')
+  async getTvlStats(): Promise<GeneralStatsChain> {
+    this.logger.debug('Called GET /tvl');
+    return await this.statsService.getTvlStats();
+  }
+
   @Get('/overall')
   async getOverallStats(): Promise<GeneralStats> {
     this.logger.debug('Called GET /stats/overall');
@@ -32,6 +39,12 @@ export class StatsController {
     this.logger.debug('Called GET /stats/supply');
     const { circulatingSupply } = await this.statsService.getBurnAndSupply();
     return circulatingSupply;
+  }
+
+  @Get('/farmPrices')
+  async getFarmPrices(): Promise<any> {
+    this.logger.debug('Called GET /stats/farmPrices');
+    return await this.statsService.getFarmPrices();
   }
 
   @Get('/get')

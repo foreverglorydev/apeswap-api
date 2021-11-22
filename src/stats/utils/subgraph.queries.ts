@@ -7,6 +7,15 @@ export const liquidityQuery = `{
       }
     }`;
 
+export const polygonLiquidityQuery = `{
+      uniswapFactory(id: "0xcf083be4164828f00cae704ec15a36d711491284") {
+        id
+        totalVolumeUSD
+        totalLiquidityUSD
+        totalLiquidityETH
+      }
+    }`;
+
 export const pairsQuery = `{
   pairs {
     id
