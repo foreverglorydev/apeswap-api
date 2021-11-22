@@ -24,7 +24,7 @@ export class IazoService {
   async createIazo(iazoDto: Iazo, file) {
     const uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
     iazoDto.status = 'Pending';
-    iazoDto.pathFile = uploadFile.url;
+    iazoDto.pathImage = uploadFile.url;
     const { startBlockTime, endBlockTime } = await this.calculateBlock(
       iazoDto.startDate,
       iazoDto.endDate,
@@ -32,7 +32,7 @@ export class IazoService {
     iazoDto.startBlock = startBlockTime;
     iazoDto.endBlock = endBlockTime;
     // notification Discord
-    this.mailgunService.notifyByEmail('New IAZO', 'iazo', iazoDto);
+    // this.mailgunService.notifyByEmail('New IAZO', 'iazo', iazoDto);
     return this.iazoModel.create(iazoDto);
   }
 

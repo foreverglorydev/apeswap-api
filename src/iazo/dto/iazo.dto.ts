@@ -85,12 +85,10 @@ export class IazoDto {
   @IsNotEmpty()
   description?: string;
 
-  @IsOptional()
-  @IsNotEmpty()
-  pathFile?: string;
 }
 
 export class Iazo extends IazoDto {
+  pathImage?: string;
   status?: string;
   verification?: boolean;
   checked?: boolean;
