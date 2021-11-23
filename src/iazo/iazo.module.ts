@@ -5,6 +5,7 @@ import { IazoService } from './iazo.service';
 import { Iazo, IazoSchema } from './schema/iazo.schema';
 import { CloudinaryModule } from '../services/cloudinary/cloudinary.module';
 import { MailgunModule } from 'src/services/mailgun/mailgun.module';
+import { ChainConfigService } from 'src/config/chain.configuration.service';
 @Module({
   imports: [
     CacheModule.register({
@@ -16,6 +17,6 @@ import { MailgunModule } from 'src/services/mailgun/mailgun.module';
     MailgunModule,
   ],
   controllers: [IazoController],
-  providers: [IazoService],
+  providers: [IazoService, ChainConfigService],
 })
 export class IazoModule {}

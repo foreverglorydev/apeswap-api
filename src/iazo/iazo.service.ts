@@ -6,6 +6,9 @@ import { CloudinaryService } from '../services/cloudinary/cloudinary.service';
 import { Iazo } from './dto/iazo.dto';
 import { Iazo as IazoSchema, IazoDocument } from './schema/iazo.schema';
 import { MailgunService } from 'src/services/mailgun/mailgun.service';
+import { getContract } from 'src/utils/lib/web3';
+import iazoABI from './utils/iazo.json';
+import { ChainConfigService } from 'src/config/chain.configuration.service';
 @Injectable()
 export class IazoService {
   constructor(
@@ -14,7 +17,9 @@ export class IazoService {
     @Inject(CloudinaryService)
     private readonly _cloudinaryService: CloudinaryService,
     private mailgunService: MailgunService,
+    private configService: ChainConfigService,
   ) {}
+  iazoExposerAddress = this.configService.get<string>(`iazoExposer`);
   web3 = getWeb3();
   dataValidate = [];
   async searchIaoz(filter = {}) {
@@ -22,6 +27,7 @@ export class IazoService {
   }
 
   async createIazo(iazoDto: Iazo, file) {
+    await this.validateAddressIazo(iazoDto.iazoAddress)
     const uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
     iazoDto.status = 'Pending';
     iazoDto.pathImage = uploadFile.url;
@@ -79,5 +85,13 @@ export class IazoService {
       Math.round((endTimestamp - Number(blockTimestamp)) / 3) + 20 + block;
 
     return { startBlockTime, endBlockTime };
+  }
+
+  async validateAddressIazo(address) {
+    const iazoContract = getContract(iazoABI, this.iazoExposerAddress);
+    const isRegistered = await iazoContract.methods
+        .IAZOIsRegistered(address)
+        .call();
+    if(!isRegistered) throw new HttpException('Invalid Iazo Address', HttpStatus.BAD_REQUEST);
   }
 }
