@@ -32,7 +32,7 @@ export class IazoService {
     iazoDto.startBlock = startBlockTime;
     iazoDto.endBlock = endBlockTime;
     // notification Discord
-    // this.mailgunService.notifyByEmail('New IAZO', 'iazo', iazoDto);
+    this.mailgunService.notifyByEmail('New IAZO', 'iazo', iazoDto);
     return this.iazoModel.create(iazoDto);
   }
 
