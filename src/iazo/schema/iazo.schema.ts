@@ -11,7 +11,7 @@ export class Iazo {
   @Prop({ required: true })
   token2: string;
 
-  @Prop({ required: true })
+  @Prop({ unique: true, required: true })
   iazoAddress: string;
 
   @Prop({ required: true })

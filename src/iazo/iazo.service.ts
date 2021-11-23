@@ -28,6 +28,8 @@ export class IazoService {
 
   async createIazo(iazoDto: Iazo, file) {
     await this.validateAddressIazo(iazoDto.iazoAddress)
+    const uniqueIazo = await this.searchIaoz({iazoAddress:iazoDto.iazoAddress});
+    if(uniqueIazo.length > 0) throw new HttpException('Iazo already exists', HttpStatus.BAD_REQUEST);
     const uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
     iazoDto.status = 'Pending';
     iazoDto.pathImage = uploadFile.url;
