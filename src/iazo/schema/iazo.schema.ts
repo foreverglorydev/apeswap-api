@@ -77,7 +77,7 @@ export class Iazo {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ required: true })
+  @Prop()
   pathImage: string;
 
   @Prop({ default: null })

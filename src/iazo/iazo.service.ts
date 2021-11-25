@@ -30,9 +30,16 @@ export class IazoService {
     await this.validateAddressIazo(iazoDto.iazoAddress)
     const uniqueIazo = await this.searchIaoz({iazoAddress:iazoDto.iazoAddress});
     if(uniqueIazo.length > 0) throw new HttpException('Iazo already exists', HttpStatus.BAD_REQUEST);
-    const uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
+    let uploadFile = {
+      url: ''
+    }
+    try {
+      uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
+    } catch (error) {
+      console.log('Upload image', error);
+    }
     iazoDto.status = 'Pending';
-    iazoDto.pathImage = uploadFile.url;
+    iazoDto.pathImage = uploadFile?.url;
     const { startBlockTime, endBlockTime } = await this.calculateBlock(
       iazoDto.startDate,
       iazoDto.endDate,
