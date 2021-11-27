@@ -6,16 +6,23 @@ import {
   Param,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { StatsService } from './stats.service';
 
+@ApiTags('stats')
 @Controller('stats')
 @UseInterceptors(CacheInterceptor)
 export class StatsController {
   private readonly logger = new Logger(StatsController.name);
   constructor(private statsService: StatsService) {}
+  
+  @ApiOkResponse({
+    description: 'Retrieved task by ID successfully',
+    type: GeneralStats
+  })
   @Get()
   async getAllStats(): Promise<GeneralStats> {
     this.logger.debug('Called GET /stats');

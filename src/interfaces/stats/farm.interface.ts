@@ -1,4 +1,4 @@
-export interface FarmStats {
+export class FarmStats {
   readonly address: string;
   readonly name: string;
   readonly poolIndex: number;

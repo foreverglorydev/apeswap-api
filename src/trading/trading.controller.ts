@@ -7,9 +7,11 @@ import {
   UseInterceptors,
   Res,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { TradingAllInfoDto } from './dto/tradingAllInfo.dto';
 import { TradingService } from './trading.service';
 
+@ApiTags('trading')
 @Controller('trading')
 @UseInterceptors(CacheInterceptor)
 export class TradingController {

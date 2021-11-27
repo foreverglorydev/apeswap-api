@@ -9,12 +9,14 @@ import {
   UseInterceptors,
   CacheInterceptor,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { NfaSaleDto } from './dto/nfaSale.dto';
 import { Nfa } from './interfaces/nfas.interface';
 import { NfasAuctionService } from './nfas-auction.service';
 import { NfasTrackingService } from './nfas-tracking.service';
 import { NfasService } from './nfas.service';
 
+@ApiTags('nfas')
 @Controller('nfas')
 export class NfasController {
   private readonly logger = new Logger(NfasController.name);

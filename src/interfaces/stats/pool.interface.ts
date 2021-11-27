@@ -1,4 +1,7 @@
-export interface PoolStats {
+import { ApiProperty } from "@nestjs/swagger";
+
+export class PoolStats {
+  @ApiProperty()
   readonly address: string;
   readonly apr: number;
   readonly decimals: string;

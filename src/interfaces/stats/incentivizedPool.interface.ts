@@ -1,4 +1,4 @@
-export interface IncentivizedPoolStats {
+export class IncentivizedPoolStats {
   readonly id: number;
   readonly name: string;
   readonly address: string;
