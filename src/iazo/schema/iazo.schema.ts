@@ -62,7 +62,7 @@ export class Iazo {
   @Prop({ required: true })
   website: string;
 
-  @Prop({ required: true })
+  @Prop()
   whitepaper: string;
 
   @Prop({ required: true })
@@ -74,7 +74,7 @@ export class Iazo {
   @Prop({ required: true })
   medium: string;
 
-  @Prop({ required: true })
+  @Prop()
   description: string;
 
   @Prop()
