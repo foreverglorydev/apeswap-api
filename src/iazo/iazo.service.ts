@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { getWeb3 } from 'src/utils/lib/web3';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -11,6 +17,7 @@ import iazoABI from './utils/iazo.json';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
 @Injectable()
 export class IazoService {
+  maxUploadSizeMb = process.env.MAX_UPLOAD_SIZE || 1;
   constructor(
     @InjectModel(IazoSchema.name)
     private iazoModel: Model<IazoDocument>,
@@ -26,7 +33,7 @@ export class IazoService {
     return this.iazoModel.find(filter);
   }
 
-  async createIazo(iazoDto: Iazo, file) {
+  async createIazo(iazoDto: Iazo, file: Express.Multer.File) {
     await this.validateAddressIazo(iazoDto.iazoAddress);
     const uniqueIazo = await this.searchIaoz({
       iazoAddress: iazoDto.iazoAddress,
@@ -36,6 +43,9 @@ export class IazoService {
     let uploadFile = {
       url: '',
     };
+    const fileSize = file.size / 1024 / 1024; // in MiB
+    if (fileSize > this.maxUploadSizeMb)
+      throw new BadRequestException('Image larger than 1MB');
     try {
       uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
     } catch (error) {
