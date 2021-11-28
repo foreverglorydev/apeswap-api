@@ -20,8 +20,9 @@ export class AuthStrapiMiddleware implements NestMiddleware {
         },
       });
 
-      const roles = user.data?.roles.find((r) => r.id === 1)
-      if(!roles) throw new HttpException('unauthorized', HttpStatus.UNAUTHORIZED);
+      const roles = user.data?.roles.find((r) => r.id === 1);
+      if (!roles)
+        throw new HttpException('unauthorized', HttpStatus.UNAUTHORIZED);
       next();
     } catch (error) {
       throw new HttpException('unauthorized', HttpStatus.UNAUTHORIZED);

@@ -84,7 +84,6 @@ export class IazoDto {
 
   @IsNotEmpty()
   description?: string;
-
 }
 
 export class Iazo extends IazoDto {

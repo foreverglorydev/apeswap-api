@@ -27,12 +27,15 @@ export class IazoService {
   }
 
   async createIazo(iazoDto: Iazo, file) {
-    await this.validateAddressIazo(iazoDto.iazoAddress)
-    const uniqueIazo = await this.searchIaoz({iazoAddress:iazoDto.iazoAddress});
-    if(uniqueIazo.length > 0) throw new HttpException('Iazo already exists', HttpStatus.BAD_REQUEST);
+    await this.validateAddressIazo(iazoDto.iazoAddress);
+    const uniqueIazo = await this.searchIaoz({
+      iazoAddress: iazoDto.iazoAddress,
+    });
+    if (uniqueIazo.length > 0)
+      throw new HttpException('Iazo already exists', HttpStatus.BAD_REQUEST);
     let uploadFile = {
-      url: ''
-    }
+      url: '',
+    };
     try {
       uploadFile = await this._cloudinaryService.uploadBuffer(file.buffer);
     } catch (error) {
@@ -99,8 +102,9 @@ export class IazoService {
   async validateAddressIazo(address) {
     const iazoContract = getContract(iazoABI, this.iazoExposerAddress);
     const isRegistered = await iazoContract.methods
-        .IAZOIsRegistered(address)
-        .call();
-    if(!isRegistered) throw new HttpException('Invalid Iazo Address', HttpStatus.BAD_REQUEST);
+      .IAZOIsRegistered(address)
+      .call();
+    if (!isRegistered)
+      throw new HttpException('Invalid Iazo Address', HttpStatus.BAD_REQUEST);
   }
 }
