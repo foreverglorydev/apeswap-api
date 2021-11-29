@@ -29,6 +29,7 @@ export class IazoService {
   iazoExposerAddress = this.configService.get<string>(`iazoExposer`);
   web3 = getWeb3();
   dataValidate = [];
+
   async searchIaoz(filter = {}) {
     return this.iazoModel.find(filter);
   }
@@ -70,6 +71,10 @@ export class IazoService {
 
   async getIaozUser(ownerAddress) {
     return await this.searchIaoz({ owner: ownerAddress });
+  }
+
+  async getIazoByAddress(address) {
+    return this.searchIaoz({ iazoAddress: address });
   }
 
   async detailIaoz(iazoId) {

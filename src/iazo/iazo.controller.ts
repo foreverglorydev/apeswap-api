@@ -51,6 +51,11 @@ export class IazoController {
   }
 
   @Get(':address')
+  async getIazo(@Param('address') address: string) {
+    return await this.iazoService.getIazoByAddress(address);
+  }
+
+  @Get('owner/:address')
   async getIaozUser(@Param('address') address: string) {
     return await this.iazoService.getIaozUser(address);
   }
