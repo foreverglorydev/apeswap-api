@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -11,6 +12,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApproveIazoDto } from './dto/approveIazo.dto';
 import { IazoDto } from './dto/iazo.dto';
+import { IazoTagDto } from './dto/iazoTag.dto';
 import { IazoService } from './iazo.service';
 
 @Controller('iazo')
@@ -45,9 +47,19 @@ export class IazoController {
     return await this.iazoService.approveIazo(iazoId, approveIazoDto);
   }
 
-  @Put('staff/:id/tags')
-  async updateTagsIazo(@Param('id') iazoId: string, @Body() tags: [string]) {
-    return await this.iazoService.updateTagsIazo(iazoId, tags);
+  @Post('staff/:id/tag')
+  async addTagIazo(@Param('id') iazoId: string, @Body() tag: IazoTagDto) {
+    return await this.iazoService.addTagIazo(iazoId, tag);
+  }
+  
+  @Put('staff/:id/tag/:tagId')
+  async updateTagIazo(@Param('id') iazoId: string, @Body() tag: IazoTagDto, @Param('tagId') tagId: number) {
+    return await this.iazoService.updateTagIazo(iazoId, tag, tagId);
+  }
+  
+  @Delete('staff/:id/tag/:tagId')
+  async removeTagIazo(@Param('id') iazoId: string, @Param('tagId') tagId: number) {
+    return await this.iazoService.removeTagIazo(iazoId, tagId);
   }
 
   @Get(':address')
