@@ -60,6 +60,6 @@ export default () => ({
       'https://bsc-dataseed3.binance.org:443',
       'https://bsc-dataseed4.binance.org:443', */
     ],
-    iazoExposer: '0xac3eB62D001766aD6525Ff410e85eA1101C12E50',
+    iazoExposer: '0x2b12dCfD436dC79CE5130D0D124F1baA6c7bF756',
   },
 });
