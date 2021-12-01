@@ -20,7 +20,6 @@ export class StatsController {
   constructor(private statsService: StatsService) {}
   
   @ApiOkResponse({
-    description: 'Retrieved task by ID successfully',
     type: GeneralStats
   })
   @Get()
@@ -29,12 +28,18 @@ export class StatsController {
     return await this.statsService.getAllStats();
   }
 
+  @ApiOkResponse({
+    type: GeneralStatsChain
+  })
   @Get('/tvl')
   async getTvlStats(): Promise<GeneralStatsChain> {
     this.logger.debug('Called GET /tvl');
     return await this.statsService.getTvlStats();
   }
 
+  @ApiOkResponse({
+    type: GeneralStats
+  })
   @Get('/overall')
   async getOverallStats(): Promise<GeneralStats> {
     this.logger.debug('Called GET /stats/overall');

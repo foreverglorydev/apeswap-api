@@ -34,12 +34,12 @@ export class GeneralStats {
   @ApiProperty()
   totalVolume: number;
   
-  @ApiProperty({ type: () => PoolStats })
+  @ApiProperty({ type: () => [PoolStats] })
   pools: PoolStats[];
   
-  @ApiProperty({ type: () => FarmStats })
+  @ApiProperty({ type: () => [FarmStats] })
   farms: FarmStats[];
   
-  @ApiProperty({ type: () => IncentivizedPoolStats })
+  @ApiProperty({ type: () => [IncentivizedPoolStats] })
   incentivizedPools: IncentivizedPoolStats[];
 }
