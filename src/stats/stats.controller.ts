@@ -59,6 +59,7 @@ export class StatsController {
     return await this.statsService.getFarmPrices();
   }
 
+  @ApiExcludeEndpoint()
   @Get('/get')
   async get(): Promise<any> {
     this.logger.debug('Called GET /stats/get');
