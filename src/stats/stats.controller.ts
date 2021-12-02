@@ -6,7 +6,7 @@ import {
   Param,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
@@ -65,6 +65,7 @@ export class StatsController {
     return this.statsService.getDefistation();
   }
 
+  @ApiExcludeEndpoint()
   @Get(':wallet')
   async getStatsForWallet(@Param('wallet') wallet: string): Promise<string> {
     this.logger.debug('Called GET /stats/:wallet');
