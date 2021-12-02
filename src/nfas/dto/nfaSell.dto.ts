@@ -1,21 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
-
-export class NfaSell {
-  @ApiProperty()
+export class NfaSell{ 
   readonly from: string;
-
-  @ApiProperty()
   readonly to: string;
-
-  @ApiProperty()
   readonly tokenId: number;
-
-  @ApiProperty()
   readonly value: string;
-
-  @ApiProperty()
   readonly transactionHash: string;
-
-  @ApiProperty()
   readonly blockNumber: number;
 }

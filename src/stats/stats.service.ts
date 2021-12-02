@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
+import { GeneralStats } from 'src/interfaces/stats/generalStats.dto';
 import { Cache } from 'cache-manager';
 import { PriceService } from './price.service';
 import { LP_ABI } from './utils/abi/lpAbi';
@@ -30,7 +30,7 @@ import {
   getWalletStatsForFarms,
   getWalletStatsForIncentivizedPools,
 } from './utils/stats.utils';
-import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
+import { WalletStats } from 'src/interfaces/stats/walletStats.dto';
 import { WalletInvalidHttpException } from './exceptions/wallet-invalid.execption';
 import { Model } from 'mongoose';
 import {
@@ -40,7 +40,7 @@ import {
 import { SubgraphService } from './subgraph.service';
 import { Cron } from '@nestjs/schedule';
 import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
-import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
+import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
 
 @Injectable()
