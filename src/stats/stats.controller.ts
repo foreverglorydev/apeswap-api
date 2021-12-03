@@ -6,13 +6,14 @@ import {
   Param,
   UseInterceptors,
 } from '@nestjs/common';
+import { SentryInterceptor } from 'src/interceptor/sentry.interceptor';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
 import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { StatsService } from './stats.service';
 
 @Controller('stats')
-@UseInterceptors(CacheInterceptor)
+@UseInterceptors(CacheInterceptor, SentryInterceptor)
 export class StatsController {
   private readonly logger = new Logger(StatsController.name);
   constructor(private statsService: StatsService) {}
