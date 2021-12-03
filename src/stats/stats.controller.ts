@@ -6,15 +6,15 @@ import {
   Param,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiExcludeEndpoint, ApiInternalServerErrorResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.dto';
 import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
-import { WalletStats } from 'src/interfaces/stats/walletStats.dto';
+import { SentryInterceptor } from 'src/interceptor/sentry.interceptor';
 import { StatsService } from './stats.service';
 
 @ApiTags('stats')
 @Controller('stats')
-@UseInterceptors(CacheInterceptor)
+@UseInterceptors(CacheInterceptor, SentryInterceptor)
 export class StatsController {
   private readonly logger = new Logger(StatsController.name);
   constructor(private statsService: StatsService) {}
