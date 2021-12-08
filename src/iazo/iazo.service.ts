@@ -144,11 +144,12 @@ export class IazoService {
   }
 
   async validateIazo({ address, transactionHash }) {
-    const retry = 0;
+    let retry = 0;
     let isMined = await isTransactionMined(transactionHash);
     while (!isMined && retry < 20) {
       await sleep(retry * 200);
       isMined = await isTransactionMined(transactionHash);
+      retry++;
     }
     if (!isMined)
       throw new HttpException(
