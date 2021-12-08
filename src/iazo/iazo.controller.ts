@@ -10,6 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { isTransactionMined } from 'src/utils/lib/web3';
 import { ApproveIazoDto } from './dto/approveIazo.dto';
 import { IazoDto } from './dto/iazo.dto';
 import { IazoTagDto } from './dto/iazoTag.dto';

@@ -84,6 +84,9 @@ export class IazoDto {
 
   @IsNotEmpty()
   description?: string;
+
+  @IsNotEmpty()
+  createTransactionHash?: string;
 }
 
 export class Iazo extends IazoDto {
