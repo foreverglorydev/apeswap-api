@@ -131,14 +131,21 @@ export class IazoService {
   }
 
   async validateIazo({ address, transactionHash }) {
-    let retry = 0;
-    let isMined = await isTransactionMined(transactionHash);
-    while (!isMined && retry < 20) {
-      await sleep(retry * 200);
-      isMined = await isTransactionMined(transactionHash);
-      retry++;
+    try {
+      let retry = 0;
+      let isMined = await isTransactionMined(transactionHash);
+      while (!isMined && retry < 20) {
+        await sleep(retry * 200);
+        isMined = await isTransactionMined(transactionHash);
+        retry++;
+      }
+      if (!isMined) return false;
+      const result = await this.validateAddressIazo(address);
+      return result;
+    } catch (e) {
+      console.log(e);
+      this.logger.error('SS-IAO validation failed');
+      return false;
     }
-    if (!isMined) return false;
-    return this.validateAddressIazo(address);
   }
 }
