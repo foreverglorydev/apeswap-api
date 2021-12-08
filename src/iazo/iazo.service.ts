@@ -5,7 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { getWeb3 } from 'src/utils/lib/web3';
+import { getWeb3, isTransactionMined } from 'src/utils/lib/web3';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CloudinaryService } from '../services/cloudinary/cloudinary.service';
@@ -15,6 +15,8 @@ import { MailgunService } from 'src/services/mailgun/mailgun.service';
 import { getContract } from 'src/utils/lib/web3';
 import iazoABI from './utils/iazo.json';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
+import sleep from 'sleep-promise';
+
 @Injectable()
 export class IazoService {
   maxUploadSizeMb = process.env.MAX_UPLOAD_SIZE || 1;
@@ -35,7 +37,10 @@ export class IazoService {
   }
 
   async createIazo(iazoDto: Iazo, file: Express.Multer.File) {
-    await this.validateAddressIazo(iazoDto.iazoAddress);
+    await this.validateIazo({
+      address: iazoDto.iazoAddress,
+      transactionHash: iazoDto.createTransactionHash,
+    });
     const uniqueIazo = await this.searchIaoz({
       iazoAddress: iazoDto.iazoAddress,
     });
@@ -98,22 +103,22 @@ export class IazoService {
   }
 
   async addTagIazo(_id, tags) {
-    const iazo = await this.detailIaoz(_id)
-    const data = [...iazo.tags, tags]
+    const iazo = await this.detailIaoz(_id);
+    const data = [...iazo.tags, tags];
     return await this.iazoModel.updateOne({ _id }, { tags: data });
   }
-  
+
   async updateTagIazo(_id, tags, position) {
-    const iazo = await this.detailIaoz(_id)
-    iazo.tags[position] = tags
-    const data = [...iazo.tags]
+    const iazo = await this.detailIaoz(_id);
+    iazo.tags[position] = tags;
+    const data = [...iazo.tags];
     return await this.iazoModel.updateOne({ _id }, { tags: data });
   }
-  
+
   async removeTagIazo(_id, position) {
-    const iazo = await this.detailIaoz(_id)
-    iazo.tags.splice(position, 1)
-    return await this.iazoModel.updateOne({ _id }, { tags:  iazo.tags });
+    const iazo = await this.detailIaoz(_id);
+    iazo.tags.splice(position, 1);
+    return await this.iazoModel.updateOne({ _id }, { tags: iazo.tags });
   }
 
   async calculateBlock(startTimestamp, endTimestamp) {
@@ -136,5 +141,21 @@ export class IazoService {
       .call();
     if (!isRegistered)
       throw new HttpException('Invalid Iazo Address', HttpStatus.BAD_REQUEST);
+  }
+
+  async validateIazo({ address, transactionHash }) {
+    let retry = 0;
+    let isMined = await isTransactionMined(transactionHash);
+    while (!isMined && retry < 20) {
+      await sleep(retry * 200);
+      isMined = await isTransactionMined(transactionHash);
+      retry++;
+    }
+    if (!isMined)
+      throw new HttpException(
+        'Transaction hash not found or mined',
+        HttpStatus.BAD_REQUEST,
+      );
+    return this.validateAddressIazo(address);
   }
 }
