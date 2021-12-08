@@ -25,7 +25,7 @@ export default () => ({
       'https://data-seed-prebsc-2-s2.binance.org:8545',
       'https://data-seed-prebsc-2-s2.binance.org:8545',
     ],
-    iazoExposer: '0x10849141ac05D41766dCBAa75A178b428BE0930B',
+    iazoExposer: '0xe977E40f29f699F75db2A137Af0B3Db2152404b6',
   },
   56: {
     lottery: {
