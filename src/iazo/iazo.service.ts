@@ -98,22 +98,22 @@ export class IazoService {
   }
 
   async addTagIazo(_id, tags) {
-    const iazo = await this.detailIaoz(_id)
-    const data = [...iazo.tags, tags]
+    const iazo = await this.detailIaoz(_id);
+    const data = [...iazo.tags, tags];
     return await this.iazoModel.updateOne({ _id }, { tags: data });
   }
-  
+
   async updateTagIazo(_id, tags, position) {
-    const iazo = await this.detailIaoz(_id)
-    iazo.tags[position] = tags
-    const data = [...iazo.tags]
+    const iazo = await this.detailIaoz(_id);
+    iazo.tags[position] = tags;
+    const data = [...iazo.tags];
     return await this.iazoModel.updateOne({ _id }, { tags: data });
   }
-  
+
   async removeTagIazo(_id, position) {
-    const iazo = await this.detailIaoz(_id)
-    iazo.tags.splice(position, 1)
-    return await this.iazoModel.updateOne({ _id }, { tags:  iazo.tags });
+    const iazo = await this.detailIaoz(_id);
+    iazo.tags.splice(position, 1);
+    return await this.iazoModel.updateOne({ _id }, { tags: iazo.tags });
   }
 
   async calculateBlock(startTimestamp, endTimestamp) {

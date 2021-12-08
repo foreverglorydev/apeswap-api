@@ -51,14 +51,21 @@ export class IazoController {
   async addTagIazo(@Param('id') iazoId: string, @Body() tag: IazoTagDto) {
     return await this.iazoService.addTagIazo(iazoId, tag);
   }
-  
+
   @Put('staff/:id/tag/:tagId')
-  async updateTagIazo(@Param('id') iazoId: string, @Body() tag: IazoTagDto, @Param('tagId') tagId: number) {
+  async updateTagIazo(
+    @Param('id') iazoId: string,
+    @Body() tag: IazoTagDto,
+    @Param('tagId') tagId: number,
+  ) {
     return await this.iazoService.updateTagIazo(iazoId, tag, tagId);
   }
-  
+
   @Delete('staff/:id/tag/:tagId')
-  async removeTagIazo(@Param('id') iazoId: string, @Param('tagId') tagId: number) {
+  async removeTagIazo(
+    @Param('id') iazoId: string,
+    @Param('tagId') tagId: number,
+  ) {
     return await this.iazoService.removeTagIazo(iazoId, tagId);
   }
 
