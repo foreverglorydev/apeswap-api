@@ -69,7 +69,7 @@ export class LotteryService {
     const numbers2: Array<number> = numbers2Res.map((n) => parseInt(n) / 1e18);
 
     const lotteryDate = generateLotteryDate(lotteryNumber);
-    const ratesToUse = getRates(lotteryNumber);
+    const ratesToUse = getRates();
     const ticketPrice = getTicketPrice(lotteryNumber);
     const poolSize = numbers2[0];
     const lottery: SingleLottery = {
@@ -162,10 +162,7 @@ export class LotteryService {
         return {
           lotteryNumber: x.issueIndex,
           poolSize: ceilDecimal(x.numbers2[0], 2),
-          burned: ceilDecimal(
-            (x.numbers2[0] / 100) * getRates(x.issueIndex).burn,
-            2,
-          ),
+          burned: ceilDecimal((x.numbers2[0] / 100) * getRates().burn, 2),
         };
       },
     );

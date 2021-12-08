@@ -1,6 +1,5 @@
 import { HttpService, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { getRoundedDate } from 'src/utils/date';
 import { GetCandleDataDto } from './pairs.dto';

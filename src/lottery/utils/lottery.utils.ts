@@ -136,7 +136,7 @@ export const getTicketPrice = (index: number): number => {
 /**
  * @param index
  */
-export const getRates = (index: number): Rates => {
+export const getRates = (): Rates => {
   return rates;
 };
 

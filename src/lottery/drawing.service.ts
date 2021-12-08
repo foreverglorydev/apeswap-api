@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Cron } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { getWeb3 } from 'src/utils/lib/web3';

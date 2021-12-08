@@ -42,6 +42,7 @@ import { Cron } from '@nestjs/schedule';
 import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
+import * as Sentry from '@sentry/node';
 
 @Injectable()
 export class StatsService {
@@ -335,97 +336,101 @@ export class StatsService {
   }
 
   async calculateStats() {
-    const masterApeContract = masterApeContractWeb();
+    try {
+      const masterApeContract = masterApeContractWeb();
 
-    const poolCount = parseInt(
-      await masterApeContract.methods.poolLength().call(),
-      10,
-    );
+      const poolCount = parseInt(
+        await masterApeContract.methods.poolLength().call(),
+        10,
+      );
 
-    const poolInfos = await Promise.all(
-      [...Array(poolCount).keys()].map(async (x) =>
-        this.getPoolInfo(masterApeContract, x),
-      ),
-    );
+      const poolInfos = await Promise.all(
+        [...Array(poolCount).keys()].map(async (x) =>
+          this.getPoolInfo(masterApeContract, x),
+        ),
+      );
 
-    const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
-      masterApeContract.methods.totalAllocPoint().call(),
-      this.priceService.getTokenPrices(),
-      (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
-        86400) /
-        3,
-    ]);
+      const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
+        masterApeContract.methods.totalAllocPoint().call(),
+        this.priceService.getTokenPrices(),
+        (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
+          86400) /
+          3,
+      ]);
 
-    // If Banana price not returned from Subgraph, calculating using pools
-    if (!prices[bananaAddress()]) {
-      prices[bananaAddress()] = {
-        usd: getBananaPriceWithPoolList(poolInfos, prices),
+      // If Banana price not returned from Subgraph, calculating using pools
+      if (!prices[bananaAddress()]) {
+        prices[bananaAddress()] = {
+          usd: getBananaPriceWithPoolList(poolInfos, prices),
+        };
+      }
+
+      // Set GoldenBanana Price = banana price / 0.72
+      prices[goldenBananaAddress()] = {
+        usd: prices[bananaAddress()].usd / 0.72,
       };
-    }
 
-    // Set GoldenBanana Price = banana price / 0.72
-    prices[goldenBananaAddress()] = {
-      usd: prices[bananaAddress()].usd / 0.72,
-    };
+      const priceUSD = prices[bananaAddress()].usd;
 
-    const priceUSD = prices[bananaAddress()].usd;
+      const [
+        tokens,
+        { burntAmount, totalSupply, circulatingSupply },
+        { tvl, totalLiquidity, totalVolume },
+      ] = await Promise.all([
+        this.getTokens(poolInfos),
+        this.getBurnAndSupply(),
+        this.getTvlStats(),
+      ]);
 
-    const [
-      tokens,
-      { burntAmount, totalSupply, circulatingSupply },
-      { tvl, totalLiquidity, totalVolume },
-    ] = await Promise.all([
-      this.getTokens(poolInfos),
-      this.getBurnAndSupply(),
-      this.getTvlStats(),
-    ]);
+      const poolPrices: GeneralStats = {
+        bananaPrice: priceUSD,
+        tvl,
+        poolsTvl: 0,
+        totalLiquidity,
+        totalVolume,
+        burntAmount,
+        totalSupply,
+        circulatingSupply,
+        marketCap: circulatingSupply * priceUSD,
+        pools: [],
+        farms: [],
+        incentivizedPools: [],
+      };
 
-    const poolPrices: GeneralStats = {
-      bananaPrice: priceUSD,
-      tvl,
-      poolsTvl: 0,
-      totalLiquidity,
-      totalVolume,
-      burntAmount,
-      totalSupply,
-      circulatingSupply,
-      marketCap: circulatingSupply * priceUSD,
-      pools: [],
-      farms: [],
-      incentivizedPools: [],
-    };
-
-    for (let i = 0; i < poolInfos.length; i++) {
-      if (poolInfos[i].poolToken) {
-        getPoolPrices(
-          tokens,
-          prices,
-          poolInfos[i].poolToken,
-          poolPrices,
-          i,
-          poolInfos[i].allocPoints,
-          totalAllocPoints,
-          rewardsPerDay,
-        );
+      for (let i = 0; i < poolInfos.length; i++) {
+        if (poolInfos[i].poolToken) {
+          getPoolPrices(
+            tokens,
+            prices,
+            poolInfos[i].poolToken,
+            poolPrices,
+            i,
+            poolInfos[i].allocPoints,
+            totalAllocPoints,
+            rewardsPerDay,
+          );
+        }
       }
-    }
 
-    poolPrices.pools.forEach((pool) => {
-      poolPrices.poolsTvl += pool.stakedTvl;
-    });
-
-    await Promise.all([this.mappingIncetivizedPools(poolPrices, prices)]);
-
-    poolPrices.incentivizedPools.forEach((pool) => {
-      if (!pool.t0Address) {
+      poolPrices.pools.forEach((pool) => {
         poolPrices.poolsTvl += pool.stakedTvl;
-      }
-    });
+      });
 
-    await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
-    await this.createGeneralStats(poolPrices);
+      await Promise.all([this.mappingIncetivizedPools(poolPrices, prices)]);
 
-    return poolPrices;
+      poolPrices.incentivizedPools.forEach((pool) => {
+        if (!pool.t0Address) {
+          poolPrices.poolsTvl += pool.stakedTvl;
+        }
+      });
+
+      await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
+      await this.createGeneralStats(poolPrices);
+
+      return poolPrices;
+    } catch (error) {
+      Sentry.captureException(error);
+    }
   }
 
   async getPoolInfo(masterApeContract, poolIndex) {

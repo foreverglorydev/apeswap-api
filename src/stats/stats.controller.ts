@@ -3,13 +3,11 @@ import {
   Controller,
   Get,
   Logger,
-  Param,
   UseInterceptors,
 } from '@nestjs/common';
 import { SentryInterceptor } from 'src/interceptor/sentry.interceptor';
 import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
 import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
-import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
 import { StatsService } from './stats.service';
 
 @Controller('stats')
@@ -55,7 +53,7 @@ export class StatsController {
   }
 
   @Get(':wallet')
-  async getStatsForWallet(@Param('wallet') wallet: string): Promise<string> {
+  async getStatsForWallet(): Promise<string> {
     this.logger.debug('Called GET /stats/:wallet');
     // return this.statsService.getStatsForWallet(wallet);
     return 'Depcrecated';

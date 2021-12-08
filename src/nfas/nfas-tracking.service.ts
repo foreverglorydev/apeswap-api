@@ -91,7 +91,7 @@ export class NfasTrackingService {
     const transactionReceipt = await this.provider.getTransactionReceipt(
       event.transactionHash,
     );
-    transactionReceipt.logs.map((log) => {
+    (transactionReceipt.logs || []).map((log) => {
       if (log.address === this.wbnb_address) {
         value += parseInt(this.wbnbIface.parseLog(log).args[2]);
       }
@@ -107,7 +107,7 @@ export class NfasTrackingService {
     const parsed = this.iface.parseLog(event);
     const { from, to } = parsed.args;
     const tokenId = parsed.args[2].toNumber();
-    const value = transaction.value.toString();
+    const value = transaction.value?.toString() || '0';
     const { transactionHash, blockNumber } = event;
     const transferEvent = {
       from,

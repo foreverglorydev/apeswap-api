@@ -16,7 +16,7 @@ async function bootstrap() {
   Sentry.init({
     dsn:
       'https://5bf636b44d6c468fbc66200265fa9e5d@o1079316.ingest.sentry.io/6083993',
-    environment: 'develop',
+    environment: process.env.NODE_ENV || 'develop',
   });
   await app.listen(process.env.PORT || 8080);
 }

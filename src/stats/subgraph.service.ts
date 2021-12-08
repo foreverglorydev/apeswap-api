@@ -128,7 +128,7 @@ export class SubgraphService {
       this.getPairsData(),
     ]);
     return {
-      volume: dailyData.dailyVolumeUSD,
+      volume: dailyData?.dailyVolumeUSD,
       tvl: tvlData.tvl,
       pairs: pairData.pairs,
     };
