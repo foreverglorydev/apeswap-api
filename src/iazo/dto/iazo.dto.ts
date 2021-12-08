@@ -33,10 +33,6 @@ export class IazoDto {
   @Validate(IsValidateDate)
   endDate: number;
 
-  startBlock?: number;
-
-  endBlock?: number;
-
   @Validate(IsValidateNumber)
   duration?: number;
 
