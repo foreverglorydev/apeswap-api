@@ -10,6 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { isTransactionMined } from 'src/utils/lib/web3';
 import { ApproveIazoDto } from './dto/approveIazo.dto';
 import { IazoDto } from './dto/iazo.dto';
 import { IazoTagDto } from './dto/iazoTag.dto';
@@ -51,14 +52,21 @@ export class IazoController {
   async addTagIazo(@Param('id') iazoId: string, @Body() tag: IazoTagDto) {
     return await this.iazoService.addTagIazo(iazoId, tag);
   }
-  
+
   @Put('staff/:id/tag/:tagId')
-  async updateTagIazo(@Param('id') iazoId: string, @Body() tag: IazoTagDto, @Param('tagId') tagId: number) {
+  async updateTagIazo(
+    @Param('id') iazoId: string,
+    @Body() tag: IazoTagDto,
+    @Param('tagId') tagId: number,
+  ) {
     return await this.iazoService.updateTagIazo(iazoId, tag, tagId);
   }
-  
+
   @Delete('staff/:id/tag/:tagId')
-  async removeTagIazo(@Param('id') iazoId: string, @Param('tagId') tagId: number) {
+  async removeTagIazo(
+    @Param('id') iazoId: string,
+    @Param('tagId') tagId: number,
+  ) {
     return await this.iazoService.removeTagIazo(iazoId, tagId);
   }
 

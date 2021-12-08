@@ -14,8 +14,9 @@ async function bootstrap() {
   auctionService.listenToEvents();
   app.useGlobalPipes(new ValidationPipe());
   Sentry.init({
-    dsn: 'https://5bf636b44d6c468fbc66200265fa9e5d@o1079316.ingest.sentry.io/6083993',
-    environment: 'develop'
+    dsn:
+      'https://5bf636b44d6c468fbc66200265fa9e5d@o1079316.ingest.sentry.io/6083993',
+    environment: 'develop',
   });
   await app.listen(process.env.PORT || 8080);
 }
