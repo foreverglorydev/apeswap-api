@@ -23,12 +23,6 @@ export class Iazo {
   @Prop({ required: true })
   endDate: number;
 
-  @Prop({ default: null })
-  startBlock: number;
-
-  @Prop({ default: null })
-  endBlock: number;
-
   @Prop({ required: true })
   duration: number;
 
