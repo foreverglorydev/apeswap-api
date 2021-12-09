@@ -432,7 +432,10 @@ export class StatsService {
     const poolInfo = await masterApeContract.methods.poolInfo(poolIndex).call();
     // Determine if Bep20 or Lp token
     const poolToken =
-      poolIndex !== 0 && poolIndex !== 75 && poolIndex !== 112 && poolIndex !== 162
+      poolIndex !== 0 &&
+      poolIndex !== 75 &&
+      poolIndex !== 112 &&
+      poolIndex !== 162
         ? await this.getLpInfo(poolInfo.lpToken, masterApeContractAddress())
         : await this.getTokenInfo(poolInfo.lpToken, masterApeContractAddress());
 

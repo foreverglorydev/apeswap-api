@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NfasAuctionService } from './nfas/nfas-auction.service';
@@ -19,9 +20,11 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+  app.useGlobalPipes(new ValidationPipe());
   Sentry.init({
-    dsn: 'https://5bf636b44d6c468fbc66200265fa9e5d@o1079316.ingest.sentry.io/6083993',
-    environment: 'develop'
+    dsn:
+      'https://5bf636b44d6c468fbc66200265fa9e5d@o1079316.ingest.sentry.io/6083993',
+    environment: 'develop',
   });
   await app.listen(process.env.PORT || 8080);
 }

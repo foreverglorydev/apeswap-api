@@ -41,6 +41,20 @@ export const getContract = (abi: any, address: string) => {
   return new web3.eth.Contract(abi, address);
 };
 
+export const isTransactionMined = async (transactionHash) => {
+  try {
+    const txReceipt = await getWeb3().eth.getTransactionReceipt(
+      transactionHash,
+    );
+    if (txReceipt && txReceipt.blockNumber) {
+      return true;
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+};
+
 export const getCurrentBlock = async () => {
   return await getRandomWeb3().eth.getBlockNumber();
 };
