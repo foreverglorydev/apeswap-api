@@ -18,9 +18,9 @@ import { StatsService } from './stats.service';
 export class StatsController {
   private readonly logger = new Logger(StatsController.name);
   constructor(private statsService: StatsService) {}
-  
+
   @ApiOkResponse({
-    type: GeneralStats
+    type: GeneralStats,
   })
   @Get()
   async getAllStats(): Promise<GeneralStats> {
@@ -29,7 +29,7 @@ export class StatsController {
   }
 
   @ApiOkResponse({
-    type: GeneralStatsChain
+    type: GeneralStatsChain,
   })
   @Get('/tvl')
   async getTvlStats(): Promise<GeneralStatsChain> {
@@ -38,7 +38,7 @@ export class StatsController {
   }
 
   @ApiOkResponse({
-    type: GeneralStats
+    type: GeneralStats,
   })
   @Get('/overall')
   async getOverallStats(): Promise<GeneralStats> {

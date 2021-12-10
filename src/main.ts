@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NfasAuctionService } from './nfas/nfas-auction.service';
 import { NfasTrackingService } from './nfas/nfas-tracking.service';
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as Sentry from '@sentry/node';
 
 async function bootstrap() {

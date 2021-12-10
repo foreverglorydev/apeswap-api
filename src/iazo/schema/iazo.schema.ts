@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
+import { TagLinkDto } from '../dto/iazoTag.dto';
 
 export type IazoDocument = Iazo & Document;
 
@@ -96,7 +97,7 @@ export class Iazo {
   createdAt: Date;
 
   @Prop()
-  tags: [string];
+  tags: [TagLinkDto];
 }
 
 export const IazoSchema = SchemaFactory.createForClass(Iazo);

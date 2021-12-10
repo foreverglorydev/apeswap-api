@@ -1,4 +1,4 @@
-export class PoolStats{
+export class PoolStats {
   readonly address: string;
   readonly apr: number;
   readonly decimals: string;

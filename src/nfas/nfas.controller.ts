@@ -68,7 +68,7 @@ export class NfasController {
   }
 
   @ApiOkResponse({
-    type: [NfaBid]
+    type: [NfaBid],
   })
   @Get('latestBids')
   @UseInterceptors(CacheInterceptor)
@@ -78,7 +78,7 @@ export class NfasController {
   }
 
   @ApiOkResponse({
-    type: [NfaBid]
+    type: [NfaBid],
   })
   @Get('bids/:index')
   async getNfaBods(@Param('index') index: number): Promise<any> {
@@ -87,7 +87,7 @@ export class NfasController {
   }
 
   @ApiOkResponse({
-    type: [NfaBid]
+    type: [NfaBid],
   })
   @Get('transactions/:index')
   async getNfaTransactions(@Param('index') index: number): Promise<any> {
@@ -96,7 +96,7 @@ export class NfasController {
   }
 
   @ApiOkResponse({
-    type: [NfaSell]
+    type: [NfaSell],
   })
   @Get('history/:index')
   async getNfaSellHistory(@Param('index') index: number): Promise<any> {
@@ -105,7 +105,7 @@ export class NfasController {
   }
 
   @ApiOkResponse({
-    type: [NfaSell]
+    type: [NfaSell],
   })
   @Get('transactions/descBlock/:index')
   async getNfaTransactionHistoryDescendingBlock(

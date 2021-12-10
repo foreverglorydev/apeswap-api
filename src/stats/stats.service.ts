@@ -58,7 +58,7 @@ export class StatsService {
     private tvlStatsModel: Model<TvlStatsDocument>,
     private subgraphService: SubgraphService,
     private priceService: PriceService,
-  ) { }
+  ) {}
 
   createTvlStats(stats) {
     return this.tvlStatsModel.updateOne(
@@ -335,97 +335,97 @@ export class StatsService {
   }
 
   async calculateStats() {
-      const masterApeContract = masterApeContractWeb();
+    const masterApeContract = masterApeContractWeb();
 
-      const poolCount = parseInt(
-        await masterApeContract.methods.poolLength().call(),
-        10,
-      );
+    const poolCount = parseInt(
+      await masterApeContract.methods.poolLength().call(),
+      10,
+    );
 
-      const poolInfos = await Promise.all(
-        [...Array(poolCount).keys()].map(async (x) =>
-          this.getPoolInfo(masterApeContract, x),
-        ),
-      );
+    const poolInfos = await Promise.all(
+      [...Array(poolCount).keys()].map(async (x) =>
+        this.getPoolInfo(masterApeContract, x),
+      ),
+    );
 
-      const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
-        masterApeContract.methods.totalAllocPoint().call(),
-        this.priceService.getTokenPrices(),
-        (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
-          86400) /
+    const [totalAllocPoints, prices, rewardsPerDay] = await Promise.all([
+      masterApeContract.methods.totalAllocPoint().call(),
+      this.priceService.getTokenPrices(),
+      (((await masterApeContract.methods.cakePerBlock().call()) / 1e18) *
+        86400) /
         3,
-      ]);
+    ]);
 
-      // If Banana price not returned from Subgraph, calculating using pools
-      if (!prices[bananaAddress()]) {
-        prices[bananaAddress()] = {
-          usd: getBananaPriceWithPoolList(poolInfos, prices),
-        };
-      }
-
-      // Set GoldenBanana Price = banana price / 0.72
-      prices[goldenBananaAddress()] = {
-        usd: prices[bananaAddress()].usd / 0.72,
+    // If Banana price not returned from Subgraph, calculating using pools
+    if (!prices[bananaAddress()]) {
+      prices[bananaAddress()] = {
+        usd: getBananaPriceWithPoolList(poolInfos, prices),
       };
+    }
 
-      const priceUSD = prices[bananaAddress()].usd;
+    // Set GoldenBanana Price = banana price / 0.72
+    prices[goldenBananaAddress()] = {
+      usd: prices[bananaAddress()].usd / 0.72,
+    };
 
-      const [
-        tokens,
-        { burntAmount, totalSupply, circulatingSupply },
-        { tvl, totalLiquidity, totalVolume },
-      ] = await Promise.all([
-        this.getTokens(poolInfos),
-        this.getBurnAndSupply(),
-        this.getTvlStats(),
-      ]);
-      
-      const poolPrices: GeneralStats = {
-        bananaPrice: priceUSD,
-        tvl,
-        poolsTvl: 0,
-        totalLiquidity,
-        totalVolume,
-        burntAmount,
-        totalSupply,
-        circulatingSupply,
-        marketCap: circulatingSupply * priceUSD,
-        pools: [],
-        farms: [],
-        incentivizedPools: [],
-      };
+    const priceUSD = prices[bananaAddress()].usd;
 
-      for (let i = 0; i < poolInfos.length; i++) {
-        if (poolInfos[i].poolToken) {
-          getPoolPrices(
-            tokens,
-            prices,
-            poolInfos[i].poolToken,
-            poolPrices,
-            i,
-            poolInfos[i].allocPoints,
-            totalAllocPoints,
-            rewardsPerDay,
-          );
-        }
+    const [
+      tokens,
+      { burntAmount, totalSupply, circulatingSupply },
+      { tvl, totalLiquidity, totalVolume },
+    ] = await Promise.all([
+      this.getTokens(poolInfos),
+      this.getBurnAndSupply(),
+      this.getTvlStats(),
+    ]);
+
+    const poolPrices: GeneralStats = {
+      bananaPrice: priceUSD,
+      tvl,
+      poolsTvl: 0,
+      totalLiquidity,
+      totalVolume,
+      burntAmount,
+      totalSupply,
+      circulatingSupply,
+      marketCap: circulatingSupply * priceUSD,
+      pools: [],
+      farms: [],
+      incentivizedPools: [],
+    };
+
+    for (let i = 0; i < poolInfos.length; i++) {
+      if (poolInfos[i].poolToken) {
+        getPoolPrices(
+          tokens,
+          prices,
+          poolInfos[i].poolToken,
+          poolPrices,
+          i,
+          poolInfos[i].allocPoints,
+          totalAllocPoints,
+          rewardsPerDay,
+        );
       }
+    }
 
-      poolPrices.pools.forEach((pool) => {
+    poolPrices.pools.forEach((pool) => {
+      poolPrices.poolsTvl += pool.stakedTvl;
+    });
+
+    await Promise.all([this.mappingIncetivizedPools(poolPrices, prices)]);
+
+    poolPrices.incentivizedPools.forEach((pool) => {
+      if (!pool.t0Address) {
         poolPrices.poolsTvl += pool.stakedTvl;
-      });
+      }
+    });
 
-      await Promise.all([this.mappingIncetivizedPools(poolPrices, prices)]);
-      
-      poolPrices.incentivizedPools.forEach((pool) => {
-        if (!pool.t0Address) {
-          poolPrices.poolsTvl += pool.stakedTvl;
-        }
-      });
+    await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
+    await this.createGeneralStats(poolPrices);
 
-      await this.cacheManager.set('calculateStats', poolPrices, { ttl: 120 });
-      await this.createGeneralStats(poolPrices);
-
-      return poolPrices;
+    return poolPrices;
   }
 
   async getPoolInfo(masterApeContract, poolIndex) {
@@ -450,58 +450,58 @@ export class StatsService {
 
   async getLpInfo(tokenAddress, stakingAddress) {
     try {
-    const [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
-      {
-        address: tokenAddress,
-        name: 'getReserves',
-      },
-      {
-        address: tokenAddress,
-        name: 'decimals',
-      },
-      {
-        address: tokenAddress,
-        name: 'token0',
-      },
-      {
-        address: tokenAddress,
-        name: 'token1',
-      },
-    ]);
-  
-    let [totalSupply, staked] = await multicall(LP_ABI, [
-      {
-        address: tokenAddress,
-        name: 'totalSupply',
-      },
-      {
-        address: tokenAddress,
-        name: 'balanceOf',
-        params: [stakingAddress],
-      },
-    ]);
+      const [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
+        {
+          address: tokenAddress,
+          name: 'getReserves',
+        },
+        {
+          address: tokenAddress,
+          name: 'decimals',
+        },
+        {
+          address: tokenAddress,
+          name: 'token0',
+        },
+        {
+          address: tokenAddress,
+          name: 'token1',
+        },
+      ]);
 
-    totalSupply /= 10 ** decimals[0];
-    staked /= 10 ** decimals[0];
+      let [totalSupply, staked] = await multicall(LP_ABI, [
+        {
+          address: tokenAddress,
+          name: 'totalSupply',
+        },
+        {
+          address: tokenAddress,
+          name: 'balanceOf',
+          params: [stakingAddress],
+        },
+      ]);
 
-    const q0 = reserves._reserve0;
-    const q1 = reserves._reserve1;
-    return {
-      address: tokenAddress,
-      token0: token0[0],
-      q0,
-      token1: token1[0],
-      q1,
-      totalSupply,
-      stakingAddress,
-      staked,
-      decimals: decimals[0],
-      tokens: [token0[0], token1[0]],
-    };
-  } catch (error) {
-   console.log('inusual ', tokenAddress)   
-   console.log(error)   
-  }
+      totalSupply /= 10 ** decimals[0];
+      staked /= 10 ** decimals[0];
+
+      const q0 = reserves._reserve0;
+      const q1 = reserves._reserve1;
+      return {
+        address: tokenAddress,
+        token0: token0[0],
+        q0,
+        token1: token1[0],
+        q1,
+        totalSupply,
+        stakingAddress,
+        staked,
+        decimals: decimals[0],
+        tokens: [token0[0], token1[0]],
+      };
+    } catch (error) {
+      console.log('inusual ', tokenAddress);
+      console.log(error);
+    }
   }
 
   async getTokenInfo(tokenAddress, stakingAddress) {

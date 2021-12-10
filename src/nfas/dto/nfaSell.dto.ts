@@ -1,4 +1,4 @@
-export class NfaSell{ 
+export class NfaSell {
   readonly from: string;
   readonly to: string;
   readonly tokenId: number;
