@@ -1,3 +1,4 @@
+import { ApiHideProperty } from '@nestjs/swagger';
 import { FarmStats } from './farm.dto';
 import { IncentivizedPoolStats } from './incentivizedPool.dto';
 import { PoolStats } from './pool.dto';
@@ -10,6 +11,8 @@ export class GeneralStats {
   readonly marketCap: number;
   tvl: number;
   poolsTvl: number;
+  
+  @ApiHideProperty()
   readonly tvlInBnb?: number;
   totalLiquidity: number;
   totalVolume: number;

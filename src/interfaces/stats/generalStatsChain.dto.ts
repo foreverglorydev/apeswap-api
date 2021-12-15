@@ -1,4 +1,7 @@
+import { ApiHideProperty } from "@nestjs/swagger";
+
 export class StatsChain {
+  @ApiHideProperty()
   tvl: number;
   totalLiquidity: number;
   totalVolume: number;
