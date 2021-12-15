@@ -4,7 +4,7 @@ export class NfaBid {
   readonly tokenId: number;
   readonly auctionNumber: number;
   readonly transactionHash: string;
-  readonly contractAddress: number;
+  readonly contractAddress: string;
   readonly blockNumber: number;
   readonly _id?: string;
 }
