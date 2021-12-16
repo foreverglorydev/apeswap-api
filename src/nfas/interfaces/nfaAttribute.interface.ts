@@ -1,4 +1,4 @@
-export interface NfaAttribute {
+export class NfaAttribute {
   faceColor: string;
   baseColor: string;
   frames: string;

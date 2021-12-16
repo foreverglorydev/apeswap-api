@@ -1,4 +1,4 @@
-import { LiteStats } from './liteStats.interface';
+import { LiteStats } from './liteStats.dto';
 
 export interface WalletStats {
   tvl: number;

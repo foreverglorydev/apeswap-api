@@ -1,7 +1,7 @@
-export interface PoolStats {
+export class PoolStats {
   readonly address: string;
   readonly apr: number;
-  readonly decimals: string;
+  readonly decimals: number;
   readonly lpSymbol: string;
   readonly poolIndex: number;
   readonly price: number;

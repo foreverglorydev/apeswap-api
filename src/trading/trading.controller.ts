@@ -7,15 +7,18 @@ import {
   UseInterceptors,
   Res,
 } from '@nestjs/common';
+import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { TradingAllInfoDto } from './dto/tradingAllInfo.dto';
 import { TradingService } from './trading.service';
 
+@ApiTags('trading')
 @Controller('trading')
 @UseInterceptors(CacheInterceptor)
 export class TradingController {
   private readonly logger = new Logger(TradingController.name);
   constructor(private tradingService: TradingService) {}
 
+  @ApiExcludeEndpoint()
   @Get('export/:season/:pair')
   async tradingExportSeason(
     @Param('pair') pair: string,
@@ -31,6 +34,7 @@ export class TradingController {
     return res.download(pathfile, pathfile);
   }
 
+  @ApiExcludeEndpoint()
   @Get(':season/:pair/:address')
   async getStatsForSeasonAddress(
     @Param('pair') pair: string,
@@ -45,6 +49,7 @@ export class TradingController {
     );
   }
 
+  @ApiExcludeEndpoint()
   @Get(':season/:pair')
   async getStatsForSeason(
     @Param('pair') pair: string,
