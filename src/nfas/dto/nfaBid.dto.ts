@@ -1,5 +1,5 @@
 export class NfaBid {
-  readonly bidder: number;
+  readonly bidder: string;
   readonly amount: number;
   readonly tokenId: number;
   readonly auctionNumber: number;
