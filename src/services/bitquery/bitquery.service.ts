@@ -16,12 +16,6 @@ export class BitqueryService {
     this.httpService = httpService;
   }
 
-  greet() {
-    console.log(`Hello ${this.config.url}`);
-    this.querySubraph('');
-    return this.config.url;
-  }
-
   async querySubraph(query, variables = null): Promise<any> {
       
     const { data } = await this.httpService
