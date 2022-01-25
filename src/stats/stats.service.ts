@@ -42,6 +42,8 @@ import { Cron } from '@nestjs/schedule';
 import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
+import { BitqueryService } from 'src/services/bitquery/bitquery.service'
+import { allPricesQuery, tokenInformation } from './utils/subgraph.queries';
 
 @Injectable()
 export class StatsService {
@@ -58,6 +60,7 @@ export class StatsService {
     private tvlStatsModel: Model<TvlStatsDocument>,
     private subgraphService: SubgraphService,
     private priceService: PriceService,
+    private bitqueryService: BitqueryService
   ) {}
 
   createTvlStats(stats) {
@@ -978,5 +981,12 @@ export class StatsService {
       default:
         return BEP20_REWARD_APE_ABI;
     }
+  }
+
+  async getBitquery() {
+    return await this.bitqueryService.querySubraph(tokenInformation(), `{
+      "baseCurrency":"0x603c7f932ED1fc6575303D8Fb018fDCBb0f39a95",
+      "quoteCurrency":"0x55d398326f99059ff775485246999027b3197955"
+    }`);
   }
 }
