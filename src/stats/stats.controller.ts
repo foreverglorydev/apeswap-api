@@ -28,12 +28,6 @@ export class StatsController {
     return await this.statsService.getAllStats();
   }
 
-  @Get('/bitquery')
-  async getBitquery(): Promise<any> {
-    this.logger.debug('Called GET /bitquery');
-    return await this.statsService.getBitquery();
-  }
-
   @ApiOkResponse({
     type: GeneralStatsChain,
   })

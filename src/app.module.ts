@@ -16,6 +16,7 @@ import { CloudinaryModule } from './services/cloudinary/cloudinary.module';
 import { Cloudinary } from './services/cloudinary/cloudinary';
 import { MailgunModule } from './services/mailgun/mailgun.module';
 import { AuthStrapiMiddleware } from './middleware/auth-strapi';
+import { BitqueryModule } from './bitquery/bitquery.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -34,6 +35,7 @@ import { AuthStrapiMiddleware } from './middleware/auth-strapi';
     IazoModule,
     CloudinaryModule,
     MailgunModule,
+    BitqueryModule,
   ],
   controllers: [AppController],
   providers: [AppService, Cloudinary],

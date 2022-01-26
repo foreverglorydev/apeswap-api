@@ -6,7 +6,6 @@ import { StatsController } from './stats.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
 import { TvlStats, TvlStatsSchema } from './schema/tvlStats.schema';
-import { BitqueryModule } from 'src/services/bitquery/bitquery.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -23,7 +22,6 @@ import { ConfigModule } from '@nestjs/config';
       { name: GeneralStats.name, schema: GeneralStatsSchema },
       { name: TvlStats.name, schema: TvlStatsSchema },
     ]),
-    BitqueryModule.forRoot({ url: process.env.BITQUERY_URL, apiKey: process.env.BITQUERY_APIKEY })
   ],
   providers: [StatsService, SubgraphService, PriceService],
   exports: [SubgraphService],
