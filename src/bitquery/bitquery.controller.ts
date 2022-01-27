@@ -9,6 +9,7 @@ import {
   } from '@nestjs/common';
   import { ApiTags } from '@nestjs/swagger';
 import { BitqueryService } from './bitquery.service';
+import { PairInformation } from './dto/pairInformation.dto';
   
   @ApiTags('bitquery')
   @Controller('bitquery')
@@ -18,6 +19,13 @@ import { BitqueryService } from './bitquery.service';
         private bitqueryService: BitqueryService
     ) {}
 
+    @Get('/pair/:network/:address')
+    async getPairInformation(
+      @Param('address') address: string,
+      @Param('network') network: string
+    ): Promise<PairInformation> {
+      return await this.bitqueryService.getPairInformation(address, network);
+    }
     @Get('/')
     async getBitquery(): Promise<any> {
       return await this.bitqueryService.getTokenInformation(
