@@ -13,8 +13,9 @@ import { PairInformation } from './dto/pairInformation.dto';
   
   @ApiTags('bitquery')
   @Controller('bitquery')
+  @UseInterceptors(CacheInterceptor)
   export class BitqueryController {
-    
+    private readonly logger = new Logger(BitqueryController.name);
     constructor(
         private bitqueryService: BitqueryService
     ) {}
@@ -24,6 +25,7 @@ import { PairInformation } from './dto/pairInformation.dto';
       @Param('address') address: string,
       @Param('network') network: string
     ): Promise<PairInformation> {
+      this.logger.debug(`Called GET /pair/${network}/${address}`);
       return await this.bitqueryService.getPairInformation(address, network);
     }
     @Get('/')

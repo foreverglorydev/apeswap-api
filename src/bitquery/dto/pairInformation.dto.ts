@@ -9,4 +9,5 @@ export class PairInformation {
     target_address?: string;
     price?: number;
     quote_currency_address?: string;
+    createdAt?: string;
 }
