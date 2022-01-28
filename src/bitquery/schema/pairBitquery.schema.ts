@@ -14,7 +14,7 @@ export class PairBitquery {
   @Prop({ required: true })
   base: string;
 
-  @Prop({ unique: true, required: true })
+  @Prop({ required: true })
   target: string;
 
   @Prop({ required: true })

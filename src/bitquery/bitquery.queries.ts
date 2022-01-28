@@ -70,32 +70,33 @@ export function queryPoolBalances(
       }
       `
 }
-export const tokenInformation =
-  `query($baseCurrency : String!, $quoteCurrency : String!){
-        ethereum(network: bsc) {
+export function queryTokenInformation(network:string, baseCurrency: string, quoteCurrency: string) {
+  
+    return `{
+        ethereum(network: ${network}) {
           transfers(date: {since: null, till: null}, amount: {gt: 0}) {
             minted: amount(
               calculate: sum
-            sender: {in: [\"0x0000000000000000000000000000000000000000\",\"0x0000000000000000000000000000000000000001\"]}
+            sender: {in: ["0x0000000000000000000000000000000000000000","0x0000000000000000000000000000000000000001"]}
         )
         burned: amount(
               calculate: sum
-            receiver: {in: [\"0x0000000000000000000000000000000000000000\", \"0x0000000000000000000000000000000000000001\", \"0x000000000000000000000000000000000000dead\"]}
+            receiver: {in: ["0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000001", "0x000000000000000000000000000000000000dead"]}
         )
-        currency(currency: {is: $baseCurrency}) {
+        currency(currency: {is: "${baseCurrency}"}) {
               symbol
             name
       }
     }
       dexTrades(
-            baseCurrency: {is: $baseCurrency}
-          quoteCurrency: {is: $quoteCurrency}
-          options: {desc: [\"block.height\", \"transaction.index\"], limit: 1}
+            baseCurrency: {is: "${baseCurrency}"}
+          quoteCurrency: {is: "${quoteCurrency}"}
+          options: {desc: ["block.height", "transaction.index"], limit: 1}
       ) {
             block {
               height
             timestamp {
-                time(format: \"%Y-%m-%d %H:%M:%S\")
+                time(format: "%Y-%m-%d %H:%M:%S")
         }
       }
         transaction {
@@ -105,3 +106,4 @@ export const tokenInformation =
     }
   }
 }`;
+}
