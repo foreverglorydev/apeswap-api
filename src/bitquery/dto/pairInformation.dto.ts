@@ -1,13 +1,20 @@
+export class Token {
+    name?: string;
+    address?: string;
+    pooled_token?: number;
+    price?: number;
+}
+export class QuoteToken {
+    network?: string;
+    symbol?: string;
+    address?: string;
+}
 export class PairInformation {
     ticker_id?: string;
-    base?: string;
-    target?: string;
-    amount?: number;
-    value_usd?: number;
-    address?: string;
-    base_address?: string;
-    target_address?: string;
-    price?: number;
-    quote_currency_address?: string;
+    addressLP?: string;
+    base?: Token;
+    target?: Token;
+    liquidity?: number;
+    quote?: QuoteToken;
     createdAt?: string;
 }

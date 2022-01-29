@@ -1,39 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { QuoteToken, Token } from '../dto/pairInformation.dto';
 
 export type PairBitqueryDocument = PairBitquery & Document;
 
 @Schema()
 export class PairBitquery {
   @Prop({ required: true })
-  address: string;
-
-  @Prop({ required: true })
   ticker_id: string;
 
   @Prop({ required: true })
-  base: string;
+  addressLP: string;
 
   @Prop({ required: true })
-  target: string;
+  base: Token;
 
   @Prop({ required: true })
-  amount: number;
+  target: Token;
 
   @Prop({ required: true })
-  value_usd: number;
+  liquidity: number;
 
   @Prop({ required: true })
-  base_address: string;
-
-  @Prop({ required: true })
-  target_address: string;
-
-  @Prop({ required: true })
-  price: number;
-
-  @Prop({ required: true })
-  quote_currency_address: string;
+  quote: QuoteToken;
 
   @Prop({ default: Date.now })
   createdAt: Date;
