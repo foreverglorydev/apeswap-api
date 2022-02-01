@@ -6,9 +6,11 @@ import {
     Param,
     UseInterceptors,
     Res,
+    Query,
   } from '@nestjs/common';
   import { ApiTags } from '@nestjs/swagger';
 import { BitqueryService } from './bitquery.service';
+import { CandleOptions } from './dto/candle.dto';
 import { PairInformation } from './dto/pairInformation.dto';
 import { TokenInformation } from './dto/tokenInformation.dto';
   
@@ -36,6 +38,14 @@ import { TokenInformation } from './dto/tokenInformation.dto';
     ): Promise<TokenInformation> {
       this.logger.debug(`Called GET /token/${network}/${address}`);
       return await this.bitqueryService.getTokenInformation(address, network);
+    }
+    @Get('/candle/:address')
+    async getCandleToken(
+      @Param('address') address: string,
+      @Query() candleOptionsDto: CandleOptions
+    ): Promise<any> {
+      this.logger.debug(`Called GET /candle/${address}`);
+      return await this.bitqueryService.getCandleToken(address, candleOptionsDto);
     }
   }
   

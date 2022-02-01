@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { closeInMongodConnection, rootMongooseTestModule } from 'src/utils/testing';
 import { BitqueryService } from './bitquery.service';
+import { CandleOptions } from './dto/candle.dto';
 import { PairInformation } from './dto/pairInformation.dto';
 import { TokenInformation } from './dto/tokenInformation.dto';
 import { PairBitquery, PairBitquerySchema } from './schema/pairBitquery.schema';
@@ -76,6 +77,30 @@ describe('Bitquery Service', () => {
         const network = 'matic';
         const info = await service.getTokenInformation(address, network);
         expect(info).toEqual(expect.objectContaining(tokenInformation));
+    });
+    
+    it('should be get token candle', async () => {
+        const trade = {
+            timeInterval: expect.any(Object),
+            baseCurrency: expect.any(Object),
+            quoteCurrency: expect.any(Object),
+            tradeAmount: expect.any(Number),
+            trades: expect.any(Number),
+            quotePrice: expect.any(Number),
+            maximum_price: expect.any(Number),
+            minimum_price: expect.any(Number),
+            open_price: expect.any(String),
+            close_price: expect.any(String),
+        }
+        const address = '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95';
+        const options: CandleOptions = {
+            from: '2022-01-30',
+            to: '2022-01-30',
+            minTrade: 0,
+            interval: 1440,
+        }
+        const { data: { ethereum: { dexTrades } } } = await service.getCandleToken(address, options);
+        expect(dexTrades[0]).toEqual(expect.objectContaining(trade));
     });
     afterAll(async () => {
         await closeInMongodConnection();

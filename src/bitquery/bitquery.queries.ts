@@ -1,4 +1,9 @@
-export const QUOTE_CURRENCY_BUSD = '0x55d398326f99059ff775485246999027b3197955';
+import { CandleOptions } from "./dto/candle.dto";
+
+export const QUOTE_CURRENCY_BSC = {
+    USDT: '0x55d398326f99059ff775485246999027b3197955',
+    BUSD: '0xe9e7cea3dedca5984780bafc599bd69add087d56'
+};
 export const QUOTE_CURRENCY_MATIC = {
     USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
     USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174'
@@ -126,4 +131,49 @@ export function queryTokenInformation(network:string, baseCurrency: string, quot
     }
   }
 }`;
+}
+
+export function queryCandleData(
+    baseCurrency: string, 
+    quoteCurrency: string,
+    network: string,
+    options: CandleOptions
+) {
+    const {
+        from: since,
+        to: till,
+        minTrade,
+        interval: window
+      } = options;
+    return `{
+        ethereum(network: ${network}) {
+          dexTrades(
+            options: {asc: "timeInterval.minute"}
+            date: {since: "${since}", till: "${till}"}
+            baseCurrency: {is: "${baseCurrency}"}
+            quoteCurrency: {is: "${quoteCurrency}"}
+            tradeAmountUsd: {gt: ${minTrade}}
+            exchangeName: {is: "ApeSwap"}
+          ) {
+            timeInterval {
+              minute(count: ${window}, format: "%Y-%m-%dT%H:%M:%SZ")
+            }
+            baseCurrency {
+              symbol
+              address
+            }
+            quoteCurrency {
+              symbol
+              address
+            }
+            tradeAmount(in: USD)
+            trades: count
+            quotePrice
+            maximum_price: quotePrice(calculate: maximum)
+            minimum_price: quotePrice(calculate: minimum)
+            open_price: minimum(of: block, get: quote_price)
+            close_price: maximum(of: block, get: quote_price)
+          }
+        }
+      }`
 }
