@@ -117,11 +117,11 @@ export class BitqueryService {
     const tokenInfo: TokenInformation = {};
     tokenInfo.quote = getQuoteCurrency(network);
     const { data: { ethereum: { transfers, dexTrades} }} = await this.queryBitquery(queryTokenInformation(network, address, tokenInfo.quote.address));
-    tokenInfo.tokenPrice = dexTrades[0].quotePrice; 
+    tokenInfo.tokenPrice = dexTrades.length !== 0 ? dexTrades[0].quotePrice : 0;
     tokenInfo.totalSupply = transfers[0].minted; 
     tokenInfo.burntAmount = transfers[0].burned; 
     tokenInfo.circulatingSupply = transfers[0].minted - transfers[0].burned; 
-    tokenInfo.marketCap = (transfers[0].minted - transfers[0].burned) * dexTrades[0].quotePrice;
+    tokenInfo.marketCap = (transfers[0].minted - transfers[0].burned) * tokenInfo.tokenPrice;
     tokenInfo.address = address;
     await updateAllPair(this.tokenBitqueryModel, {address}, tokenInfo);
     await this.cacheManager.set(`token-${address}`, tokenInfo, { ttl: 120 });
