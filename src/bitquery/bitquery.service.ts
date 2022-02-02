@@ -7,7 +7,7 @@ import { PairInformation } from './dto/pairInformation.dto';
 import { PairBitquery, PairBitqueryDocument } from './schema/pairBitquery.schema';
 import { TokenInformation } from './dto/tokenInformation.dto';
 import { TokenBitquery, TokenBitqueryDocument } from './schema/tokenBitquery.schema';
-import { getQuoteCurrency, updateAllPair, updatePair, verifyModel } from './utils/helper.bitquery';
+import { calculatePrice, getQuoteCurrency, MONTH_DAY, updateAllPair, updatePair, verifyModel } from './utils/helper.bitquery';
 import { CandleOptions } from './dto/candle.dto';
 
 @Injectable()
@@ -57,7 +57,7 @@ export class BitqueryService {
       addressLP
     }
     const date = new Date();
-    const fullDate = `${date.getFullYear()}-${date.getMonth()}1-${date.getDate()}`
+    const fullDate = `${date.getFullYear()}-${MONTH_DAY[date.getMonth()]}-${date.getDate()}`
     const { data: { ethereum } } = await this.queryBitquery(queryPairInformation(
       addressLP,
       network,
@@ -67,22 +67,22 @@ export class BitqueryService {
     if (ethereum.smartContractCalls) {
       const tokenFilters = ethereum.smartContractCalls.filter(f => f.smartContract?.contractType === 'Token')
       pairInfo.quote = getQuoteCurrency(network);
+      const { data: { ethereum: { address: balances, base, target } } } = await this.queryBitquery(
+        queryPoolBalances(addressLP, network, tokenFilters[0].smartContract.address.address, tokenFilters[1].smartContract.address.address, pairInfo.quote.address));
       pairInfo.base = {
-        name: tokenFilters[0].smartContract.currency.symbol,
-        address: tokenFilters[0].smartContract.address.address
+        name: balances[0].balances[0].currency.symbol,
+        address: balances[0].balances[0].currency.address,
+        pooled_token: balances[0].balances[0].value
       }
       pairInfo.target = {
-        name: tokenFilters[1].smartContract.currency.symbol,
-        address: tokenFilters[1].smartContract.address.address
+        name: balances[0].balances[1].currency.symbol,
+        address: balances[0].balances[1].currency.address,
+        pooled_token: balances[0].balances[1].value
       }
       pairInfo.ticker_id = `${pairInfo.base.name}_${pairInfo.target.name}`
-
-      const { data: { ethereum: { address: balances, base, target } } } = await this.queryBitquery(
-        queryPoolBalances(addressLP, network, pairInfo.base.address, pairInfo.target.address, pairInfo.quote.address));
-      pairInfo.base.pooled_token = balances[0].balances[0].value;
-      pairInfo.target.pooled_token = balances[0].balances[1].value;
-      pairInfo.base.price = base[0].quotePrice
-      pairInfo.target.price = target[0].quotePrice
+      const { basePrice, targetPrice } = calculatePrice(pairInfo, base, target, tokenFilters[0].smartContract.address.address)
+      pairInfo.base.price = basePrice;
+      pairInfo.target.price = targetPrice;
       pairInfo.liquidity = pairInfo.base.pooled_token * 2 * pairInfo.base.price;
     }
     await updateAllPair(this.pairBitqueryModel, {addressLP}, pairInfo);

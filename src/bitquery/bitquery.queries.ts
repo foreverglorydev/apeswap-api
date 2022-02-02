@@ -19,7 +19,7 @@ export function queryPairInformation(
         ethereum(network: ${network}) {
             smartContractCalls(
               options: {desc: "count", limit: 10, offset: 0}
-          date: {since: "${from}", till: "${till}"}
+          date: {since: null, till: null}
           caller: {is: "${address}"}
         ) {
               smartContract {

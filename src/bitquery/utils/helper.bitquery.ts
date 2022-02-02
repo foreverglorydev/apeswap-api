@@ -1,5 +1,8 @@
 import { BadRequestException } from "@nestjs/common";
 import { QUOTE_CURRENCY_BSC, QUOTE_CURRENCY_MATIC } from "../bitquery.queries"
+import { PairInformation } from "../dto/pairInformation.dto";
+
+export const MONTH_DAY = ['01','02','03','04','05','06','07','08','09','10','11','12'];
 
 export function getQuoteCurrency(network: string) {
   switch (network) {
@@ -63,4 +66,30 @@ export function updatePair(modul, filter) {
       },
     },
   );
+}
+
+export function calculatePrice(pairInfo: PairInformation, base, target, token1) {
+  let basePrice = 0;
+  let targetPrice = 0;
+  if(base.length === 0 && target.length !== 0) {
+    basePrice = (pairInfo.base.pooled_token / pairInfo.target.pooled_token) * target[0].quotePrice
+    targetPrice = target[0].quotePrice;
+  }
+  if(base.length !== 0 && target.length === 0) {
+    targetPrice = (pairInfo.target.pooled_token / pairInfo.base.pooled_token) * base[0].quotePrice
+    basePrice = base[0].quotePrice;
+  }
+  if(base.length !== 0 && target.length !== 0) {
+    basePrice = base[0].quotePrice;
+    targetPrice = target[0].quotePrice;
+  }
+
+  if(pairInfo.base.address !== token1) {
+    const tmpBase = basePrice;
+    const tmpTarget = targetPrice;
+
+    basePrice = tmpTarget;
+    targetPrice = tmpBase;
+  }
+  return { basePrice, targetPrice };
 }
