@@ -177,3 +177,24 @@ export function queryCandleData(
         }
       }`
 }
+
+export function queryTreasuryGnana(address: string) {
+  return `{
+    ethereum(network: bsc) {
+      address(address: {is: "${address}"}) {
+        smartContract {
+          attributes {
+            name
+            type
+            address {
+              address
+              annotation
+            }
+            value
+          }
+        }
+      }
+    }
+  }
+  `
+}

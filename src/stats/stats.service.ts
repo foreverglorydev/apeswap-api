@@ -42,6 +42,7 @@ import { Cron } from '@nestjs/schedule';
 import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
+import { BitqueryService } from 'src/bitquery/bitquery.service';
 
 @Injectable()
 export class StatsService {
@@ -58,6 +59,7 @@ export class StatsService {
     private tvlStatsModel: Model<TvlStatsDocument>,
     private subgraphService: SubgraphService,
     private priceService: PriceService,
+    private bitqueryService: BitqueryService
   ) {}
 
   createTvlStats(stats) {
@@ -221,36 +223,40 @@ export class StatsService {
   }
 
   async calculateTvlStats() {
-    const [
-      polygonTvl,
-      bscTvl,
-      { burntAmount, totalSupply, circulatingSupply },
-      prices,
-      { circulatingSupply: gnanaCirculatingSupply },
-    ] = await Promise.all([
-      this.subgraphService.getLiquidityPolygonData(),
-      this.subgraphService.getVolumeData(),
-      this.getBurnAndSupply(),
-      this.priceService.getTokenPrices(),
-      this.getGnanaSupply(),
-    ]);
-    const priceUSD = prices[bananaAddress()].usd;
-    const poolsTvlBsc = await this.getTvlBsc();
-    const tvl: GeneralStatsChain = {
-      tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
-      totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
-      totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
-      bsc: bscTvl,
-      polygon: polygonTvl,
-      burntAmount,
-      totalSupply,
-      circulatingSupply,
-      marketCap: circulatingSupply * priceUSD,
-      gnanaCirculatingSupply,
-    };
-    await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
-    await this.createTvlStats(tvl);
-    return tvl;
+    try {
+      const [
+        polygonTvl,
+        bscTvl,
+        { burntAmount, totalSupply, circulatingSupply, marketCap },
+        { circulatingSupply: gnanaCirculatingSupply },
+        poolsTvlBsc
+      ] = await Promise.all([
+        this.subgraphService.getLiquidityPolygonData(),
+        this.subgraphService.getVolumeData(),
+        this.getBurnAndSupply(),
+        this.getGnanaSupply(),
+        this.getTvlBsc()
+      ]);
+
+      const tvl: GeneralStatsChain = {
+        tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
+        totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
+        totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
+        bsc: bscTvl,
+        polygon: polygonTvl,
+        burntAmount,
+        totalSupply,
+        circulatingSupply,
+        marketCap,
+        gnanaCirculatingSupply,
+      };
+      await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
+      await this.createTvlStats(tvl);
+      return tvl;
+    } catch (error) {
+      console.log(error)
+    }
+    
   }
 
   async getTvlBsc() {
@@ -576,40 +582,27 @@ export class StatsService {
   }
 
   async getBurnAndSupply() {
-    const bananaContract = getContract(ERC20_ABI, bananaAddress());
-
-    const decimals = await bananaContract.methods.decimals().call();
-
-    const [burned, supply] = await Promise.all([
-      bananaContract.methods.balanceOf(burnAddress()).call(),
-      bananaContract.methods.totalSupply().call(),
-    ]);
-
-    const burntAmount = burned / 10 ** decimals;
-    const totalSupply = supply / 10 ** decimals;
-    const circulatingSupply = totalSupply - burntAmount;
+    const { 
+      burntAmount, 
+      circulatingSupply, 
+      totalSupply, 
+      tokenPrice, 
+      marketCap
+    } = await this.bitqueryService.calculateTokenInformation(bananaAddress(), 'bsc');
 
     return {
       burntAmount,
       totalSupply,
       circulatingSupply,
+      tokenPrice,
+      marketCap
     };
   }
 
   async getGnanaSupply() {
-    const gnanaContract = getContract(ERC20_ABI, goldenBananaAddress());
+    let { circulatingSupply } = await this.bitqueryService.getTreasuryGnana(gBananaTreasury());
 
-    const decimals = await gnanaContract.methods.decimals().call();
-
-    const [treasury, supply] = await Promise.all([
-      gnanaContract.methods.balanceOf(gBananaTreasury()).call(),
-      gnanaContract.methods.totalSupply().call(),
-    ]);
-
-    const treasuryAmount = treasury / 10 ** decimals;
-    const totalSupply = supply / 10 ** decimals;
-    const circulatingSupply = totalSupply - treasuryAmount;
-
+    circulatingSupply = circulatingSupply / 10 ** 18;
     return {
       circulatingSupply,
     };

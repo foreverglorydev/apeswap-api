@@ -1,6 +1,7 @@
 import { CacheModule, HttpModule, HttpService } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
+import { gBananaTreasury } from 'src/stats/utils/stats.utils';
 import { closeInMongodConnection, rootMongooseTestModule } from 'src/utils/testing';
 import { BitqueryService } from './bitquery.service';
 import { CandleOptions } from './dto/candle.dto';
@@ -70,6 +71,16 @@ describe('Bitquery Service', () => {
         const network = 'bsc';
         const info = await service.getTokenInformation(address, network);
         expect(info).toEqual(expect.objectContaining(tokenInformation));
+    });
+    
+    it('should be get gnana info', async () => {
+        const gnanaInfo = {
+            circulatingSupply: expect.any(String),
+            reserve: expect.any(String),
+            supply: expect.any(String),
+        }
+        const info = await service.getTreasuryGnana(gBananaTreasury());
+        expect(info).toEqual(expect.objectContaining(gnanaInfo));
     });
 
     it('should be get token matic info', async () => {

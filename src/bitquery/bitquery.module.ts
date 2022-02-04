@@ -1,4 +1,5 @@
 import { Module, HttpModule, CacheModule } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BitqueryController } from './bitquery.controller';
 import { BitqueryService } from './bitquery.service';
@@ -9,6 +10,10 @@ import { TokenBitquery, TokenBitquerySchema } from './schema/tokenBitquery.schem
   imports: [
     CacheModule.register({
       ttl: 60,
+    }),
+    ConfigModule.forRoot({
+      envFilePath: ['.development.env', '.env'],
+      isGlobal: true,
     }),
     HttpModule,
     MongooseModule.forFeature([

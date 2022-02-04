@@ -2,13 +2,14 @@ import { CACHE_MANAGER, HttpService, Inject, Injectable, Logger } from '@nestjs/
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Cache } from 'cache-manager';
-import { queryCandleData, queryPairInformation, queryPoolBalances, queryTokenInformation, QUOTE_CURRENCY_BSC } from './bitquery.queries';
+import { queryCandleData, queryPairInformation, queryPoolBalances, queryTokenInformation, queryTreasuryGnana, QUOTE_CURRENCY_BSC } from './bitquery.queries';
 import { PairInformation } from './dto/pairInformation.dto';
 import { PairBitquery, PairBitqueryDocument } from './schema/pairBitquery.schema';
 import { TokenInformation } from './dto/tokenInformation.dto';
 import { TokenBitquery, TokenBitqueryDocument } from './schema/tokenBitquery.schema';
 import { calculatePrice, getQuoteCurrency, MONTH_DAY, updateAllPair, updatePair, verifyModel } from './utils/helper.bitquery';
 import { CandleOptions } from './dto/candle.dto';
+import { timeStamp } from 'console';
 
 @Injectable()
 export class BitqueryService {
@@ -123,10 +124,12 @@ export class BitqueryService {
     tokenInfo.circulatingSupply = transfers[0].minted - transfers[0].burned; 
     tokenInfo.marketCap = (transfers[0].minted - transfers[0].burned) * tokenInfo.tokenPrice;
     tokenInfo.address = address;
+    tokenInfo.name = transfers[0].currency.name;
+    tokenInfo.symbol = transfers[0].currency.symbol;
     await updateAllPair(this.tokenBitqueryModel, {address}, tokenInfo);
     await this.cacheManager.set(`token-${address}`, tokenInfo, { ttl: 120 });
 
-    return {...tokenInfo, ...transfers[0].currency};
+    return tokenInfo;
   }
 
   async getCandleToken(address: string, candleOptions: CandleOptions) {
@@ -150,6 +153,17 @@ export class BitqueryService {
       return error;
     }
     return query;
+  }
+
+  async getTreasuryGnana(address: string) {
+    const { data:{ ethereum: { address: info } } } = await this.queryBitquery(queryTreasuryGnana(address));
+    const { attributes } = info[0].smartContract
+    const circulatingSupply = attributes.find(i => i.name === 'bananaReserves')?.value;
+    const reserve = attributes.find(i => i.name === 'goldenBananaReserves')?.value;
+    const supply = reserve + circulatingSupply;
+
+    return { circulatingSupply, reserve, supply }
+
   }
   // bitquery
   async queryBitquery(query, variables = null): Promise<any> {
