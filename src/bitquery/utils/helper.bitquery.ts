@@ -1,8 +1,20 @@
-import { BadRequestException } from "@nestjs/common";
-import { QUOTE_CURRENCY_BSC, QUOTE_CURRENCY_MATIC } from "../bitquery.queries"
-import { PairInformation } from "../dto/pairInformation.dto";
+import { QUOTE_CURRENCY_BSC, QUOTE_CURRENCY_MATIC } from '../bitquery.queries';
+import { PairInformation } from '../dto/pairInformation.dto';
 
-export const MONTH_DAY = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+export const MONTH_DAY = [
+  '01',
+  '02',
+  '03',
+  '04',
+  '05',
+  '06',
+  '07',
+  '08',
+  '09',
+  '10',
+  '11',
+  '12',
+];
 
 export function getQuoteCurrency(network: string) {
   switch (network) {
@@ -10,21 +22,21 @@ export function getQuoteCurrency(network: string) {
       return {
         network,
         symbol: 'USDT',
-        address: QUOTE_CURRENCY_BSC.USDT
-      }
+        address: QUOTE_CURRENCY_BSC.USDT,
+      };
     case 'matic':
       return {
         network,
         symbol: 'USDT',
-        address: QUOTE_CURRENCY_MATIC.USDT
-      }
+        address: QUOTE_CURRENCY_MATIC.USDT,
+      };
 
     default:
       return {
         network,
         symbol: 'USDT',
-        address: QUOTE_CURRENCY_BSC.USDT
-      }
+        address: QUOTE_CURRENCY_BSC.USDT,
+      };
   }
 }
 
@@ -58,33 +70,39 @@ export function updateAllPair(modul, filter, pair) {
 }
 
 export function updatePair(modul, filter) {
-  return modul.updateOne(
-    filter,
-    {
-      $currentDate: {
-        createdAt: true,
-      },
+  return modul.updateOne(filter, {
+    $currentDate: {
+      createdAt: true,
     },
-  );
+  });
 }
 
-export function calculatePrice(pairInfo: PairInformation, base, target, token1) {
+export function calculatePrice(
+  pairInfo: PairInformation,
+  base,
+  target,
+  token1,
+) {
   let basePrice = 0;
   let targetPrice = 0;
-  if(base.length === 0 && target.length !== 0) {
-    basePrice = (pairInfo.base.pooled_token / pairInfo.target.pooled_token) * target[0].quotePrice
+  if (base.length === 0 && target.length !== 0) {
+    basePrice =
+      (pairInfo.base.pooled_token / pairInfo.target.pooled_token) *
+      target[0].quotePrice;
     targetPrice = target[0].quotePrice;
   }
-  if(base.length !== 0 && target.length === 0) {
-    targetPrice = (pairInfo.target.pooled_token / pairInfo.base.pooled_token) * base[0].quotePrice
+  if (base.length !== 0 && target.length === 0) {
+    targetPrice =
+      (pairInfo.target.pooled_token / pairInfo.base.pooled_token) *
+      base[0].quotePrice;
     basePrice = base[0].quotePrice;
   }
-  if(base.length !== 0 && target.length !== 0) {
+  if (base.length !== 0 && target.length !== 0) {
     basePrice = base[0].quotePrice;
     targetPrice = target[0].quotePrice;
   }
 
-  if(pairInfo.base.address !== token1) {
+  if (pairInfo.base.address !== token1) {
     const tmpBase = basePrice;
     const tmpTarget = targetPrice;
 

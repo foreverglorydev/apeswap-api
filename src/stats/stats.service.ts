@@ -59,7 +59,7 @@ export class StatsService {
     private tvlStatsModel: Model<TvlStatsDocument>,
     private subgraphService: SubgraphService,
     private priceService: PriceService,
-    private bitqueryService: BitqueryService
+    private bitqueryService: BitqueryService,
   ) {}
 
   createTvlStats(stats) {
@@ -229,13 +229,13 @@ export class StatsService {
         bscTvl,
         { burntAmount, totalSupply, circulatingSupply, marketCap },
         { circulatingSupply: gnanaCirculatingSupply },
-        poolsTvlBsc
+        poolsTvlBsc,
       ] = await Promise.all([
         this.subgraphService.getLiquidityPolygonData(),
         this.subgraphService.getVolumeData(),
         this.getBurnAndSupply(),
         this.getGnanaSupply(),
-        this.getTvlBsc()
+        this.getTvlBsc(),
       ]);
 
       const tvl: GeneralStatsChain = {
@@ -254,9 +254,8 @@ export class StatsService {
       await this.createTvlStats(tvl);
       return tvl;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-    
   }
 
   async getTvlBsc() {
@@ -582,25 +581,30 @@ export class StatsService {
   }
 
   async getBurnAndSupply() {
-    const { 
-      burntAmount, 
-      circulatingSupply, 
-      totalSupply, 
-      tokenPrice, 
-      marketCap
-    } = await this.bitqueryService.calculateTokenInformation(bananaAddress(), 'bsc');
+    const {
+      burntAmount,
+      circulatingSupply,
+      totalSupply,
+      tokenPrice,
+      marketCap,
+    } = await this.bitqueryService.calculateTokenInformation(
+      bananaAddress(),
+      'bsc',
+    );
 
     return {
       burntAmount,
       totalSupply,
       circulatingSupply,
       tokenPrice,
-      marketCap
+      marketCap,
     };
   }
 
   async getGnanaSupply() {
-    let { circulatingSupply } = await this.bitqueryService.getTreasuryGnana(gBananaTreasury());
+    let { circulatingSupply } = await this.bitqueryService.getTreasuryGnana(
+      gBananaTreasury(),
+    );
 
     circulatingSupply = circulatingSupply / 10 ** 18;
     return {

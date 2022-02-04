@@ -1,21 +1,16 @@
-import { CandleOptions } from "./dto/candle.dto";
+import { CandleOptions } from './dto/candle.dto';
 
 export const QUOTE_CURRENCY_BSC = {
-    USDT: '0x55d398326f99059ff775485246999027b3197955',
-    BUSD: '0xe9e7cea3dedca5984780bafc599bd69add087d56'
+  USDT: '0x55d398326f99059ff775485246999027b3197955',
+  BUSD: '0xe9e7cea3dedca5984780bafc599bd69add087d56',
 };
 export const QUOTE_CURRENCY_MATIC = {
-    USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-    USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174'
+  USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+  USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
 };
 
-export function queryPairInformation(
-    address: string,
-    network: string,
-    from: string,
-    till: string
-) {
-    return `{
+export function queryPairInformation(address: string, network: string) {
+  return `{
         ethereum(network: ${network}) {
             smartContractCalls(
               options: {desc: "count", limit: 10, offset: 0}
@@ -38,17 +33,17 @@ export function queryPairInformation(
           uniq_methods: count(uniq: smart_contract_methods)
           gasValue(calculate: average)
     }
-  }}`
+  }}`;
 }
 
 export function queryPoolBalances(
-    addressLP: string, 
-    network: string, 
-    baseAddress: string, 
-    targetAddress: string, 
-    quoteCurrency: string
+  addressLP: string,
+  network: string,
+  baseAddress: string,
+  targetAddress: string,
+  quoteCurrency: string,
 ) {
-    return  `{
+  return `{
         ethereum(network: ${network}) {
           address(address: {is: "${addressLP}"}) {
             balances(currency: {in: ["${baseAddress}","${targetAddress}"]}) {
@@ -93,11 +88,14 @@ export function queryPoolBalances(
             }
           }
       }
-      `
+      `;
 }
-export function queryTokenInformation(network:string, baseCurrency: string, quoteCurrency: string) {
-  
-    return `{
+export function queryTokenInformation(
+  network: string,
+  baseCurrency: string,
+  quoteCurrency: string,
+) {
+  return `{
         ethereum(network: ${network}) {
           transfers(date: {since: null, till: null}, amount: {gt: 0}) {
             minted: amount(
@@ -134,18 +132,13 @@ export function queryTokenInformation(network:string, baseCurrency: string, quot
 }
 
 export function queryCandleData(
-    baseCurrency: string, 
-    quoteCurrency: string,
-    network: string,
-    options: CandleOptions
+  baseCurrency: string,
+  quoteCurrency: string,
+  network: string,
+  options: CandleOptions,
 ) {
-    const {
-        from: since,
-        to: till,
-        minTrade,
-        interval: window
-      } = options;
-    return `{
+  const { from: since, to: till, minTrade, interval: window } = options;
+  return `{
         ethereum(network: ${network}) {
           dexTrades(
             options: {asc: "timeInterval.minute"}
@@ -175,7 +168,7 @@ export function queryCandleData(
             close_price: maximum(of: block, get: quote_price)
           }
         }
-      }`
+      }`;
 }
 
 export function queryTreasuryGnana(address: string) {
@@ -196,5 +189,5 @@ export function queryTreasuryGnana(address: string) {
       }
     }
   }
-  `
+  `;
 }

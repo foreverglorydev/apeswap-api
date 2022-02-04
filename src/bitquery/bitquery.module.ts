@@ -4,7 +4,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { BitqueryController } from './bitquery.controller';
 import { BitqueryService } from './bitquery.service';
 import { PairBitquery, PairBitquerySchema } from './schema/pairBitquery.schema';
-import { TokenBitquery, TokenBitquerySchema } from './schema/tokenBitquery.schema';
+import {
+  TokenBitquery,
+  TokenBitquerySchema,
+} from './schema/tokenBitquery.schema';
 
 @Module({
   imports: [
@@ -18,9 +21,9 @@ import { TokenBitquery, TokenBitquerySchema } from './schema/tokenBitquery.schem
     HttpModule,
     MongooseModule.forFeature([
       { name: PairBitquery.name, schema: PairBitquerySchema },
-      { name: TokenBitquery.name, schema: TokenBitquerySchema }
+      { name: TokenBitquery.name, schema: TokenBitquerySchema },
     ]),
-  ],  
+  ],
   providers: [BitqueryService],
   controllers: [BitqueryController],
 })
