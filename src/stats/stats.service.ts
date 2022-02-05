@@ -240,7 +240,7 @@ export class StatsService {
       ]);
 
       const priceUSD = prices[bananaAddress()].usd;
-      console.log(priceUSD);
+
       const tvl: GeneralStatsChain = {
         tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
         totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
