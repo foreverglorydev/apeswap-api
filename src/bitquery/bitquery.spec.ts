@@ -7,9 +7,9 @@ import {
   rootMongooseTestModule,
 } from 'src/utils/testing';
 import { BitqueryService } from './bitquery.service';
-import { CandleOptions } from './dto/candle.dto';
-import { PairInformation } from './dto/pairInformation.dto';
-import { TokenInformation } from './dto/tokenInformation.dto';
+import { CandleOptionsDto } from './dto/candle.dto';
+import { PairInformationDto } from './dto/pairInformation.dto';
+import { TokenInformationDto } from './dto/tokenInformation.dto';
 import { PairBitquery, PairBitquerySchema } from './schema/pairBitquery.schema';
 import {
   TokenBitquery,
@@ -18,7 +18,7 @@ import {
 
 describe('Bitquery Service', () => {
   let service: BitqueryService;
-  const pairInformation: PairInformation = {
+  const pairInformation: PairInformationDto = {
     ticker_id: expect.any(String),
     addressLP: expect.any(String),
     base: expect.any(Object),
@@ -26,7 +26,7 @@ describe('Bitquery Service', () => {
     liquidity: expect.any(Number),
     quote: expect.any(Object),
   };
-  const tokenInformation: TokenInformation = {
+  const tokenInformation: TokenInformationDto = {
     name: expect.any(String),
     symbol: expect.any(String),
     address: expect.any(String),
@@ -110,7 +110,7 @@ describe('Bitquery Service', () => {
       close_price: expect.any(String),
     };
     const address = '0x603c7f932ed1fc6575303d8fb018fdcbb0f39a95';
-    const options: CandleOptions = {
+    const options: CandleOptionsDto = {
       from: '2022-01-30',
       to: '2022-01-30',
       minTrade: 0,

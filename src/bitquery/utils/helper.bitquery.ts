@@ -1,5 +1,5 @@
 import { QUOTE_CURRENCY_BSC, QUOTE_CURRENCY_MATIC } from '../bitquery.queries';
-import { PairInformation } from '../dto/pairInformation.dto';
+import { PairInformationDto } from '../dto/pairInformation.dto';
 
 export const MONTH_DAY = [
   '01',
@@ -78,7 +78,7 @@ export function updatePair(modul, filter) {
 }
 
 export function calculatePrice(
-  pairInfo: PairInformation,
+  pairInfo: PairInformationDto,
   base,
   target,
   token1,

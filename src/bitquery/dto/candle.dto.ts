@@ -1,6 +1,6 @@
-export class CandleOptions {
+export class CandleOptionsDto {
   from?: string;
   to?: string;
-  minTrade?: number;
-  interval?: number;
+  minTrade = 0;
+  interval = 60;
 }

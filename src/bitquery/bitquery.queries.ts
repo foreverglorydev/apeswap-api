@@ -1,4 +1,4 @@
-import { CandleOptions } from './dto/candle.dto';
+import { CandleOptionsDto } from './dto/candle.dto';
 
 export const QUOTE_CURRENCY_BSC = {
   USDT: '0x55d398326f99059ff775485246999027b3197955',
@@ -135,7 +135,7 @@ export function queryCandleData(
   baseCurrency: string,
   quoteCurrency: string,
   network: string,
-  options: CandleOptions,
+  options: CandleOptionsDto,
 ) {
   const { from: since, to: till, minTrade, interval: window } = options;
   return `{

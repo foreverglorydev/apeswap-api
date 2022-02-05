@@ -16,12 +16,12 @@ import {
   queryTreasuryGnana,
   QUOTE_CURRENCY_BSC,
 } from './bitquery.queries';
-import { PairInformation } from './dto/pairInformation.dto';
+import { PairInformationDto } from './dto/pairInformation.dto';
 import {
   PairBitquery,
   PairBitqueryDocument,
 } from './schema/pairBitquery.schema';
-import { TokenInformation } from './dto/tokenInformation.dto';
+import { TokenInformationDto } from './dto/tokenInformation.dto';
 import {
   TokenBitquery,
   TokenBitqueryDocument,
@@ -33,7 +33,7 @@ import {
   updatePair,
   verifyModel,
 } from './utils/helper.bitquery';
-import { CandleOptions } from './dto/candle.dto';
+import { CandleOptionsDto } from './dto/candle.dto';
 
 @Injectable()
 export class BitqueryService {
@@ -76,7 +76,7 @@ export class BitqueryService {
   }
 
   async calculatePairInformation(addressLP: string, network: string) {
-    const pairInfo: PairInformation = {
+    const pairInfo: PairInformationDto = {
       addressLP,
     };
     const {
@@ -148,7 +148,7 @@ export class BitqueryService {
   }
 
   async calculateTokenInformation(address: string, network: string) {
-    const tokenInfo: TokenInformation = {};
+    const tokenInfo: TokenInformationDto = {};
     tokenInfo.quote = getQuoteCurrency(network);
     const {
       data: {
@@ -172,22 +172,18 @@ export class BitqueryService {
     return tokenInfo;
   }
 
-  async getCandleToken(address: string, candleOptions: CandleOptions) {
+  async getCandleToken(address: string, candleOptions: CandleOptionsDto) {
     const network = 'bsc';
-    const { from, to } = candleOptions;
-    let { minTrade, interval } = candleOptions;
 
     let query;
     try {
-      interval = interval || 60;
-      minTrade = minTrade || 0;
       query = await this.queryBitquery(
-        queryCandleData(address, QUOTE_CURRENCY_BSC.BUSD, network, {
-          from,
-          to,
-          minTrade,
-          interval,
-        }),
+        queryCandleData(
+          address,
+          QUOTE_CURRENCY_BSC.BUSD,
+          network,
+          candleOptions,
+        ),
       );
     } catch (error) {
       console.log(error);

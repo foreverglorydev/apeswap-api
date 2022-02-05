@@ -1,6 +1,6 @@
-import { QuoteToken } from './pairInformation.dto';
+import { QuoteTokenDto } from './pairInformation.dto';
 
-export class TokenInformation {
+export class TokenInformationDto {
   name?: string;
   symbol?: string;
   address?: string;
@@ -9,5 +9,5 @@ export class TokenInformation {
   burntAmount?: number;
   circulatingSupply?: number;
   marketCap?: number;
-  quote?: QuoteToken;
+  quote?: QuoteTokenDto;
 }

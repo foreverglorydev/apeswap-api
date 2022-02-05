@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { QuoteToken } from '../dto/pairInformation.dto';
+import { QuoteTokenDto } from '../dto/pairInformation.dto';
 
 export type TokenBitqueryDocument = TokenBitquery & Document;
 
@@ -31,7 +31,7 @@ export class TokenBitquery {
   marketCap: number;
 
   @Prop({ required: true })
-  quote: QuoteToken;
+  quote: QuoteTokenDto;
 
   @Prop({ default: Date.now })
   createdAt: Date;

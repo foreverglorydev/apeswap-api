@@ -6,12 +6,14 @@ import {
   Param,
   UseInterceptors,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BitqueryService } from './bitquery.service';
-import { CandleOptions } from './dto/candle.dto';
-import { PairInformation } from './dto/pairInformation.dto';
-import { TokenInformation } from './dto/tokenInformation.dto';
+import { CandleOptionsDto } from './dto/candle.dto';
+import { PairInformationDto } from './dto/pairInformation.dto';
+import { TokenInformationDto } from './dto/tokenInformation.dto';
 
 @ApiTags('bitquery')
 @Controller('bitquery')
@@ -24,7 +26,7 @@ export class BitqueryController {
   async getPairInformation(
     @Param('address') address: string,
     @Param('network') network: string,
-  ): Promise<PairInformation> {
+  ): Promise<PairInformationDto> {
     this.logger.debug(`Called GET /pair/${network}/${address}`);
     return await this.bitqueryService.getPairInformation(address, network);
   }
@@ -32,14 +34,15 @@ export class BitqueryController {
   async getBitquery(
     @Param('address') address: string,
     @Param('network') network: string,
-  ): Promise<TokenInformation> {
+  ): Promise<TokenInformationDto> {
     this.logger.debug(`Called GET /token/${network}/${address}`);
     return await this.bitqueryService.getTokenInformation(address, network);
   }
   @Get('/candle/:address')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async getCandleToken(
     @Param('address') address: string,
-    @Query() candleOptionsDto: CandleOptions,
+    @Query() candleOptionsDto: CandleOptionsDto,
   ): Promise<any> {
     this.logger.debug(`Called GET /candle/${address}`);
     return await this.bitqueryService.getCandleToken(address, candleOptionsDto);

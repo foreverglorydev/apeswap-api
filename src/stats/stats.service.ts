@@ -42,7 +42,6 @@ import { Cron } from '@nestjs/schedule';
 import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
-import { BitqueryService } from 'src/bitquery/bitquery.service';
 
 @Injectable()
 export class StatsService {
@@ -59,7 +58,6 @@ export class StatsService {
     private tvlStatsModel: Model<TvlStatsDocument>,
     private subgraphService: SubgraphService,
     private priceService: PriceService,
-    private bitqueryService: BitqueryService,
   ) {}
 
   createTvlStats(stats) {
@@ -223,21 +221,26 @@ export class StatsService {
   }
 
   async calculateTvlStats() {
+    console.log('ddd');
     try {
       const [
         polygonTvl,
         bscTvl,
-        { burntAmount, totalSupply, circulatingSupply, marketCap },
+        { burntAmount, totalSupply, circulatingSupply },
+        prices,
         { circulatingSupply: gnanaCirculatingSupply },
         poolsTvlBsc,
       ] = await Promise.all([
         this.subgraphService.getLiquidityPolygonData(),
         this.subgraphService.getVolumeData(),
         this.getBurnAndSupply(),
+        this.priceService.getTokenPrices(),
         this.getGnanaSupply(),
         this.getTvlBsc(),
       ]);
 
+      const priceUSD = prices[bananaAddress()].usd;
+      console.log(priceUSD);
       const tvl: GeneralStatsChain = {
         tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
         totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
@@ -247,7 +250,7 @@ export class StatsService {
         burntAmount,
         totalSupply,
         circulatingSupply,
-        marketCap,
+        marketCap: circulatingSupply * priceUSD,
         gnanaCirculatingSupply,
       };
       await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
@@ -581,32 +584,40 @@ export class StatsService {
   }
 
   async getBurnAndSupply() {
-    const {
-      burntAmount,
-      circulatingSupply,
-      totalSupply,
-      tokenPrice,
-      marketCap,
-    } = await this.bitqueryService.calculateTokenInformation(
-      bananaAddress(),
-      'bsc',
-    );
+    const bananaContract = getContract(ERC20_ABI, bananaAddress());
+
+    const decimals = await bananaContract.methods.decimals().call();
+
+    const [burned, supply] = await Promise.all([
+      bananaContract.methods.balanceOf(burnAddress()).call(),
+      bananaContract.methods.totalSupply().call(),
+    ]);
+
+    const burntAmount = burned / 10 ** decimals;
+    const totalSupply = supply / 10 ** decimals;
+    const circulatingSupply = totalSupply - burntAmount;
 
     return {
       burntAmount,
       totalSupply,
       circulatingSupply,
-      tokenPrice,
-      marketCap,
     };
   }
 
   async getGnanaSupply() {
-    let { circulatingSupply } = await this.bitqueryService.getTreasuryGnana(
-      gBananaTreasury(),
-    );
+    const gnanaContract = getContract(ERC20_ABI, goldenBananaAddress());
 
-    circulatingSupply = circulatingSupply / 10 ** 18;
+    const decimals = await gnanaContract.methods.decimals().call();
+
+    const [treasury, supply] = await Promise.all([
+      gnanaContract.methods.balanceOf(gBananaTreasury()).call(),
+      gnanaContract.methods.totalSupply().call(),
+    ]);
+
+    const treasuryAmount = treasury / 10 ** decimals;
+    const totalSupply = supply / 10 ** decimals;
+    const circulatingSupply = totalSupply - treasuryAmount;
+
     return {
       circulatingSupply,
     };

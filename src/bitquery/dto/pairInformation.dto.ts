@@ -1,20 +1,20 @@
-export class Token {
+export class TokenDto {
   name?: string;
   address?: string;
   pooled_token?: number;
   price?: number;
 }
-export class QuoteToken {
+export class QuoteTokenDto {
   network?: string;
   symbol?: string;
   address?: string;
 }
-export class PairInformation {
+export class PairInformationDto {
   ticker_id?: string;
   addressLP?: string;
-  base?: Token;
-  target?: Token;
+  base?: TokenDto;
+  target?: TokenDto;
   liquidity?: number;
-  quote?: QuoteToken;
+  quote?: QuoteTokenDto;
   createdAt?: string;
 }
