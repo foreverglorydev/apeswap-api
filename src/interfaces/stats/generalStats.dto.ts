@@ -11,7 +11,7 @@ export class GeneralStats {
   readonly marketCap: number;
   tvl: number;
   poolsTvl: number;
-  
+
   @ApiHideProperty()
   readonly tvlInBnb?: number;
   totalLiquidity: number;

@@ -1,4 +1,4 @@
-import { ApiHideProperty } from "@nestjs/swagger";
+import { ApiHideProperty } from '@nestjs/swagger';
 
 export class StatsChain {
   @ApiHideProperty()
@@ -18,4 +18,5 @@ export class GeneralStatsChain {
   circulatingSupply: number;
   marketCap: number;
   gnanaCirculatingSupply: number;
+  lendingTvl: number;
 }

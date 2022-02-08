@@ -11,6 +11,7 @@ import { Cache } from 'cache-manager';
 import { PriceService } from './price.service';
 import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
+import { LENDING_ABI } from './utils/abi/lendingAbi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
 import {
   getParameterCaseInsensitive,
@@ -29,6 +30,8 @@ import {
   getWalletStatsForPools,
   getWalletStatsForFarms,
   getWalletStatsForIncentivizedPools,
+  lendingAddress,
+  unitrollerAddress,
 } from './utils/stats.utils';
 import { WalletStats } from 'src/interfaces/stats/walletStats.dto';
 import { WalletInvalidHttpException } from './exceptions/wallet-invalid.execption';
@@ -202,6 +205,8 @@ export class StatsService {
   }
 
   async getTvlStats(): Promise<GeneralStatsChain> {
+    const tvl = await this.getLendingTvl();
+    console.log(tvl);
     try {
       const cachedValue = await this.cacheManager.get('calculateTVLStats');
       if (cachedValue) {
@@ -222,12 +227,14 @@ export class StatsService {
 
   async calculateTvlStats() {
     const [
+      lendingTvl,
       polygonTvl,
       bscTvl,
       { burntAmount, totalSupply, circulatingSupply },
       prices,
       { circulatingSupply: gnanaCirculatingSupply },
     ] = await Promise.all([
+      this.getLendingTvl(),
       this.subgraphService.getLiquidityPolygonData(),
       this.subgraphService.getVolumeData(),
       this.getBurnAndSupply(),
@@ -237,7 +244,7 @@ export class StatsService {
     const priceUSD = prices[bananaAddress()].usd;
     const poolsTvlBsc = await this.getTvlBsc();
     const tvl: GeneralStatsChain = {
-      tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
+      tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc + lendingTvl,
       totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
       totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
       bsc: bscTvl,
@@ -247,6 +254,7 @@ export class StatsService {
       circulatingSupply,
       marketCap: circulatingSupply * priceUSD,
       gnanaCirculatingSupply,
+      lendingTvl,
     };
     await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
     await this.createTvlStats(tvl);
@@ -978,5 +986,19 @@ export class StatsService {
       default:
         return BEP20_REWARD_APE_ABI;
     }
+  }
+
+  async getLendingTvl() {
+    let tvl = 0;
+    try {
+      const contract = getContract(LENDING_ABI, lendingAddress());
+      const { totalSupply } = await contract.methods
+        .viewLendingNetwork(unitrollerAddress())
+        .call();
+      tvl = totalSupply / 10 ** 18;
+    } catch (error) {
+      console.log(error);
+    }
+    return tvl;
   }
 }
