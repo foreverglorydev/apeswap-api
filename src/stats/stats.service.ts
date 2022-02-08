@@ -205,8 +205,6 @@ export class StatsService {
   }
 
   async getTvlStats(): Promise<GeneralStatsChain> {
-    const tvl = await this.getLendingTvl();
-    console.log(tvl);
     try {
       const cachedValue = await this.cacheManager.get('calculateTVLStats');
       if (cachedValue) {
