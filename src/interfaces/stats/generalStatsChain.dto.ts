@@ -1,10 +1,13 @@
-export interface StatsChain {
+import { ApiHideProperty } from '@nestjs/swagger';
+
+export class StatsChain {
+  @ApiHideProperty()
   tvl: number;
   totalLiquidity: number;
   totalVolume: number;
 }
 
-export interface GeneralStatsChain {
+export class GeneralStatsChain {
   tvl: number;
   totalLiquidity: number;
   totalVolume: number;
@@ -15,4 +18,5 @@ export interface GeneralStatsChain {
   circulatingSupply: number;
   marketCap: number;
   gnanaCirculatingSupply: number;
+  lendingTvl: number;
 }

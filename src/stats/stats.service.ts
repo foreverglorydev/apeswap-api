@@ -6,11 +6,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { GeneralStats } from 'src/interfaces/stats/generalStats.interface';
+import { GeneralStats } from 'src/interfaces/stats/generalStats.dto';
 import { Cache } from 'cache-manager';
 import { PriceService } from './price.service';
 import { LP_ABI } from './utils/abi/lpAbi';
 import { ERC20_ABI } from './utils/abi/erc20Abi';
+import { LENDING_ABI } from './utils/abi/lendingAbi';
 import { getContract, getCurrentBlock } from 'src/utils/lib/web3';
 import {
   getParameterCaseInsensitive,
@@ -29,8 +30,10 @@ import {
   getWalletStatsForPools,
   getWalletStatsForFarms,
   getWalletStatsForIncentivizedPools,
+  lendingAddress,
+  unitrollerAddress,
 } from './utils/stats.utils';
-import { WalletStats } from 'src/interfaces/stats/walletStats.interface';
+import { WalletStats } from 'src/interfaces/stats/walletStats.dto';
 import { WalletInvalidHttpException } from './exceptions/wallet-invalid.execption';
 import { Model } from 'mongoose';
 import {
@@ -40,7 +43,7 @@ import {
 import { SubgraphService } from './subgraph.service';
 import { Cron } from '@nestjs/schedule';
 import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
-import { GeneralStatsChain } from 'src/interfaces/stats/tvl.interface';
+import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
 
 @Injectable()
@@ -222,12 +225,14 @@ export class StatsService {
 
   async calculateTvlStats() {
     const [
+      lendingTvl,
       polygonTvl,
       bscTvl,
       { burntAmount, totalSupply, circulatingSupply },
       prices,
       { circulatingSupply: gnanaCirculatingSupply },
     ] = await Promise.all([
+      this.getLendingTvl(),
       this.subgraphService.getLiquidityPolygonData(),
       this.subgraphService.getVolumeData(),
       this.getBurnAndSupply(),
@@ -237,7 +242,7 @@ export class StatsService {
     const priceUSD = prices[bananaAddress()].usd;
     const poolsTvlBsc = await this.getTvlBsc();
     const tvl: GeneralStatsChain = {
-      tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc,
+      tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc + lendingTvl,
       totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
       totalVolume: polygonTvl.totalVolume + bscTvl.totalVolume,
       bsc: bscTvl,
@@ -247,6 +252,7 @@ export class StatsService {
       circulatingSupply,
       marketCap: circulatingSupply * priceUSD,
       gnanaCirculatingSupply,
+      lendingTvl,
     };
     await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
     await this.createTvlStats(tvl);
@@ -449,54 +455,59 @@ export class StatsService {
   }
 
   async getLpInfo(tokenAddress, stakingAddress) {
-    const [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
-      {
-        address: tokenAddress,
-        name: 'getReserves',
-      },
-      {
-        address: tokenAddress,
-        name: 'decimals',
-      },
-      {
-        address: tokenAddress,
-        name: 'token0',
-      },
-      {
-        address: tokenAddress,
-        name: 'token1',
-      },
-    ]);
+    try {
+      const [reserves, decimals, token0, token1] = await multicall(LP_ABI, [
+        {
+          address: tokenAddress,
+          name: 'getReserves',
+        },
+        {
+          address: tokenAddress,
+          name: 'decimals',
+        },
+        {
+          address: tokenAddress,
+          name: 'token0',
+        },
+        {
+          address: tokenAddress,
+          name: 'token1',
+        },
+      ]);
 
-    let [totalSupply, staked] = await multicall(LP_ABI, [
-      {
-        address: tokenAddress,
-        name: 'totalSupply',
-      },
-      {
-        address: tokenAddress,
-        name: 'balanceOf',
-        params: [stakingAddress],
-      },
-    ]);
+      let [totalSupply, staked] = await multicall(LP_ABI, [
+        {
+          address: tokenAddress,
+          name: 'totalSupply',
+        },
+        {
+          address: tokenAddress,
+          name: 'balanceOf',
+          params: [stakingAddress],
+        },
+      ]);
 
-    totalSupply /= 10 ** decimals[0];
-    staked /= 10 ** decimals[0];
+      totalSupply /= 10 ** decimals[0];
+      staked /= 10 ** decimals[0];
 
-    const q0 = reserves._reserve0;
-    const q1 = reserves._reserve1;
-    return {
-      address: tokenAddress,
-      token0: token0[0],
-      q0,
-      token1: token1[0],
-      q1,
-      totalSupply,
-      stakingAddress,
-      staked,
-      decimals: decimals[0],
-      tokens: [token0[0], token1[0]],
-    };
+      const q0 = reserves._reserve0;
+      const q1 = reserves._reserve1;
+      return {
+        address: tokenAddress,
+        token0: token0[0],
+        q0,
+        token1: token1[0],
+        q1,
+        totalSupply,
+        stakingAddress,
+        staked,
+        decimals: decimals[0],
+        tokens: [token0[0], token1[0]],
+      };
+    } catch (error) {
+      console.log('inusual ', tokenAddress);
+      console.log(error);
+    }
   }
 
   async getTokenInfo(tokenAddress, stakingAddress) {
@@ -946,6 +957,7 @@ export class StatsService {
 
   async getIncentivizedPools() {
     const { data } = await this.httpService.get(this.POOL_LIST_URL).toPromise();
+    console.log(data);
     const pools = data
       .map((pool) => ({
         sousId: pool.sousId,
@@ -972,5 +984,19 @@ export class StatsService {
       default:
         return BEP20_REWARD_APE_ABI;
     }
+  }
+
+  async getLendingTvl() {
+    let tvl = 0;
+    try {
+      const contract = getContract(LENDING_ABI, lendingAddress());
+      const { totalSupply } = await contract.methods
+        .viewLendingNetwork(unitrollerAddress())
+        .call();
+      tvl = totalSupply / 10 ** 18;
+    } catch (error) {
+      console.log(error);
+    }
+    return tvl;
   }
 }

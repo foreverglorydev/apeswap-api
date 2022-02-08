@@ -10,12 +10,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { isTransactionMined } from 'src/utils/lib/web3';
+import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { ApproveIazoDto } from './dto/approveIazo.dto';
 import { IazoDto } from './dto/iazo.dto';
+import { IazoInfoDto } from './dto/iazoInfo.dto';
 import { IazoTagDto } from './dto/iazoTag.dto';
 import { IazoService } from './iazo.service';
 
+@ApiTags('iazo')
 @Controller('iazo')
 export class IazoController {
   constructor(private iazoService: IazoService) {}
@@ -31,15 +33,17 @@ export class IazoController {
   }
 
   @Get('')
-  async fetchIaozs() {
+  async fetchIaozs(): Promise<IazoInfoDto[]> {
     return await this.iazoService.fetchIaozs();
   }
 
+  @ApiExcludeEndpoint()
   @Get('staff/')
   async fetchIazoStaff() {
     return await this.iazoService.fetchIazoStaff();
   }
 
+  @ApiExcludeEndpoint()
   @Post('staff/:id/approve')
   async approveIazo(
     @Param('id') iazoId: string,
@@ -48,11 +52,13 @@ export class IazoController {
     return await this.iazoService.approveIazo(iazoId, approveIazoDto);
   }
 
+  @ApiExcludeEndpoint()
   @Post('staff/:id/tag')
   async addTagIazo(@Param('id') iazoId: string, @Body() tag: IazoTagDto) {
     return await this.iazoService.addTagIazo(iazoId, tag);
   }
 
+  @ApiExcludeEndpoint()
   @Put('staff/:id/tag/:tagId')
   async updateTagIazo(
     @Param('id') iazoId: string,
@@ -62,6 +68,7 @@ export class IazoController {
     return await this.iazoService.updateTagIazo(iazoId, tag, tagId);
   }
 
+  @ApiExcludeEndpoint()
   @Delete('staff/:id/tag/:tagId')
   async removeTagIazo(
     @Param('id') iazoId: string,
@@ -71,17 +78,17 @@ export class IazoController {
   }
 
   @Get(':address')
-  async getIazo(@Param('address') address: string) {
+  async getIazo(@Param('address') address: string): Promise<IazoInfoDto[]> {
     return await this.iazoService.getIazoByAddress(address);
   }
 
   @Get('owner/:address')
-  async getIaozUser(@Param('address') address: string) {
+  async getIaozUser(@Param('address') address: string): Promise<IazoInfoDto[]> {
     return await this.iazoService.getIaozUser(address);
   }
 
   @Get('detail/:id')
-  async getDetailIaoz(@Param('id') id: string) {
+  async getDetailIaoz(@Param('id') id: string): Promise<IazoInfoDto> {
     return await this.iazoService.detailIaoz(id);
   }
 }

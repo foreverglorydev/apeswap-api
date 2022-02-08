@@ -7,6 +7,7 @@ import {
   Query,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { DrawingService } from './drawing.service';
 import { LotteryService } from './lottery.service';
@@ -21,18 +22,21 @@ export class LotteryController {
   ) {}
   chainId = this.configService.chainId;
 
+  @ApiExcludeEndpoint()
   @UseInterceptors(CacheInterceptor)
   @Get()
   getLotteries(@Query() { pageSize, page }) {
     return this.lotteryService.getLotteries(pageSize, page);
   }
 
+  @ApiExcludeEndpoint()
   @UseInterceptors(CacheInterceptor)
   @Get('history')
   getLotteryHistory() {
     return this.lotteryService.getLotteryHistory();
   }
 
+  @ApiExcludeEndpoint()
   @Get('draw')
   async drawLottery() {
     try {
@@ -46,6 +50,7 @@ export class LotteryController {
     }
   }
 
+  @ApiExcludeEndpoint()
   @Get('reset')
   async resetLottery() {
     try {
@@ -58,6 +63,7 @@ export class LotteryController {
     }
   }
 
+  @ApiExcludeEndpoint()
   @Get('process')
   async processLottery() {
     try {
@@ -69,6 +75,7 @@ export class LotteryController {
     }
   }
 
+  @ApiExcludeEndpoint()
   @Get('config')
   @UseInterceptors(CacheInterceptor)
   async config() {
@@ -80,6 +87,7 @@ export class LotteryController {
     }
   }
 
+  @ApiExcludeEndpoint()
   @Get('next')
   @UseInterceptors(CacheInterceptor)
   async nextDraw() {
@@ -91,6 +99,7 @@ export class LotteryController {
     }
   }
 
+  @ApiExcludeEndpoint()
   @UseInterceptors(CacheInterceptor)
   @Get(':id')
   getLottery(@Param('id') id: number) {

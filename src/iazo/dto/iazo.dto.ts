@@ -1,14 +1,4 @@
-import {
-  IsBoolean,
-  IsDate,
-  IsDateString,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsPositive,
-  Min,
-  Validate,
-} from 'class-validator';
+import { IsNotEmpty, Validate } from 'class-validator';
 import { IsAddress } from 'src/utils/validator/isAddress';
 import { IsValidateBoolean } from 'src/utils/validator/isValidateBoolean';
 import { IsValidateDate } from 'src/utils/validator/isValidateDate';
