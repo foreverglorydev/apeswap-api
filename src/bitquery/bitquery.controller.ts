@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BitqueryService } from './bitquery.service';
-import { CandleOptionsDto } from './dto/candle.dto';
+import { CandleDto, CandleOptionsDto } from './dto/candle.dto';
 import { PairInformationDto } from './dto/pairInformation.dto';
 import { TokenInformationDto } from './dto/tokenInformation.dto';
 
@@ -43,7 +43,7 @@ export class BitqueryController {
   async getCandleToken(
     @Param('address') address: string,
     @Query() candleOptionsDto: CandleOptionsDto,
-  ): Promise<any> {
+  ): Promise<CandleDto> {
     this.logger.debug(`Called GET /candle/${address}`);
     return await this.bitqueryService.getCandleToken(address, candleOptionsDto);
   }

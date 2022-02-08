@@ -175,9 +175,8 @@ export class BitqueryService {
   async getCandleToken(address: string, candleOptions: CandleOptionsDto) {
     const network = 'bsc';
 
-    let query;
     try {
-      query = await this.queryBitquery(
+      const { data: { ethereum: { dexTrades } } } = await this.queryBitquery(
         queryCandleData(
           address,
           QUOTE_CURRENCY_BSC.BUSD,
@@ -185,11 +184,11 @@ export class BitqueryService {
           candleOptions,
         ),
       );
+      return dexTrades;
     } catch (error) {
       console.log(error);
       return error;
     }
-    return query;
   }
 
   async getTreasuryGnana(address: string) {
