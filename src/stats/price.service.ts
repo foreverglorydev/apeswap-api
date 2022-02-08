@@ -1,6 +1,7 @@
 import { Injectable, HttpService } from '@nestjs/common';
 import { chunk } from 'lodash';
 import { SubgraphService } from './subgraph.service';
+import { fetchPrices } from './utils/fetchPrices';
 
 @Injectable()
 export class PriceService {
@@ -22,6 +23,18 @@ export class PriceService {
       }
     }
 
+    return prices;
+  }
+  
+  async getTokenPricesv2(): Promise<any> {
+    const chainId = process.env.CHAIN_ID;
+    const prices = {};
+    const data = await fetchPrices(chainId);
+    for (let i = 0; i < data.length; i++) {
+      prices[data[i].address[chainId]] = {
+        usd: data[i].price,
+      };
+    }
     return prices;
   }
 

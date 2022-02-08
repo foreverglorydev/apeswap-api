@@ -26,6 +26,7 @@ export default () => ({
       'https://data-seed-prebsc-2-s2.binance.org:8545',
     ],
     iazoExposer: '0xe977E40f29f699F75db2A137Af0B3Db2152404b6',
+    apePriceGetter: ''
   },
   56: {
     lottery: {
@@ -61,5 +62,9 @@ export default () => ({
       'https://bsc-dataseed4.binance.org:443', */
     ],
     iazoExposer: '0xFdfb230bFa399EC32EA8e98c2E7E3CcD953C860A',
+    apePriceGetter: '0x5e545322b83626c745FE46144a15C00C94cBD803'
   },
+  137: {
+    apePriceGetter: '0x05D6C73D7de6E02B3f57677f849843c03320681c',
+  }
 });

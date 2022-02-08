@@ -221,7 +221,6 @@ export class StatsService {
   }
 
   async calculateTvlStats() {
-    console.log('ddd');
     try {
       const [
         polygonTvl,

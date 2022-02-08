@@ -41,6 +41,10 @@ export function burnAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.burn;
 }
 
+export function apePriceGetter(): string {
+  return configuration()[process.env.CHAIN_ID].apePriceGetter;
+}
+
 export function masterApeContractWeb(): any {
   return getContract(MASTER_APE_ABI, masterApeContractAddress());
 }
