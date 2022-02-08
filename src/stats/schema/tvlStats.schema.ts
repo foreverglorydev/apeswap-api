@@ -35,6 +35,9 @@ export class TvlStats {
   @Prop({ required: true })
   gnanaCirculatingSupply: number;
 
+  @Prop({ required: true })
+  lendingTvl: number;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 }

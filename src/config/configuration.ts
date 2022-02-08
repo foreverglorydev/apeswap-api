@@ -61,5 +61,7 @@ export default () => ({
       'https://bsc-dataseed4.binance.org:443', */
     ],
     iazoExposer: '0xFdfb230bFa399EC32EA8e98c2E7E3CcD953C860A',
+    lending: '0xCc7aaC69015a7645dfC39ddEB5902ca9FC0Bc15C',
+    unitroller: '0xAD48B2C9DC6709a560018c678e918253a65df86e',
   },
 });

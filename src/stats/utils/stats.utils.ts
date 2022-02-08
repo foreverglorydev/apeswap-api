@@ -45,6 +45,14 @@ export function masterApeContractWeb(): any {
   return getContract(MASTER_APE_ABI, masterApeContractAddress());
 }
 
+export function lendingAddress(): any {
+  return configuration()[process.env.CHAIN_ID].lending;
+}
+
+export function unitrollerAddress(): any {
+  return configuration()[process.env.CHAIN_ID].unitroller;
+}
+
 export function getBananaPriceWithPoolList(poolList, prices) {
   const poolBusd = poolList.find(
     (pool) => pool.address === bananaBusdAddress(),
