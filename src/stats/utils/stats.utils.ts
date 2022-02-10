@@ -1,4 +1,4 @@
-import { getContract } from 'src/utils/lib/web3';
+import { getContract, getContractNetwork } from 'src/utils/lib/web3';
 import {
   getParameterCaseInsensitive,
   createLpPairName,
@@ -11,6 +11,14 @@ import { BEP20_REWARD_APE_ABI } from './abi/bep20RewardApeAbi';
 // ADDRESS GETTERS
 export function masterApeContractAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.masterApe;
+}
+
+export function masterApeContractAddressNetwork(chainId: number): string {
+  return configuration()[chainId].contracts.masterApe;
+}
+
+export function masterApeAbiNetwork(chainId: number): string {
+  return configuration()[chainId].abi.masterApe;
 }
 
 export function bananaAddress(): string {
@@ -41,8 +49,24 @@ export function burnAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.burn;
 }
 
+export function apePriceGetter(chainId: number): string {
+  return configuration()[chainId].apePriceGetter;
+}
+
 export function masterApeContractWeb(): any {
   return getContract(MASTER_APE_ABI, masterApeContractAddress());
+}
+
+export function masterApeContractNetwork(chainId: number): any {
+  return getContractNetwork(masterApeAbiNetwork(chainId), masterApeContractAddressNetwork(chainId), chainId);
+}
+
+export function lpAbiNetwork(chainId: string): any {
+  return configuration()[chainId].abi.lp;
+}
+
+export function erc20AbiNetwork(chainId: string): any {
+  return configuration()[chainId].abi.erc20;
 }
 
 export function lendingAddress(): any {

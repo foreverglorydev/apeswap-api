@@ -6,6 +6,7 @@ import { StatsController } from './stats.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
 import { TvlStats, TvlStatsSchema } from './schema/tvlStats.schema';
+import { StatsNetworkService } from './stats.network.service';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { TvlStats, TvlStatsSchema } from './schema/tvlStats.schema';
       { name: TvlStats.name, schema: TvlStatsSchema },
     ]),
   ],
-  providers: [StatsService, SubgraphService, PriceService],
+  providers: [StatsService, SubgraphService, PriceService, StatsNetworkService],
   exports: [SubgraphService],
   controllers: [StatsController],
 })

@@ -11,13 +11,17 @@ import { GeneralStats } from 'src/interfaces/stats/generalStats.dto';
 import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { SentryInterceptor } from 'src/interceptor/sentry.interceptor';
 import { StatsService } from './stats.service';
+import { StatsNetworkService } from './stats.network.service';
 
 @ApiTags('stats')
 @Controller('stats')
 @UseInterceptors(CacheInterceptor, SentryInterceptor)
 export class StatsController {
   private readonly logger = new Logger(StatsController.name);
-  constructor(private statsService: StatsService) {}
+  constructor(
+    private statsService: StatsService,
+    private statsNetworkService: StatsNetworkService,
+  ) {}
 
   @ApiOkResponse({
     type: GeneralStats,
@@ -57,6 +61,12 @@ export class StatsController {
   async getFarmPrices(): Promise<any> {
     this.logger.debug('Called GET /stats/farmPrices');
     return await this.statsService.getFarmPrices();
+  }
+
+  @Get('network/:chainId')
+  async getStatsNetwork(@Param('chainId') chainId: number): Promise<GeneralStats> {
+    this.logger.debug(`Called GET /stats/network/${chainId}`);
+    return await this.statsNetworkService.getStatsNetwork(chainId);
   }
 
   @ApiExcludeEndpoint()

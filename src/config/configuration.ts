@@ -1,3 +1,12 @@
+import { ERC20_ABI } from "src/stats/utils/abi/erc20Abi";
+import { ERC20_ABI_POLYGON } from "src/stats/utils/abi/erc20AbiPolygon";
+import { LP_ABI } from "src/stats/utils/abi/lpAbi";
+import { LP_ABI_POLYGON } from "src/stats/utils/abi/lpAbiPolygon";
+import { MASTER_APE_ABI } from "src/stats/utils/abi/masterApeAbi";
+import { MASTER_APE_ABI_POLYGON } from "src/stats/utils/abi/masterApeAbiPolygon";
+import { MULTICALL_ABI } from "src/utils/lib/abi/multicallAbi";
+import { MULTICALL_ABI_POLYGON } from "src/utils/lib/abi/multicallAbiPolygon";
+
 export default () => ({
   mongo_uri: process.env.MONGO_URL,
   environment: process.env.NODE_ENV,
@@ -63,5 +72,31 @@ export default () => ({
     iazoExposer: '0xFdfb230bFa399EC32EA8e98c2E7E3CcD953C860A',
     lending: '0xCc7aaC69015a7645dfC39ddEB5902ca9FC0Bc15C',
     unitroller: '0xAD48B2C9DC6709a560018c678e918253a65df86e',
+    abi: {
+      masterApe: MASTER_APE_ABI,
+      multiCall: MULTICALL_ABI,
+      lp: LP_ABI,
+      erc20: ERC20_ABI
+    }
   },
+  137: {
+    contracts: {
+      masterApe: '0x54aff400858Dcac39797a81894D9920f16972D1D',
+      multiCall: '0x95028E5B8a734bb7E2071F96De89BABe75be9C8E'
+    },
+    apePriceGetter: '0x05D6C73D7de6E02B3f57677f849843c03320681c',
+    appNodes: [
+      //'https://rpc-mainnet.matic.network',
+      'https://matic-mainnet.chainstacklabs.com',
+      'https://rpc-mainnet.maticvigil.com',
+      'https://rpc-mainnet.matic.quiknode.pro',
+      //'https://matic-mainnet-full-rpc.bwarelabs.com',
+    ],
+    abi: {
+      masterApe: MASTER_APE_ABI_POLYGON,
+      multiCall: MULTICALL_ABI_POLYGON,
+      lp: LP_ABI_POLYGON,
+      erc20: ERC20_ABI_POLYGON
+    }
+  }
 });
