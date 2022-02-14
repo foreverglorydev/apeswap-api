@@ -25,7 +25,7 @@ export class PriceService {
 
     return prices;
   }
-  
+
   async getTokenPricesv2(): Promise<any> {
     const chainId = process.env.CHAIN_ID;
     const prices = {};

@@ -8,6 +8,7 @@ export class QuoteTokenDto {
   network?: string;
   symbol?: string;
   address?: string;
+  stable?: boolean;
 }
 export class PairInformationDto {
   ticker_id?: string;

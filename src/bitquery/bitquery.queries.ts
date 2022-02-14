@@ -1,12 +1,33 @@
 import { CandleOptionsDto } from './dto/candle.dto';
 
 export const QUOTE_CURRENCY_BSC = {
-  USDT: '0x55d398326f99059ff775485246999027b3197955',
-  BUSD: '0xe9e7cea3dedca5984780bafc599bd69add087d56',
+  WBNB: {
+    symbol: 'wbnb',
+    address: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
+    stable: false,
+  },
+  BUSD: {
+    symbol: 'busd',
+    address: '0xe9e7cea3dedca5984780bafc599bd69add087d56',
+    stable: true,
+  },
+  USDT: {
+    symbol: 'usdt',
+    address: '0x55d398326f99059ff775485246999027b3197955',
+    stable: true,
+  },
 };
 export const QUOTE_CURRENCY_MATIC = {
-  USDT: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-  USDC: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+  USDT: {
+    symbol: 'usdt',
+    address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+    stable: true,
+  },
+  USDC: {
+    symbol: 'busd',
+    address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+    stable: true,
+  },
 };
 
 export function queryPairInformation(address: string, network: string) {
@@ -120,6 +141,7 @@ export function queryTokenInformation(
               height
             timestamp {
                 time(format: "%Y-%m-%d %H:%M:%S")
+                unixtime
         }
       }
         transaction {

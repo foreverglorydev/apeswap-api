@@ -28,6 +28,7 @@ import {
 } from './schema/tokenBitquery.schema';
 import {
   calculatePrice,
+  getQuoteCurrencies,
   getQuoteCurrency,
   updateAllPair,
   updatePair,
@@ -129,7 +130,7 @@ export class BitqueryService {
   async getTokenInformation(address: string, network: string) {
     const cachedValue = await this.cacheManager.get(`token-${address}`);
     if (cachedValue) {
-      this.logger.log('Hit getTokenInformation() cache');
+      this.logger.log('Hit Query() cache');
       return cachedValue;
     }
     const tokenModel = await this.tokenBitqueryModel.findOne({ address });
@@ -148,38 +149,100 @@ export class BitqueryService {
   }
 
   async calculateTokenInformation(address: string, network: string) {
-    const tokenInfo: TokenInformationDto = {};
-    tokenInfo.quote = getQuoteCurrency(network);
-    const {
-      data: {
-        ethereum: { transfers, dexTrades },
-      },
-    } = await this.queryBitquery(
-      queryTokenInformation(network, address, tokenInfo.quote.address),
+    const tokenInfo: TokenInformationDto = {
+      address: address,
+    };
+
+    const { transfers, dexTrades, quote } = await this.calculateLastPrice(
+      network,
+      address,
     );
-    tokenInfo.tokenPrice = dexTrades.length !== 0 ? dexTrades[0].quotePrice : 0;
-    tokenInfo.totalSupply = transfers[0].minted;
-    tokenInfo.burntAmount = transfers[0].burned;
-    tokenInfo.circulatingSupply = transfers[0].minted - transfers[0].burned;
-    tokenInfo.marketCap =
-      (transfers[0].minted - transfers[0].burned) * tokenInfo.tokenPrice;
-    tokenInfo.address = address;
-    tokenInfo.name = transfers[0].currency.name;
-    tokenInfo.symbol = transfers[0].currency.symbol;
+
+    if (transfers && transfers.length > 0) {
+      tokenInfo.totalSupply = transfers[0].minted;
+      tokenInfo.burntAmount = transfers[0].burned;
+      tokenInfo.circulatingSupply = transfers[0].minted - transfers[0].burned;
+
+      tokenInfo.name = transfers[0].currency.name;
+      tokenInfo.symbol = transfers[0].currency.symbol;
+    }
+
+    if (dexTrades && dexTrades.length > 0) {
+      tokenInfo.quote = quote;
+      tokenInfo.tokenPrice = dexTrades[0].quotePrice;
+      if (!tokenInfo.quote.stable) {
+        const { dexTrades: dex } = await this.getQueryTokenInformation(
+          network,
+          tokenInfo.quote.address,
+          getQuoteCurrency(network).address,
+        );
+        tokenInfo.tokenPrice *= dex[0].quotePrice;
+      }
+      tokenInfo.marketCap =
+        (transfers[0].minted - transfers[0].burned) * tokenInfo.tokenPrice;
+    }
     await updateAllPair(this.tokenBitqueryModel, { address }, tokenInfo);
     await this.cacheManager.set(`token-${address}`, tokenInfo, { ttl: 120 });
 
     return tokenInfo;
   }
 
+  async calculateLastPrice(network: string, address: string) {
+    let transfers, dexTrades, quote;
+    const quotes = getQuoteCurrencies(network);
+    for (let index = 0; index < Object.keys(quotes).length; index++) {
+      const element = Object.values(quotes)[index];
+      const {
+        transfers: trans,
+        dexTrades: dex,
+      } = await this.getQueryTokenInformation(
+        network,
+        address,
+        element.address,
+      );
+      if (dex && dex.length > 0) {
+        const now = new Date().getTime();
+        const time = dex[0].block.timestamp.unixtime;
+        const diff = (now - time * 1000) / 1000 / 60;
+        if (diff < 7200) {
+          quote = element;
+          transfers = trans;
+          dexTrades = dex;
+          break;
+        }
+      }
+    }
+    return { transfers, dexTrades, quote };
+  }
+
+  async getQueryTokenInformation(
+    network: string,
+    tokenAddress: string,
+    quoteAddress: string,
+  ) {
+    const {
+      data: {
+        ethereum: { transfers, dexTrades },
+      },
+    } = await this.queryBitquery(
+      queryTokenInformation(network, tokenAddress, quoteAddress),
+    );
+
+    return { transfers, dexTrades };
+  }
+
   async getCandleToken(address: string, candleOptions: CandleOptionsDto) {
     const network = 'bsc';
 
     try {
-      const { data: { ethereum: { dexTrades } } } = await this.queryBitquery(
+      const {
+        data: {
+          ethereum: { dexTrades },
+        },
+      } = await this.queryBitquery(
         queryCandleData(
           address,
-          QUOTE_CURRENCY_BSC.BUSD,
+          QUOTE_CURRENCY_BSC.BUSD.address,
           network,
           candleOptions,
         ),

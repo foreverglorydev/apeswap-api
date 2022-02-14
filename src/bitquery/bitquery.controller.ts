@@ -31,7 +31,7 @@ export class BitqueryController {
     return await this.bitqueryService.getPairInformation(address, network);
   }
   @Get('/token/:network/:address')
-  async getBitquery(
+  async getTokenInformation(
     @Param('address') address: string,
     @Param('network') network: string,
   ): Promise<TokenInformationDto> {

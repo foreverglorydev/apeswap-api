@@ -1,42 +1,36 @@
 import { QUOTE_CURRENCY_BSC, QUOTE_CURRENCY_MATIC } from '../bitquery.queries';
 import { PairInformationDto } from '../dto/pairInformation.dto';
 
-export const MONTH_DAY = [
-  '01',
-  '02',
-  '03',
-  '04',
-  '05',
-  '06',
-  '07',
-  '08',
-  '09',
-  '10',
-  '11',
-  '12',
-];
-
 export function getQuoteCurrency(network: string) {
   switch (network) {
     case 'bsc':
       return {
         network,
-        symbol: 'USDT',
-        address: QUOTE_CURRENCY_BSC.USDT,
+        ...QUOTE_CURRENCY_BSC.BUSD,
       };
     case 'matic':
       return {
         network,
-        symbol: 'USDT',
-        address: QUOTE_CURRENCY_MATIC.USDT,
+        ...QUOTE_CURRENCY_MATIC.USDT,
       };
 
     default:
       return {
         network,
-        symbol: 'USDT',
-        address: QUOTE_CURRENCY_BSC.USDT,
+        ...QUOTE_CURRENCY_BSC.USDT,
       };
+  }
+}
+
+export function getQuoteCurrencies(network: string) {
+  switch (network) {
+    case 'bsc':
+      return QUOTE_CURRENCY_BSC;
+    case 'matic':
+      return QUOTE_CURRENCY_MATIC;
+
+    default:
+      return null;
   }
 }
 
