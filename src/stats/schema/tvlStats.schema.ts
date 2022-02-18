@@ -38,6 +38,9 @@ export class TvlStats {
   @Prop({ required: true })
   lendingTvl: number;
 
+  @Prop({ required: false })
+  partnerCount: number;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 }

@@ -19,4 +19,5 @@ export class GeneralStatsChain {
   marketCap: number;
   gnanaCirculatingSupply: number;
   lendingTvl: number;
+  partnerCount?: number;
 }

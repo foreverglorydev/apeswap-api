@@ -51,6 +51,7 @@ export class StatsService {
   private readonly logger = new Logger(StatsService.name);
   private readonly chainId = parseInt(process.env.CHAIN_ID);
   private readonly POOL_LIST_URL = process.env.POOL_LIST_URL;
+  private readonly STRAPI_URL = process.env.APESWAP_STRAPI_URL;
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -204,43 +205,52 @@ export class StatsService {
     return farmPrices;
   }
 
+  // Function called on /stats/tvl endpoint
   async getTvlStats(): Promise<GeneralStatsChain> {
     try {
       const cachedValue = await this.cacheManager.get('calculateTVLStats');
+
       if (cachedValue) {
         this.logger.log('Hit getTvlStats() cache');
         return cachedValue as GeneralStatsChain;
       }
+
       const infoTvlStats = await this.verifyStats('tvl');
       if (infoTvlStats) return infoTvlStats;
+
       await this.updateTvlCreatedAtStats();
       this.calculateTvlStats();
+
       const tvl: any = await this.findTvlStats();
       return tvl;
     } catch (e) {
-      this.logger.error('Something went wrong calculating stats');
+      this.logger.error('Something went wrong calculating stats.');
       console.log(e);
     }
   }
 
+  // Function called to get updated TVL stats
   async calculateTvlStats() {
     const [
       lendingTvl,
       polygonTvl,
       bscTvl,
+      poolsTvlBsc,
       { burntAmount, totalSupply, circulatingSupply },
       prices,
       { circulatingSupply: gnanaCirculatingSupply },
+      partnerCount,
     ] = await Promise.all([
       this.getLendingTvl(),
       this.subgraphService.getLiquidityPolygonData(),
       this.subgraphService.getVolumeData(),
+      this.getTvlBsc(),
       this.getBurnAndSupply(),
       this.priceService.getTokenPrices(),
       this.getGnanaSupply(),
+      this.getPartnerCount(),
     ]);
     const priceUSD = prices[bananaAddress()].usd;
-    const poolsTvlBsc = await this.getTvlBsc();
     const tvl: GeneralStatsChain = {
       tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc + lendingTvl,
       totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
@@ -253,6 +263,7 @@ export class StatsService {
       marketCap: circulatingSupply * priceUSD,
       gnanaCirculatingSupply,
       lendingTvl,
+      partnerCount,
     };
     await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
     await this.createTvlStats(tvl);
@@ -998,5 +1009,18 @@ export class StatsService {
       console.log(error);
     }
     return tvl;
+  }
+
+  // Gets the count of partners based on the partner-counts strapi endpoint
+  async getPartnerCount() {
+    try {
+      const { data } = await this.httpService
+        .get(`${this.STRAPI_URL}/partner-counts`)
+        .toPromise();
+
+      return data[0].count;
+    } catch (error) {
+      this.logger.error(error.message);
+    }
   }
 }
