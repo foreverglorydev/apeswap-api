@@ -126,20 +126,26 @@ export class StatsService {
     return this.generalStatsModel.deleteMany();
   }
 
+  // Called if cache comes up expired
   async verifyStats(model) {
     const now = Date.now();
+
+    // Get stats for general or tvl, depending on the case in which you run this function
     const stats: any =
       model === 'general'
         ? await this.findGeneralStats()
         : await this.findTvlStats();
+
+    // If there is no 'createdAt' reject.
     if (!stats?.createdAt) return null;
 
+    // If the last DB creation was created greater than 5 mins ago, reject.
     const lastCreatedAt = new Date(stats.createdAt).getTime();
     const diff = now - lastCreatedAt;
     const time = 300000; // 5 minutes
-
     if (diff > time) return null;
 
+    // If all goes well, use stats you got from one of the functions above
     return stats;
   }
 
@@ -208,19 +214,28 @@ export class StatsService {
   // Function called on /stats/tvl endpoint
   async getTvlStats(): Promise<GeneralStatsChain> {
     try {
+      // FIRST CHECK: Cache
+      // checks to see if there is a chancedValue at 'calculateTVLStats'. If there is one, return it.
       const cachedValue = await this.cacheManager.get('calculateTVLStats');
-
       if (cachedValue) {
         this.logger.log('Hit getTvlStats() cache');
         return cachedValue as GeneralStatsChain;
       }
 
+      // SECOND CHECK: Database
+      // In the case the cache is expired, call the verifyStats('tvl') function.
+      // If valid, return that for stats.
       const infoTvlStats = await this.verifyStats('tvl');
       if (infoTvlStats) return infoTvlStats;
 
+      // THIRD CHECK: Get new stats
+      // Update created time to avoid multiple creation queries
       await this.updateTvlCreatedAtStats();
+
+      // Calculate TVL Stats, do not let this delay things (e.g., not async)
       this.calculateTvlStats();
 
+      // Query database
       const tvl: any = await this.findTvlStats();
       return tvl;
     } catch (e) {
@@ -235,7 +250,6 @@ export class StatsService {
       lendingTvl,
       polygonTvl,
       bscTvl,
-      poolsTvlBsc,
       { burntAmount, totalSupply, circulatingSupply },
       prices,
       { circulatingSupply: gnanaCirculatingSupply },
@@ -244,13 +258,13 @@ export class StatsService {
       this.getLendingTvl(),
       this.subgraphService.getLiquidityPolygonData(),
       this.subgraphService.getVolumeData(),
-      this.getTvlBsc(),
       this.getBurnAndSupply(),
       this.priceService.getTokenPrices(),
       this.getGnanaSupply(),
       this.getPartnerCount(),
     ]);
     const priceUSD = prices[bananaAddress()].usd;
+    const poolsTvlBsc = await this.getTvlBsc();
     const tvl: GeneralStatsChain = {
       tvl: polygonTvl.liquidity + bscTvl.liquidity + poolsTvlBsc + lendingTvl,
       totalLiquidity: polygonTvl.liquidity + bscTvl.liquidity,
@@ -265,6 +279,8 @@ export class StatsService {
       lendingTvl,
       partnerCount,
     };
+
+    // Stored in cache at 'calculateTVLStats', with an expiration value of 2 minutes (120 seconds)
     await this.cacheManager.set('calculateTVLStats', tvl, { ttl: 120 });
     await this.createTvlStats(tvl);
     return tvl;
