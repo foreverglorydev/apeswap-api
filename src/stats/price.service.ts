@@ -1,7 +1,9 @@
 import { Injectable, HttpService } from '@nestjs/common';
 import { chunk } from 'lodash';
+import configuration from 'src/config/configuration';
 import { SubgraphService } from './subgraph.service';
 import { fetchPrices } from './utils/fetchPrices';
+import { bananaAddressNetwork, goldenBananaAddress } from './utils/stats.utils';
 
 @Injectable()
 export class PriceService {
@@ -29,14 +31,21 @@ export class PriceService {
 
   async getTokenPricesv2(chainId: number): Promise<any> {
     const prices = {};
-    const { data: { tokens } } = await this.httpService.get(this.TOKEN_LIST_URL).toPromise();
+    const {
+      data: { tokens },
+    } = await this.httpService.get(this.TOKEN_LIST_URL).toPromise();
     const data = await fetchPrices(tokens, chainId);
     for (let i = 0; i < data.length; i++) {
       prices[data[i].address] = {
         usd: data[i].price,
+        decimals: data[i].decimals,
       };
     }
-    console.log(prices)
+    if (chainId === configuration().networksId.BSC) {
+      prices[goldenBananaAddress()] = {
+        usd: prices[bananaAddressNetwork(chainId)].usd / 0.72,
+      };
+    }
     return prices;
   }
 

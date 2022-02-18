@@ -41,7 +41,11 @@ export const getContract = (abi: any, address: string) => {
   return new web3.eth.Contract(abi, address);
 };
 
-export const getContractNetwork = (abi: any, address: string, chainId: number) => {
+export const getContractNetwork = (
+  abi: any,
+  address: string,
+  chainId: number,
+) => {
   const web3: Web3 = getRandomWeb3(chainId);
   return new web3.eth.Contract(abi, address);
 };

@@ -1,16 +1,20 @@
-import { ERC20_ABI } from "src/stats/utils/abi/erc20Abi";
-import { ERC20_ABI_POLYGON } from "src/stats/utils/abi/erc20AbiPolygon";
-import { LP_ABI } from "src/stats/utils/abi/lpAbi";
-import { LP_ABI_POLYGON } from "src/stats/utils/abi/lpAbiPolygon";
-import { MASTER_APE_ABI } from "src/stats/utils/abi/masterApeAbi";
-import { MASTER_APE_ABI_POLYGON } from "src/stats/utils/abi/masterApeAbiPolygon";
-import { MULTICALL_ABI } from "src/utils/lib/abi/multicallAbi";
-import { MULTICALL_ABI_POLYGON } from "src/utils/lib/abi/multicallAbiPolygon";
+import { ERC20_ABI } from 'src/stats/utils/abi/erc20Abi';
+import { ERC20_ABI_POLYGON } from 'src/stats/utils/abi/erc20AbiPolygon';
+import { LP_ABI } from 'src/stats/utils/abi/lpAbi';
+import { LP_ABI_POLYGON } from 'src/stats/utils/abi/lpAbiPolygon';
+import { MASTER_APE_ABI } from 'src/stats/utils/abi/masterApeAbi';
+import { MASTER_APE_ABI_POLYGON } from 'src/stats/utils/abi/masterApeAbiPolygon';
+import { MULTICALL_ABI } from 'src/utils/lib/abi/multicallAbi';
+import { MULTICALL_ABI_POLYGON } from 'src/utils/lib/abi/multicallAbiPolygon';
 
 export default () => ({
   mongo_uri: process.env.MONGO_URL,
   environment: process.env.NODE_ENV,
   chainId: process.env.CHAIN_ID || 97,
+  networksId: {
+    BSC: 56,
+    POLYGON: 137,
+  },
   97: {
     lottery: {
       address: '0xe42Ff4758C37ccC3A54004b176384477bbBe70D6',
@@ -54,6 +58,7 @@ export default () => ({
       gBananaTreasury: '0xec4b9d1fd8a3534e31fce1636c7479bcd29213ae',
       auction: '0xaeCB396Be7F19618Db4C44d8e2E8C908228515E9',
     },
+    apePriceGetter: '0x5e545322b83626c745FE46144a15C00C94cBD803',
     appNodes: [
       'https://bsc-dataseed.binance.org:443',
       'https://bsc-dataseed1.defibit.io:443',
@@ -76,13 +81,15 @@ export default () => ({
       masterApe: MASTER_APE_ABI,
       multiCall: MULTICALL_ABI,
       lp: LP_ABI,
-      erc20: ERC20_ABI
-    }
+      erc20: ERC20_ABI,
+    },
   },
   137: {
     contracts: {
       masterApe: '0x54aff400858Dcac39797a81894D9920f16972D1D',
-      multiCall: '0x95028E5B8a734bb7E2071F96De89BABe75be9C8E'
+      mulltiCall: '0x95028E5B8a734bb7E2071F96De89BABe75be9C8E',
+      banana: '0x5d47baba0d66083c52009271faf3f50dcc01023c',
+      burn: '0x000000000000000000000000000000000000dead',
     },
     apePriceGetter: '0x05D6C73D7de6E02B3f57677f849843c03320681c',
     appNodes: [
@@ -96,7 +103,7 @@ export default () => ({
       masterApe: MASTER_APE_ABI_POLYGON,
       multiCall: MULTICALL_ABI_POLYGON,
       lp: LP_ABI_POLYGON,
-      erc20: ERC20_ABI_POLYGON
-    }
-  }
+      erc20: ERC20_ABI_POLYGON,
+    },
+  },
 });

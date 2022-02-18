@@ -620,7 +620,7 @@ export class StatsService {
       circulatingSupply,
     };
   }
-  
+
   async getTokens(poolInfos) {
     const tokens = {};
     // eslint-disable-next-line prefer-spread

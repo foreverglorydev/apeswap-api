@@ -1,4 +1,5 @@
 import { getContract, getContractNetwork } from 'src/utils/lib/web3';
+import BigNumber from 'bignumber.js';
 import {
   getParameterCaseInsensitive,
   createLpPairName,
@@ -8,6 +9,7 @@ import { MASTER_APE_ABI } from './abi/masterApeAbi';
 import configuration from 'src/config/configuration';
 import { BEP20_REWARD_APE_ABI } from './abi/bep20RewardApeAbi';
 
+export const SECONDS_PER_YEAR = new BigNumber(31536000);
 // ADDRESS GETTERS
 export function masterApeContractAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.masterApe;
@@ -17,12 +19,16 @@ export function masterApeContractAddressNetwork(chainId: number): string {
   return configuration()[chainId].contracts.masterApe;
 }
 
-export function masterApeAbiNetwork(chainId: number): string {
+export function masterApeAbiNetwork(chainId: number): any {
   return configuration()[chainId].abi.masterApe;
 }
 
 export function bananaAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.banana;
+}
+
+export function bananaAddressNetwork(chainId: number): string {
+  return configuration()[chainId].contracts.banana;
 }
 
 export function goldenBananaAddress(): string {
@@ -49,6 +55,10 @@ export function burnAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.burn;
 }
 
+export function burnAddressNetwork(chainId: number): string {
+  return configuration()[chainId].contracts.burn;
+}
+
 export function apePriceGetter(chainId: number): string {
   return configuration()[chainId].apePriceGetter;
 }
@@ -58,14 +68,18 @@ export function masterApeContractWeb(): any {
 }
 
 export function masterApeContractNetwork(chainId: number): any {
-  return getContractNetwork(masterApeAbiNetwork(chainId), masterApeContractAddressNetwork(chainId), chainId);
+  return getContractNetwork(
+    masterApeAbiNetwork(chainId),
+    masterApeContractAddressNetwork(chainId),
+    chainId,
+  );
 }
 
-export function lpAbiNetwork(chainId: string): any {
+export function lpAbiNetwork(chainId: number): any {
   return configuration()[chainId].abi.lp;
 }
 
-export function erc20AbiNetwork(chainId: string): any {
+export function erc20AbiNetwork(chainId: number): any {
   return configuration()[chainId].abi.erc20;
 }
 
@@ -111,6 +125,7 @@ export function getPoolPrices(
   allocPoints,
   totalAllocPoints,
   rewardsPerDay,
+  chainId = +process.env.CHAIN_ID,
 ) {
   if (pool.token0 != null) {
     poolPrices.farms.push({
@@ -122,6 +137,7 @@ export function getPoolPrices(
         allocPoints,
         totalAllocPoints,
         rewardsPerDay,
+        chainId,
       ),
     });
   } else {
@@ -133,6 +149,7 @@ export function getPoolPrices(
         allocPoints,
         totalAllocPoints,
         rewardsPerDay,
+        chainId,
       ),
     });
   }
@@ -146,6 +163,7 @@ function getFarmLPTokenPrices(
   allocPoints,
   totalAllocPoints,
   rewardsPerDay,
+  chainId = +process.env.CHAIN_ID,
 ) {
   const t0 = getParameterCaseInsensitive(tokens, pool.token0);
   let p0 = getParameterCaseInsensitive(prices, pool.token0)?.usd;
@@ -173,7 +191,9 @@ function getFarmLPTokenPrices(
   // APR calculations
   const poolRewardsPerDay = (allocPoints / totalAllocPoints) * rewardsPerDay;
   const apr =
-    ((poolRewardsPerDay * prices[bananaAddress()].usd) / stakedTvl) * 365;
+    ((poolRewardsPerDay * prices[bananaAddressNetwork(chainId)].usd) /
+      stakedTvl) *
+    365;
 
   return {
     address: pool.address,
@@ -193,7 +213,10 @@ function getFarmLPTokenPrices(
     tvl,
     stakedTvl,
     apr,
-    rewardTokenPrice: getParameterCaseInsensitive(prices, bananaAddress())?.usd,
+    rewardTokenPrice: getParameterCaseInsensitive(
+      prices,
+      bananaAddressNetwork(chainId),
+    )?.usd,
     rewardTokenSymbol: 'BANANA',
     decimals: pool.decimals,
   };
@@ -206,6 +229,7 @@ function getBep20Prices(
   allocPoints,
   totalAllocPoints,
   rewardsPerDay,
+  chainId = +process.env.CHAIN_ID,
 ) {
   const price = getParameterCaseInsensitive(prices, pool.address)?.usd || 0;
   const tvl = (pool.totalSupply * price) / 10 ** pool.decimals;
@@ -214,7 +238,9 @@ function getBep20Prices(
   // APR calculations
   const poolRewardsPerDay = (allocPoints / totalAllocPoints) * rewardsPerDay;
   const apr =
-    ((poolRewardsPerDay * prices[bananaAddress()].usd) / stakedTvl) * 365;
+    ((poolRewardsPerDay * prices[bananaAddressNetwork(chainId)].usd) /
+      stakedTvl) *
+    365;
 
   return {
     address: pool.address,
@@ -224,7 +250,10 @@ function getBep20Prices(
     stakedTvl,
     staked: pool.staked,
     apr,
-    rewardTokenPrice: getParameterCaseInsensitive(prices, bananaAddress())?.usd,
+    rewardTokenPrice: getParameterCaseInsensitive(
+      prices,
+      bananaAddressNetwork(chainId),
+    )?.usd,
     rewardTokenSymbol: 'BANANA',
     decimals: pool.decimals,
   };
@@ -372,3 +401,25 @@ export async function getWalletStatsForIncentivizedPools(
   );
   return allIncentivizedPools;
 }
+
+export const getDualFarmApr = (
+  poolLiquidityUsd: number,
+  miniChefRewardTokenPrice: number,
+  miniChefTokensPerSecond: string,
+  rewarerdTokenPrice: number,
+  rewarderTokensPerSecond: string,
+): number => {
+  const totalRewarderRewardPricePerYear = new BigNumber(rewarerdTokenPrice)
+    .times(rewarderTokensPerSecond)
+    .times(SECONDS_PER_YEAR);
+  const totalMiniChefRewardPricePerYear = new BigNumber(
+    miniChefRewardTokenPrice,
+  )
+    .times(miniChefTokensPerSecond)
+    .times(SECONDS_PER_YEAR);
+  const totalRewardsPerYear = totalMiniChefRewardPricePerYear.plus(
+    totalRewarderRewardPricePerYear,
+  );
+  const apr = totalRewardsPerYear.div(poolLiquidityUsd).times(100);
+  return apr.isNaN() || !apr.isFinite() ? null : apr.toNumber();
+};

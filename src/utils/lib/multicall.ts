@@ -10,9 +10,7 @@ interface Call {
   params?: any[]; // Function params
 }
 
-export const multicall = async (abi: any[], calls: Call[], chainId = +process.env.CHAIN_ID) => {
-  //console.log(getMulticallAddress());
-  //console.log(calls[0]);
+export const multicall = async (abi: any[], calls: Call[]) => {
   const web3 = getWeb3();
   const multi = new web3.eth.Contract(
     (MULTICALL_ABI as unknown) as AbiItem,
@@ -31,7 +29,11 @@ export const multicall = async (abi: any[], calls: Call[], chainId = +process.en
   return res;
 };
 
-export const multicallNetwork = async (abi: any[], calls: Call[], chainId = +process.env.CHAIN_ID) => {
+export const multicallNetwork = async (
+  abi: any[],
+  calls: Call[],
+  chainId = +process.env.CHAIN_ID,
+) => {
   const web3 = getWeb3(chainId);
   const multi = new web3.eth.Contract(
     (getMulticallAbiNetwork(chainId) as unknown) as AbiItem,
@@ -55,7 +57,7 @@ const getMulticallAddress = () => {
 };
 
 const getMulticallAddressNetwork = (chainId: number) => {
-  return configuration()[chainId].contracts.multiCall;
+  return configuration()[chainId].contracts.mulltiCall;
 };
 
 const getMulticallAbiNetwork = (chainId: number) => {
