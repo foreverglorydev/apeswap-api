@@ -45,7 +45,7 @@ export class TokensService {
     const tokenList: TokenList = await this.findTokenList(type);
 
     // TEMPORARY: The /tokens/type endpoint will trigger what will later become the cronjob
-    // const processedTokens: Token[] = await this.processTokensFromSubgraphData();
+    const processedTokens: Token[] = await this.processTokensFromSubgraphData();
 
     return tokenList;
   }
