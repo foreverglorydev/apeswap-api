@@ -41,6 +41,25 @@ export const pairsQuery = `{
   }
 }`;
 
+export function topTokensQuery(block: string) {
+  let input = '';
+  if (block !== 'now') {
+    input = ` block: {number: ${block}}`;
+  }
+
+  return `{
+    tokens(orderBy: tradeVolumeUSD orderDirection: desc first: 100${input}) {
+      id
+      symbol
+      name
+      tokenDayData(orderBy: date orderDirection: desc, first: 1) {
+        id
+        priceUSD
+      }
+    }
+  }`;
+}
+
 export function dayData(skip: number, startTime: number, endTime: number) {
   return `{
     apeswapDayDatas: uniswapDayDatas(first: 1000, skip: ${skip}, where: { date_gt: ${startTime}, date_lt: ${endTime} }, orderBy: date, orderDirection: desc) {

@@ -126,7 +126,7 @@ export class StatsService {
     return this.generalStatsModel.deleteMany();
   }
 
-  // Called if cache comes up expired
+  // Called if cache comes up expired and we're trying to check the database stats for /tvl or just /
   async verifyStats(model) {
     const now = Date.now();
 
@@ -136,7 +136,7 @@ export class StatsService {
         ? await this.findGeneralStats()
         : await this.findTvlStats();
 
-    // If there is no 'createdAt' reject.
+    // If there is no 'createdAt' in the response, we consider it broken and return null for calling function to reject.
     if (!stats?.createdAt) return null;
 
     // If the last DB creation was created greater than 5 mins ago, reject.
@@ -145,7 +145,8 @@ export class StatsService {
     const time = 300000; // 5 minutes
     if (diff > time) return null;
 
-    // If all goes well, use stats you got from one of the functions above
+    // If a response is returned and the response is less than 5 minutes prior,
+    // use stats you got from one of the functions above.
     return stats;
   }
 
@@ -215,27 +216,34 @@ export class StatsService {
   async getTvlStats(): Promise<GeneralStatsChain> {
     try {
       // FIRST CHECK: Cache
-      // checks to see if there is a chancedValue at 'calculateTVLStats'. If there is one, return it.
+      // checks to see if there is a chancedValue at 'calculateTVLStats'. If there is one, console log a note & return it.
       const cachedValue = await this.cacheManager.get('calculateTVLStats');
       if (cachedValue) {
-        this.logger.log('Hit getTvlStats() cache');
+        this.logger.log('Pulled TVL stats from cache...');
         return cachedValue as GeneralStatsChain;
       }
 
       // SECOND CHECK: Database
-      // In the case the cache is expired, call the verifyStats('tvl') function.
+      // In the case the cache is expired, call the verifyStats('tvl') function, which checks the database.
       // If valid, return that for stats.
-      const infoTvlStats = await this.verifyStats('tvl');
-      if (infoTvlStats) return infoTvlStats;
+      const databaseValue = await this.verifyStats('tvl');
+      if (databaseValue) {
+        this.logger.log('Pulling TVL stats from database entry...');
+        return databaseValue;
+      }
 
       // THIRD CHECK: Get new stats
-      // Update created time to avoid multiple creation queries
+
+      // If the cache and database checks fail, we do the following:
+      // 1. Update createdAt time in the database for the tvlstats collection document
+      // This is because if we get multiple requests
       await this.updateTvlCreatedAtStats();
 
-      // Calculate TVL Stats, do not let this delay things (e.g., not async)
+      // 2. Start processessing an updated version of the tvlstats document
+      // This function updates the cache and database.
       this.calculateTvlStats();
 
-      // Query database
+      // 3. Go ahead and query the database and return the most recent version we have.
       const tvl: any = await this.findTvlStats();
       return tvl;
     } catch (e) {

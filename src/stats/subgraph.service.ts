@@ -8,6 +8,7 @@ import {
   usersPairDayData,
   userPairDayData,
   polygonLiquidityQuery,
+  topTokensQuery,
 } from './utils/subgraph.queries';
 
 @Injectable()
@@ -39,6 +40,16 @@ export class SubgraphService {
   async getPairsData(): Promise<any> {
     const { data } = await this.querySubraph(pairsQuery);
     return data;
+  }
+
+  async getTopTokensData(chainId: number, block: string): Promise<any> {
+    if (chainId === 56) {
+      const { data } = await this.querySubraph(topTokensQuery(block));
+      return data;
+    } else if (chainId === 137) {
+      const { data } = await this.queryPolygonSubraph(topTokensQuery(block));
+      return data;
+    }
   }
 
   async getDayData(startTimestamp: number, endTimestamp: number): Promise<any> {

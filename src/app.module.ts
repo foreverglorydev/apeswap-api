@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { PairsModule } from './pairs/pairs.module';
 import { LotteryModule } from './lottery/lottery.module';
 import { StatsModule } from './stats/stats.module';
+import { TokensModule } from './tokens/tokens.module';
 import { NfasModule } from './nfas/nfas.module';
 import { ApestrongModule } from './apestrong/apestrong.module';
 import configuration from './config/configuration';
@@ -28,6 +29,7 @@ import { AuthStrapiMiddleware } from './middleware/auth-strapi';
     PairsModule,
     LotteryModule,
     StatsModule,
+    TokensModule,
     NfasModule,
     TradingModule,
     ApestrongModule,
