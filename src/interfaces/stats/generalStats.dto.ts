@@ -31,10 +31,12 @@ export class GeneralStatsNetworkDto {
   readonly circulatingSupply: number;
   readonly marketCap: number;
   gnanaCirculatingSupply?: number;
+  poolsTvl: number;
 
   @ApiHideProperty()
   pools?: PoolStats[];
   farms?: FarmStats[];
+  incentivizedPools: IncentivizedPoolStats[];
 }
 
 export class ChainIdDto {

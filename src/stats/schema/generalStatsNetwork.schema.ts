@@ -23,6 +23,9 @@ export class GeneralStatsNetwork {
   @Prop()
   marketCap: number;
 
+  @Prop({ required: true })
+  poolsTvl: number;
+
   @Prop()
   pools: [];
 

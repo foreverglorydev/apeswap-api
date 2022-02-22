@@ -41,7 +41,7 @@ export class PriceService {
         decimals: data[i].decimals,
       };
     }
-    if (chainId === configuration().networksId.BSC) {
+    if (+chainId === +configuration().networksId.BSC) {
       prices[goldenBananaAddress()] = {
         usd: prices[bananaAddressNetwork(chainId)].usd / 0.72,
       };

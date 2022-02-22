@@ -13,26 +13,17 @@ import {
 } from 'src/interfaces/stats/generalStats.dto';
 import { Cache } from 'cache-manager';
 import { PriceService } from './price.service';
-import { LP_ABI } from './utils/abi/lpAbi';
-import { ERC20_ABI } from './utils/abi/erc20Abi';
-import { getContract, getContractNetwork } from 'src/utils/lib/web3';
 import { multicallNetwork } from 'src/utils/lib/multicall';
 import {
-  gBananaTreasury,
-  goldenBananaAddress,
   getPoolPrices,
   masterApeContractNetwork,
   masterApeContractAddressNetwork,
-  lpAbiNetwork,
   erc20AbiNetwork,
   bananaAddressNetwork,
-  burnAddressNetwork,
   getDualFarmApr,
   masterApeAbiNetwork,
 } from './utils/stats.utils';
 import { Model } from 'mongoose';
-import { SubgraphService } from './subgraph.service';
-import { TvlStats } from './schema/tvlStats.schema';
 import { getBalanceNumber } from 'src/utils/math';
 import { MINI_COMPLEX_REWARDER_ABI } from './utils/abi/miniComplexRewarderAbi';
 import configuration from 'src/config/configuration';
@@ -40,6 +31,7 @@ import {
   GeneralStatsNetwork,
   GeneralStatsNetworkDocument,
 } from './schema/generalStatsNetwork.schema';
+import { StatsService } from './stats.service';
 
 @Injectable()
 export class StatsNetworkService {
@@ -51,9 +43,8 @@ export class StatsNetworkService {
     private httpService: HttpService,
     @InjectModel(GeneralStatsNetwork.name)
     private generalStatsNetworkModel: Model<GeneralStatsNetworkDocument>,
-    @InjectModel(TvlStats.name)
-    private subgraphService: SubgraphService,
     private priceService: PriceService,
+    private statsService: StatsService,
   ) {}
 
   createGeneralStats(stats, filter) {
@@ -122,7 +113,7 @@ export class StatsNetworkService {
         { burntAmount, totalSupply, circulatingSupply },
       ] = await Promise.all([
         this.priceService.getTokenPricesv2(chainId),
-        this.getBurnAndSupply(chainId),
+        this.statsService.getBurnAndSupply(chainId),
       ]);
       const priceUSD = prices[bananaAddressNetwork(chainId)].usd;
       const generalStats: GeneralStatsNetworkDto = {
@@ -132,33 +123,26 @@ export class StatsNetworkService {
         totalSupply,
         circulatingSupply,
         marketCap: circulatingSupply * priceUSD,
+        poolsTvl: 0,
         pools: [],
         farms: [],
+        incentivizedPools: [],
       };
 
       switch (+chainId) {
         case configuration().networksId.BSC:
-          const poolCount = parseInt(
-            await masterApeContract.methods.poolLength().call(),
-            10,
-          );
-
-          const poolInfos = await Promise.all(
-            [...Array(poolCount).keys()].map(async (x) =>
-              this.getPoolInfoNetwork(masterApeContract, x, chainId),
-            ),
+          const poolInfos = await this.statsService.calculatePoolInfo(
+            masterApeContract,
           );
 
           const [
-            totalAllocPoints,
-            rewardsPerDay,
+            { totalAllocPoints, rewardsPerDay },
             tokens,
             { circulatingSupply: gnanaCirculatingSupply },
           ] = await Promise.all([
-            masterApeContract.methods.totalAllocPoint().call(),
-            this.getRewardPerDay(masterApeContract, +chainId),
-            this.getTokensNetwork(poolInfos, chainId),
-            this.getGnanaSupply(),
+            this.statsService.getAllocPointAndRewards(masterApeContract),
+            this.statsService.getTokens(poolInfos),
+            this.statsService.getGnanaSupply(),
           ]);
 
           generalStats.gnanaCirculatingSupply = gnanaCirculatingSupply;
@@ -174,16 +158,34 @@ export class StatsNetworkService {
                 poolInfos[i].allocPoints,
                 totalAllocPoints,
                 rewardsPerDay,
-                chainId,
               );
             }
           }
 
+          generalStats.pools.forEach((pool) => {
+            generalStats.poolsTvl += pool.stakedTvl;
+          });
+
+          try {
+            await Promise.all([
+              this.statsService.mappingIncetivizedPools(generalStats, prices),
+            ]);
+          } catch (error) {}
+
+          generalStats.incentivizedPools.forEach((pool) => {
+            if (!pool.t0Address) {
+              generalStats.poolsTvl += pool.stakedTvl;
+            }
+            delete pool.abi;
+          });
+
           this.logger.log(`finish calculate chainID ${chainId}`);
           break;
         case configuration().networksId.POLYGON:
-          const dualFarms = await this.fetchDualFarms(prices, chainId);
-          generalStats.farms = dualFarms;
+          generalStats.farms = await this.fetchDualFarms(prices, chainId);
+          delete generalStats.pools;
+          delete generalStats.incentivizedPools;
+          delete generalStats.poolsTvl;
           this.logger.log(`finish calculate chainID ${chainId}`);
           break;
 
@@ -205,265 +207,6 @@ export class StatsNetworkService {
       this.logger.error('Something went wrong calculating stats network');
       return e;
     }
-  }
-
-  async getRewardPerDay(masterApeContract, chainId: number) {
-    switch (chainId) {
-      case 56:
-        return (
-          (await (((await masterApeContract.methods.cakePerBlock().call()) /
-            1e18) *
-            86400)) / 3
-        );
-      case 137:
-        return await masterApeContract.methods.bananaPerSecond().call();
-
-      default:
-        return 0;
-    }
-  }
-
-  async getPoolInfoNetwork(masterApeContract, poolIndex, chainId: number) {
-    let lpToken;
-    const poolInfo = await masterApeContract.methods.poolInfo(poolIndex).call();
-    lpToken = poolInfo.lpToken;
-
-    if (!lpToken) {
-      lpToken = await masterApeContract.methods.lpToken(poolIndex).call();
-    }
-    let poolToken;
-    try {
-      if ([0, 75, 112, 162].includes(poolIndex)) {
-        poolToken = await this.getTokenInfoNetwork(
-          lpToken,
-          masterApeContractAddressNetwork(chainId),
-          chainId,
-        );
-      } else {
-        poolToken = await this.getLpInfoNetwork(
-          lpToken,
-          masterApeContractAddressNetwork(chainId),
-          chainId,
-        );
-      }
-    } catch (error) {
-      console.log('un error');
-    }
-
-    return {
-      address: lpToken,
-      allocPoints: poolInfo.allocPoint ?? 1,
-      poolToken,
-      poolIndex,
-      lastRewardBlock: poolInfo.lastRewardBlock,
-    };
-  }
-
-  async getLpInfoNetwork(tokenAddress, stakingAddress, chainId) {
-    try {
-      const [reserves, decimals, token0, token1] = await multicallNetwork(
-        lpAbiNetwork(chainId),
-        [
-          {
-            address: tokenAddress,
-            name: 'getReserves',
-          },
-          {
-            address: tokenAddress,
-            name: 'decimals',
-          },
-          {
-            address: tokenAddress,
-            name: 'token0',
-          },
-          {
-            address: tokenAddress,
-            name: 'token1',
-          },
-        ],
-        chainId,
-      );
-
-      let [totalSupply, staked] = await multicallNetwork(
-        lpAbiNetwork(chainId),
-        [
-          {
-            address: tokenAddress,
-            name: 'totalSupply',
-          },
-          {
-            address: tokenAddress,
-            name: 'balanceOf',
-            params: [stakingAddress],
-          },
-        ],
-        chainId,
-      );
-
-      totalSupply /= 10 ** decimals[0];
-      staked /= 10 ** decimals[0];
-
-      const q0 = reserves._reserve0;
-      const q1 = reserves._reserve1;
-      return {
-        address: tokenAddress,
-        token0: token0[0],
-        q0,
-        token1: token1[0],
-        q1,
-        totalSupply,
-        stakingAddress,
-        staked,
-        decimals: decimals[0],
-        tokens: [token0[0], token1[0]],
-      };
-    } catch (error) {
-      console.log('inusual ', tokenAddress);
-      //console.log(error);
-    }
-  }
-
-  async getTokenInfoNetwork(tokenAddress, stakingAddress, chainId) {
-    if (tokenAddress == '0x0000000000000000000000000000000000000000') {
-      return {
-        address: tokenAddress,
-        name: 'Binance',
-        symbol: 'BNB',
-        totalSupply: 1e8,
-        decimals: 18,
-        staked: 0,
-        tokens: [tokenAddress],
-      };
-    }
-
-    // HOTFIX for Rocket token (Rocket contract currently incompatible with ERC20_ABI)
-    if (tokenAddress == '0x3bA5aee47Bb7eAE40Eb3D06124a74Eb89Da8ffd2') {
-      const contract = getContract(
-        LP_ABI,
-        '0x93fa1A6357De25031311f784342c33A26Cb1C87A', // ROCKET-BNB LP pair address
-      );
-      const reserves = await contract.methods.getReserves().call();
-      const q0 = reserves._reserve0 / 10 ** 18;
-
-      return {
-        address: tokenAddress,
-        name: 'Rocket',
-        symbol: 'ROCKET',
-        totalSupply: 1000000000,
-        decimals: 18,
-        staked: q0,
-        tokens: [tokenAddress],
-      };
-    }
-
-    const [
-      name,
-      symbol,
-      totalSupply,
-      decimals,
-      staked,
-    ] = await multicallNetwork(
-      erc20AbiNetwork(chainId),
-      [
-        {
-          address: tokenAddress,
-          name: 'name',
-        },
-        {
-          address: tokenAddress,
-          name: 'symbol',
-        },
-        {
-          address: tokenAddress,
-          name: 'totalSupply',
-        },
-        {
-          address: tokenAddress,
-          name: 'decimals',
-        },
-        {
-          address: tokenAddress,
-          name: 'balanceOf',
-          params: [stakingAddress],
-        },
-      ],
-      chainId,
-    );
-
-    return {
-      address: tokenAddress,
-      name: name[0],
-      symbol: symbol[0],
-      totalSupply: totalSupply[0],
-      decimals: decimals[0],
-      staked: staked[0] / 10 ** decimals[0],
-      tokens: [tokenAddress],
-    };
-  }
-
-  async getBurnAndSupply(chainId: number) {
-    const bananaContract = getContractNetwork(
-      erc20AbiNetwork(chainId),
-      bananaAddressNetwork(chainId),
-      chainId,
-    );
-
-    const decimals = await bananaContract.methods.decimals().call();
-
-    const [burned, supply] = await Promise.all([
-      bananaContract.methods.balanceOf(burnAddressNetwork(chainId)).call(),
-      bananaContract.methods.totalSupply().call(),
-    ]);
-
-    const burntAmount = burned / 10 ** decimals;
-    const totalSupply = supply / 10 ** decimals;
-    const circulatingSupply = totalSupply - burntAmount;
-
-    return {
-      burntAmount,
-      totalSupply,
-      circulatingSupply,
-    };
-  }
-
-  async getGnanaSupply() {
-    const gnanaContract = getContract(ERC20_ABI, goldenBananaAddress());
-
-    const decimals = await gnanaContract.methods.decimals().call();
-
-    const [treasury, supply] = await Promise.all([
-      gnanaContract.methods.balanceOf(gBananaTreasury()).call(),
-      gnanaContract.methods.totalSupply().call(),
-    ]);
-
-    const treasuryAmount = treasury / 10 ** decimals;
-    const totalSupply = supply / 10 ** decimals;
-    const circulatingSupply = totalSupply - treasuryAmount;
-
-    return {
-      circulatingSupply,
-    };
-  }
-
-  async getTokensNetwork(poolInfos, chainId) {
-    const tokens = {};
-    // eslint-disable-next-line prefer-spread
-    const tokenAddresses = [].concat.apply(
-      [],
-      poolInfos.filter((x) => x.poolToken).map((x) => x.poolToken.tokens),
-    );
-
-    await Promise.all(
-      tokenAddresses.map(async (address) => {
-        tokens[address] = await this.getTokenInfoNetwork(
-          address,
-          masterApeContractAddressNetwork(chainId),
-          chainId,
-        );
-      }),
-    );
-
-    return tokens;
   }
 
   async fetchDualFarms(tokenPrices, chainId: number) {
@@ -585,8 +328,8 @@ export class StatsNetworkService {
         let rewardsPerSecond = null;
 
         if (
-          dualFarmConfig.rewarderAddress ===
-          '0x1F234B1b83e21Cb5e2b99b4E498fe70Ef2d6e3bf'
+          dualFarmConfig.rewarderAddress.toLowerCase() ===
+          '0x1F234B1b83e21Cb5e2b99b4E498fe70Ef2d6e3bf'.toLowerCase()
         ) {
           // Temporary until we integrate the subgraph to the frontend
           rewarderTotalAlloc = 10000;
