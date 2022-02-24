@@ -68,7 +68,6 @@ export class IazoDto {
   @IsNotEmpty()
   medium: string;
 
-  @IsNotEmpty()
   description?: string;
 
   @IsNotEmpty()
