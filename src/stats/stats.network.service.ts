@@ -32,6 +32,7 @@ import {
   GeneralStatsNetworkDocument,
 } from './schema/generalStatsNetwork.schema';
 import { StatsService } from './stats.service';
+import { createLpPairName } from 'src/utils/helpers';
 
 @Injectable()
 export class StatsNetworkService {
@@ -405,19 +406,35 @@ export class StatsNetworkService {
         );
 
         return {
-          ...dualFarmConfig,
-          tokenAmount: tokenAmount.toJSON(),
-          totalStaked: totalStaked.toFixed(0),
-          quoteTokenAmount: quoteTokenAmount.toJSON(),
-          totalInQuoteToken: totalInQuoteToken.toJSON(),
-          lpTotalInQuoteToken: lpTotalInQuoteToken.toJSON(),
-          tokenPriceVsQuote: quoteTokenAmount.div(tokenAmount).toJSON(),
-          stakeTokenPrice,
-          rewardToken0Price: miniChefRewarderToken?.usd,
-          rewardToken1Price: rewarderToken?.usd,
-          poolWeight: alloc,
-          multiplier,
+          poolIndex: dualFarmConfig.pid,
+          name: createLpPairName(
+            dualFarmConfig.stakeTokens.token0.symbol,
+            dualFarmConfig.stakeTokens.token1.symbol,
+          ),
+          address: dualFarmConfig.stakeTokenAddress,
+          t0Address: dualFarmConfig.stakeTokens.token0.address,
+          t0Symbol: dualFarmConfig.stakeTokens.token0.symbol,
+          t0Decimals: dualFarmConfig.stakeTokens.token0.decimals,
+          p0: quoteToken.usd,
+          q0: tokenAmount.toJSON(),
+          t1Address: dualFarmConfig.stakeTokens.token1.address,
+          t1Symbol: dualFarmConfig.stakeTokens.token1.symbol,
+          t1Decimals: dualFarmConfig.stakeTokens.token1.decimals,
+          p1: token1.usd,
+          q1: quoteTokenAmount.toJSON(),
+          price: stakeTokenPrice,
+          totalSupply: totalInQuoteToken.toJSON(),
+          tvl: totalStaked.toFixed(0),
+          stakedTvl: lpTotalInQuoteToken.toJSON(),
           apr,
+          rewardTokenPrice: miniChefRewarderToken?.usd,
+          rewardTokenSymbol: miniChefRewarderToken?.symbol,
+          decimals: miniChefRewarderToken?.decimals,
+          rewardTokenPrice1: rewarderToken?.usd,
+          rewardTokenSymbol1: rewarderToken?.symbol,
+          decimals1: rewarderToken?.decimals,
+          multiplier,
+          poolWeight: alloc,
         };
       }),
     );

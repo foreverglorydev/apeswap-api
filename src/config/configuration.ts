@@ -93,10 +93,11 @@ export default () => ({
     },
     apePriceGetter: '0x05D6C73D7de6E02B3f57677f849843c03320681c',
     appNodes: [
+      'https://polygon-rpc.com',
       //'https://rpc-mainnet.matic.network',
-      'https://matic-mainnet.chainstacklabs.com',
-      'https://rpc-mainnet.maticvigil.com',
-      'https://rpc-mainnet.matic.quiknode.pro',
+      //'https://matic-mainnet.chainstacklabs.com',
+      //'https://rpc-mainnet.maticvigil.com',
+      //'https://rpc-mainnet.matic.quiknode.pro',
       //'https://matic-mainnet-full-rpc.bwarelabs.com',
     ],
     abi: {
