@@ -1,7 +1,8 @@
 /*
   TODO
+  - Update strapi endpoing to have start and end times
   - Add sources to get token lists instead of fixed config
-  - Get things working on Polygon side
+  - Get things working on Polygon side (web3 config seems to be just for 1 chain)
   - Make cron jobs for all
   - Improve efficiency and cleanliness of code (less for loops)
   - Add basic error handling
