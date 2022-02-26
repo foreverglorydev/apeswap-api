@@ -1,10 +1,12 @@
 import { multicallNetwork } from 'src/utils/lib/multicall';
 import { getBalanceNumber } from 'src/utils/math';
 import { APE_PRICE_GETTER } from './abi/apePriceGetter';
-import { apePriceGetter } from './stats.utils';
 
-export const fetchPrices = async (tokens, chainId) => {
-  const apePriceGetterAddress = apePriceGetter(chainId);
+export const fetchPrices = async (
+  tokens,
+  chainId,
+  apePriceGetterAddress: string,
+) => {
   const tokensToCall = tokens.filter(
     (token) => parseInt(token.chainId) === parseInt(chainId),
   );

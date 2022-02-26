@@ -10,4 +10,8 @@ export class ChainConfigService {
   get<T = any>(propertyPath): T | undefined {
     return this.configService.get<T>(`${this.chainId}.${propertyPath}`);
   }
+
+  getData<T = any>(propertyPath): T | undefined {
+    return this.configService.get<T>(`${propertyPath}`);
+  }
 }

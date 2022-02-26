@@ -1,4 +1,4 @@
-import { getContract, getContractNetwork } from 'src/utils/lib/web3';
+import { getContract } from 'src/utils/lib/web3';
 import BigNumber from 'bignumber.js';
 import {
   getParameterCaseInsensitive,
@@ -15,20 +15,8 @@ export function masterApeContractAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.masterApe;
 }
 
-export function masterApeContractAddressNetwork(chainId: number): string {
-  return configuration()[chainId].contracts.masterApe;
-}
-
-export function masterApeAbiNetwork(chainId: number): any {
-  return configuration()[chainId].abi.masterApe;
-}
-
 export function bananaAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.banana;
-}
-
-export function bananaAddressNetwork(chainId: number): string {
-  return configuration()[chainId].contracts.banana;
 }
 
 export function goldenBananaAddress(): string {
@@ -55,32 +43,8 @@ export function burnAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.burn;
 }
 
-export function burnAddressNetwork(chainId: number): string {
-  return configuration()[chainId].contracts.burn;
-}
-
-export function apePriceGetter(chainId: number): string {
-  return configuration()[chainId].apePriceGetter;
-}
-
 export function masterApeContractWeb(): any {
   return getContract(MASTER_APE_ABI, masterApeContractAddress());
-}
-
-export function masterApeContractNetwork(chainId: number): any {
-  return getContractNetwork(
-    masterApeAbiNetwork(chainId),
-    masterApeContractAddressNetwork(chainId),
-    chainId,
-  );
-}
-
-export function lpAbiNetwork(chainId: number): any {
-  return configuration()[chainId].abi.lp;
-}
-
-export function erc20AbiNetwork(chainId: number): any {
-  return configuration()[chainId].abi.erc20;
 }
 
 export function lendingAddress(): any {
@@ -125,7 +89,7 @@ export function getPoolPrices(
   allocPoints,
   totalAllocPoints,
   rewardsPerDay,
-  chainId = +process.env.CHAIN_ID,
+  bananaAddress,
 ) {
   if (pool.token0 != null) {
     poolPrices.farms.push({
@@ -137,7 +101,7 @@ export function getPoolPrices(
         allocPoints,
         totalAllocPoints,
         rewardsPerDay,
-        chainId,
+        bananaAddress,
       ),
     });
   } else {
@@ -149,7 +113,7 @@ export function getPoolPrices(
         allocPoints,
         totalAllocPoints,
         rewardsPerDay,
-        chainId,
+        bananaAddress,
       ),
     });
   }
@@ -163,7 +127,7 @@ function getFarmLPTokenPrices(
   allocPoints,
   totalAllocPoints,
   rewardsPerDay,
-  chainId = +process.env.CHAIN_ID,
+  bananaAddress,
 ) {
   const t0 = getParameterCaseInsensitive(tokens, pool.token0);
   let p0 = getParameterCaseInsensitive(prices, pool.token0)?.usd;
@@ -191,9 +155,7 @@ function getFarmLPTokenPrices(
   // APR calculations
   const poolRewardsPerDay = (allocPoints / totalAllocPoints) * rewardsPerDay;
   const apr =
-    ((poolRewardsPerDay * prices[bananaAddressNetwork(chainId)].usd) /
-      stakedTvl) *
-    365;
+    ((poolRewardsPerDay * prices[bananaAddress].usd) / stakedTvl) * 365;
 
   return {
     address: pool.address,
@@ -213,10 +175,7 @@ function getFarmLPTokenPrices(
     tvl,
     stakedTvl,
     apr,
-    rewardTokenPrice: getParameterCaseInsensitive(
-      prices,
-      bananaAddressNetwork(chainId),
-    )?.usd,
+    rewardTokenPrice: getParameterCaseInsensitive(prices, bananaAddress)?.usd,
     rewardTokenSymbol: 'BANANA',
     decimals: pool.decimals,
   };
@@ -229,7 +188,7 @@ function getBep20Prices(
   allocPoints,
   totalAllocPoints,
   rewardsPerDay,
-  chainId = +process.env.CHAIN_ID,
+  bananaAddress,
 ) {
   const price = getParameterCaseInsensitive(prices, pool.address)?.usd || 0;
   const tvl = (pool.totalSupply * price) / 10 ** pool.decimals;
@@ -238,9 +197,7 @@ function getBep20Prices(
   // APR calculations
   const poolRewardsPerDay = (allocPoints / totalAllocPoints) * rewardsPerDay;
   const apr =
-    ((poolRewardsPerDay * prices[bananaAddressNetwork(chainId)].usd) /
-      stakedTvl) *
-    365;
+    ((poolRewardsPerDay * prices[bananaAddress].usd) / stakedTvl) * 365;
 
   return {
     address: pool.address,
@@ -250,10 +207,7 @@ function getBep20Prices(
     stakedTvl,
     staked: pool.staked,
     apr,
-    rewardTokenPrice: getParameterCaseInsensitive(
-      prices,
-      bananaAddressNetwork(chainId),
-    )?.usd,
+    rewardTokenPrice: getParameterCaseInsensitive(prices, bananaAddress)?.usd,
     rewardTokenSymbol: 'BANANA',
     decimals: pool.decimals,
   };

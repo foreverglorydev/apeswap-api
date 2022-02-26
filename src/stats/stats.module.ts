@@ -6,11 +6,12 @@ import { StatsController } from './stats.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GeneralStats, GeneralStatsSchema } from './schema/generalStats.schema';
 import { TvlStats, TvlStatsSchema } from './schema/tvlStats.schema';
-import { StatsNetworkService } from './stats.network.service';
 import {
   GeneralStatsNetwork,
   GeneralStatsNetworkSchema,
 } from './schema/generalStatsNetwork.schema';
+import { StatsNetworkService } from './stats.network.service';
+import { ChainConfigService } from 'src/config/chain.configuration.service';
 
 @Module({
   imports: [
@@ -24,7 +25,13 @@ import {
       { name: GeneralStatsNetwork.name, schema: GeneralStatsNetworkSchema },
     ]),
   ],
-  providers: [StatsService, SubgraphService, PriceService, StatsNetworkService],
+  providers: [
+    StatsService,
+    SubgraphService,
+    PriceService,
+    StatsNetworkService,
+    ChainConfigService,
+  ],
   exports: [SubgraphService],
   controllers: [StatsController],
 })

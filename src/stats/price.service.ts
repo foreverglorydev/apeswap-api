@@ -1,16 +1,19 @@
 import { Injectable, HttpService } from '@nestjs/common';
 import { chunk } from 'lodash';
-import configuration from 'src/config/configuration';
+import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { SubgraphService } from './subgraph.service';
 import { fetchPrices } from './utils/fetchPrices';
-import { bananaAddressNetwork, goldenBananaAddress } from './utils/stats.utils';
+import { goldenBananaAddress } from './utils/stats.utils';
 
 @Injectable()
 export class PriceService {
-  private readonly TOKEN_LIST_URL = process.env.TOKEN_LIST_URL;
+  private readonly TOKEN_LIST_URL = this.configService.getData<string>(
+    'tokenListUrl',
+  );
   constructor(
     private httpService: HttpService,
     private subgraphService: SubgraphService,
+    private configService: ChainConfigService,
   ) {}
 
   async getTokenPrices(): Promise<any> {
@@ -34,16 +37,23 @@ export class PriceService {
     const {
       data: { tokens },
     } = await this.httpService.get(this.TOKEN_LIST_URL).toPromise();
-    const data = await fetchPrices(tokens, chainId);
+    const data = await fetchPrices(
+      tokens,
+      chainId,
+      this.configService.getData<string>(`${chainId}.apePriceGetter`),
+    );
     for (let i = 0; i < data.length; i++) {
       prices[data[i].address] = {
         usd: data[i].price,
         decimals: data[i].decimals,
       };
     }
-    if (+chainId === +configuration().networksId.BSC) {
+    if (chainId === this.configService.getData<number>('networksId.BSC')) {
       prices[goldenBananaAddress()] = {
-        usd: prices[bananaAddressNetwork(chainId)].usd / 0.72,
+        usd:
+          prices[
+            this.configService.getData<string>(`${chainId}.contracts.banana`)
+          ].usd / 0.72,
       };
     }
     return prices;

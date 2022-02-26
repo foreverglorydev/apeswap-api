@@ -4,40 +4,33 @@ import {
   Inject,
   CACHE_MANAGER,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import BigNumber from 'bignumber.js';
 import { InjectModel } from '@nestjs/mongoose';
-import {
-  GeneralStats,
-  GeneralStatsNetworkDto,
-} from 'src/interfaces/stats/generalStats.dto';
+import { GeneralStatsNetworkDto } from 'src/interfaces/stats/generalStats.dto';
 import { Cache } from 'cache-manager';
 import { PriceService } from './price.service';
 import { multicallNetwork } from 'src/utils/lib/multicall';
-import {
-  getPoolPrices,
-  masterApeContractNetwork,
-  masterApeContractAddressNetwork,
-  erc20AbiNetwork,
-  bananaAddressNetwork,
-  getDualFarmApr,
-  masterApeAbiNetwork,
-} from './utils/stats.utils';
+import { getPoolPrices, getDualFarmApr } from './utils/stats.utils';
 import { Model } from 'mongoose';
 import { getBalanceNumber } from 'src/utils/math';
 import { MINI_COMPLEX_REWARDER_ABI } from './utils/abi/miniComplexRewarderAbi';
-import configuration from 'src/config/configuration';
 import {
   GeneralStatsNetwork,
   GeneralStatsNetworkDocument,
 } from './schema/generalStatsNetwork.schema';
 import { StatsService } from './stats.service';
 import { createLpPairName } from 'src/utils/helpers';
+import { ChainConfigService } from 'src/config/chain.configuration.service';
+import { getContractNetwork } from 'src/utils/lib/web3';
 
 @Injectable()
 export class StatsNetworkService {
   private readonly logger = new Logger(StatsNetworkService.name);
-  private readonly DUAL_FARMS_LIST_URL = process.env.DUAL_FARMS_LIST_URL;
+  private readonly DUAL_FARMS_LIST_URL = this.configService.getData<string>(
+    'dualFarmsListUrl',
+  );
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -46,6 +39,7 @@ export class StatsNetworkService {
     private generalStatsNetworkModel: Model<GeneralStatsNetworkDocument>,
     private priceService: PriceService,
     private statsService: StatsService,
+    private configService: ChainConfigService,
   ) {}
 
   createGeneralStats(stats, filter) {
@@ -95,7 +89,7 @@ export class StatsNetworkService {
     );
     if (cachedValue) {
       this.logger.log('Hit calculateStatsNetwork() cache');
-      return cachedValue as GeneralStats;
+      return cachedValue as GeneralStatsNetworkDto;
     }
     const infoStats = await this.verifyStats(chainId);
     if (infoStats) return infoStats;
@@ -105,9 +99,13 @@ export class StatsNetworkService {
     return generalStats;
   }
 
-  async getStatsNetwork(chainId: number): Promise<any> {
+  async getStatsNetwork(chainId: number): Promise<GeneralStatsNetworkDto> {
     try {
-      const masterApeContract = masterApeContractNetwork(chainId);
+      const masterApeContract = getContractNetwork(
+        this.configService.getData<string>(`${chainId}.abi.masterApe`),
+        this.configService.getData<string>(`${chainId}.contracts.masterApe`),
+        chainId,
+      );
 
       const [
         prices,
@@ -116,9 +114,12 @@ export class StatsNetworkService {
         this.priceService.getTokenPricesv2(chainId),
         this.statsService.getBurnAndSupply(chainId),
       ]);
-      const priceUSD = prices[bananaAddressNetwork(chainId)].usd;
+      const priceUSD =
+        prices[
+          this.configService.getData<string>(`${chainId}.contracts.banana`)
+        ].usd;
       const generalStats: GeneralStatsNetworkDto = {
-        chainId: +chainId,
+        chainId,
         bananaPrice: priceUSD,
         burntAmount,
         totalSupply,
@@ -129,9 +130,8 @@ export class StatsNetworkService {
         farms: [],
         incentivizedPools: [],
       };
-
-      switch (+chainId) {
-        case configuration().networksId.BSC:
+      switch (chainId) {
+        case this.configService.getData<number>('networksId.BSC'):
           const poolInfos = await this.statsService.calculatePoolInfo(
             masterApeContract,
           );
@@ -159,6 +159,9 @@ export class StatsNetworkService {
                 poolInfos[i].allocPoints,
                 totalAllocPoints,
                 rewardsPerDay,
+                this.configService.getData<string>(
+                  `${chainId}.contracts.banana`,
+                ),
               );
             }
           }
@@ -182,7 +185,7 @@ export class StatsNetworkService {
 
           this.logger.log(`finish calculate chainID ${chainId}`);
           break;
-        case configuration().networksId.POLYGON:
+        case this.configService.getData<number>('networksId.POLYGON'):
           generalStats.farms = await this.fetchDualFarms(prices, chainId);
           delete generalStats.pools;
           delete generalStats.incentivizedPools;
@@ -191,10 +194,7 @@ export class StatsNetworkService {
           break;
 
         default:
-          return {
-            chainId,
-            message: 'Network not supported',
-          };
+          throw new BadRequestException('Network not supported');
       }
       await this.cacheManager.set(
         `calculateStats-network-${chainId}`,
@@ -214,7 +214,9 @@ export class StatsNetworkService {
     const { data: response } = await this.httpService
       .get(this.DUAL_FARMS_LIST_URL)
       .toPromise();
-    const miniChefAddress = masterApeContractAddressNetwork(chainId);
+    const miniChefAddress = this.configService.getData<string>(
+      `${chainId}.contracts.masterApe`,
+    );
     const data: any[] = await Promise.all(
       response.map(async (dualFarmConfig) => {
         const lpAdress = dualFarmConfig.stakeTokenAddress;
@@ -258,7 +260,11 @@ export class StatsNetworkService {
           tokenBalanceLP,
           lpTokenBalanceMC,
           lpTotalSupply,
-        ] = await multicallNetwork(erc20AbiNetwork(chainId), calls, chainId);
+        ] = await multicallNetwork(
+          this.configService.getData<any>(`${chainId}.abi.erc20`),
+          calls,
+          chainId,
+        );
 
         // Ratio in % a LP tokens that are in staking, vs the total number in circulation
         const lpTokenRatio = new BigNumber(lpTokenBalanceMC).div(
@@ -293,7 +299,7 @@ export class StatsNetworkService {
             totalAllocPoint,
             miniChefRewardsPerSecond,
           ] = await multicallNetwork(
-            masterApeAbiNetwork(chainId),
+            this.configService.getData<any>(`${chainId}.abi.masterApe`),
             [
               {
                 address: miniChefAddress,

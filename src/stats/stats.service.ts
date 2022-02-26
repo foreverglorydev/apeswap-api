@@ -31,9 +31,6 @@ import {
   getWalletStatsForIncentivizedPools,
   lendingAddress,
   unitrollerAddress,
-  erc20AbiNetwork,
-  bananaAddressNetwork,
-  burnAddressNetwork,
 } from './utils/stats.utils';
 import { WalletStats } from 'src/interfaces/stats/walletStats.dto';
 import { WalletInvalidHttpException } from './exceptions/wallet-invalid.execption';
@@ -47,6 +44,7 @@ import { Cron } from '@nestjs/schedule';
 import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
+import { ChainConfigService } from 'src/config/chain.configuration.service';
 
 @Injectable()
 export class StatsService {
@@ -63,6 +61,7 @@ export class StatsService {
     private tvlStatsModel: Model<TvlStatsDocument>,
     private subgraphService: SubgraphService,
     private priceService: PriceService,
+    private configService: ChainConfigService,
   ) {}
 
   createTvlStats(stats) {
@@ -402,6 +401,7 @@ export class StatsService {
           poolInfos[i].allocPoints,
           totalAllocPoints,
           rewardsPerDay,
+          this.configService.getData<string>(`${56}.contracts.banana`),
         );
       }
     }
@@ -600,9 +600,11 @@ export class StatsService {
   }
 
   async getBurnAndSupply(chainId = +process.env.CHAIN_ID) {
-    const bananaAddress = bananaAddressNetwork(chainId);
+    const bananaAddress = this.configService.getData<string>(
+      `${chainId}.contracts.banana`,
+    );
     const [decimals, burned, supply] = await multicall(
-      erc20AbiNetwork(chainId),
+      this.configService.getData<any>(`${chainId}.abi.erc20`),
       [
         {
           address: bananaAddress,
@@ -611,7 +613,9 @@ export class StatsService {
         {
           address: bananaAddress,
           name: 'balanceOf',
-          params: [burnAddressNetwork(chainId)],
+          params: [
+            this.configService.getData<string>(`${chainId}.contracts.burn`),
+          ],
         },
         {
           address: bananaAddress,

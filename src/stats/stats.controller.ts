@@ -12,12 +12,12 @@ import { ApiExcludeEndpoint, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
   ChainIdDto,
   GeneralStats,
+  GeneralStatsNetworkDto,
 } from 'src/interfaces/stats/generalStats.dto';
 import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { SentryInterceptor } from 'src/interceptor/sentry.interceptor';
 import { StatsService } from './stats.service';
 import { StatsNetworkService } from './stats.network.service';
-import { GeneralStatsNetwork } from './schema/generalStatsNetwork.schema';
 
 @ApiTags('stats')
 @Controller('stats')
@@ -73,10 +73,10 @@ export class StatsController {
   @UsePipes(new ValidationPipe({ transform: true }))
   async getStatsNetwork(
     @Param() chainIdDto: ChainIdDto,
-  ): Promise<GeneralStatsNetwork> {
+  ): Promise<GeneralStatsNetworkDto> {
     this.logger.debug(`Called GET /stats/network/${chainIdDto.chainId}`);
     return await this.statsNetworkService.getCalculateStatsNetwork(
-      chainIdDto.chainId,
+      +chainIdDto.chainId,
     );
   }
 
