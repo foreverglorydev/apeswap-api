@@ -20,4 +20,5 @@ export class FarmStats {
   readonly stakedTvl: number;
   readonly apr: number;
   readonly decimals: number;
+  lpRewards?: any;
 }

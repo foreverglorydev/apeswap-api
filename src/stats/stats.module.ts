@@ -12,17 +12,33 @@ import {
 } from './schema/generalStatsNetwork.schema';
 import { StatsNetworkService } from './stats.network.service';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
+import { ConfigModule } from '@nestjs/config';
+import { BitqueryService } from 'src/bitquery/bitquery.service';
+import {
+  PairBitquery,
+  PairBitquerySchema,
+} from 'src/bitquery/schema/pairBitquery.schema';
+import {
+  TokenBitquery,
+  TokenBitquerySchema,
+} from 'src/bitquery/schema/tokenBitquery.schema';
 
 @Module({
   imports: [
     CacheModule.register({
       ttl: 60,
     }),
+    ConfigModule.forRoot({
+      envFilePath: ['.development.env', '.env'],
+      isGlobal: true,
+    }),
     HttpModule,
     MongooseModule.forFeature([
       { name: GeneralStats.name, schema: GeneralStatsSchema },
       { name: TvlStats.name, schema: TvlStatsSchema },
       { name: GeneralStatsNetwork.name, schema: GeneralStatsNetworkSchema },
+      { name: PairBitquery.name, schema: PairBitquerySchema },
+      { name: TokenBitquery.name, schema: TokenBitquerySchema },
     ]),
   ],
   providers: [
@@ -31,6 +47,7 @@ import { ChainConfigService } from 'src/config/chain.configuration.service';
     PriceService,
     StatsNetworkService,
     ChainConfigService,
+    BitqueryService,
   ],
   exports: [SubgraphService],
   controllers: [StatsController],

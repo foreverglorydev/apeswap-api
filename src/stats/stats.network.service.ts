@@ -12,7 +12,7 @@ import { GeneralStatsNetworkDto } from 'src/interfaces/stats/generalStats.dto';
 import { Cache } from 'cache-manager';
 import { PriceService } from './price.service';
 import { multicallNetwork } from 'src/utils/lib/multicall';
-import { getPoolPrices, getDualFarmApr } from './utils/stats.utils';
+import { getPoolPrices, getDualFarmApr, arrayChunk } from './utils/stats.utils';
 import { Model } from 'mongoose';
 import { getBalanceNumber } from 'src/utils/math';
 import { MINI_COMPLEX_REWARDER_ABI } from './utils/abi/miniComplexRewarderAbi';
@@ -24,6 +24,7 @@ import { StatsService } from './stats.service';
 import { createLpPairName } from 'src/utils/helpers';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
 import { getContractNetwork } from 'src/utils/lib/web3';
+import { BitqueryService } from 'src/bitquery/bitquery.service';
 
 @Injectable()
 export class StatsNetworkService {
@@ -40,6 +41,7 @@ export class StatsNetworkService {
     private priceService: PriceService,
     private statsService: StatsService,
     private configService: ChainConfigService,
+    private bitqueryService: BitqueryService,
   ) {}
 
   createGeneralStats(stats, filter) {
@@ -130,6 +132,23 @@ export class StatsNetworkService {
         farms: [],
         incentivizedPools: [],
       };
+      // const a: string[] = [
+      //   "0x034293F21F1cCE5908BC605CE5850dF2b1059aC0",
+      //   "0x6Cf8654e85AB489cA7e70189046D507ebA233613",
+      //   "0xd32f3139A214034A0f9777c87eE0a064c1FF6AE2",
+      //   "0x65D43B64E3B31965Cd5EA367D4c2b94c03084797",
+      //   "0xe82635a105c520fd58e597181cBf754961d51E3e",
+      //   "0x5b13B583D4317aB15186Ed660A1E4C65C10da659",
+      //   "0x0359001070cF696D5993E0697335157a6f7dB289",
+      //   "0xB8e54c9Ea1616beEBe11505a419DD8dF1000E02a",
+      //   "0xf67DE5Cf1fB01DC4df842a846Df2a7Ec07c41b93",
+      //   "0xb01bAf15079eE93590A862Df37234e8f7C9825bF",
+      //   "0xcBf71C04148e5C463223F07A64a50f2Df46B6cdc",
+      //   "0x2735d319739edc6c47c3a20aa5402b931c3f1a1e",
+      //   "0x0806a407d6eea72788d91c36829a19d424446040"
+      // ];
+      // const { volumes } = await this.bitqueryService.getDailyLPVolume('matic', a)
+      // return generalStats;
       switch (chainId) {
         case this.configService.getData<number>('networksId.BSC'):
           const poolInfos = await this.statsService.calculatePoolInfo(
@@ -173,6 +192,11 @@ export class StatsNetworkService {
           try {
             await Promise.all([
               this.statsService.mappingIncetivizedPools(generalStats, prices),
+              this.mappingLPVolume(
+                'bsc',
+                generalStats,
+                this.configService.getData<number>(`${chainId}.feeLP`),
+              ),
             ]);
           } catch (error) {}
 
@@ -187,6 +211,11 @@ export class StatsNetworkService {
           break;
         case this.configService.getData<number>('networksId.POLYGON'):
           generalStats.farms = await this.fetchDualFarms(prices, chainId);
+          await this.mappingLPVolume(
+            'matic',
+            generalStats,
+            this.configService.getData<number>(`${chainId}.feeLP`),
+          );
           delete generalStats.pools;
           delete generalStats.incentivizedPools;
           delete generalStats.poolsTvl;
@@ -445,5 +474,36 @@ export class StatsNetworkService {
       }),
     );
     return data;
+  }
+
+  async mappingLPVolume(
+    network: string,
+    pools: GeneralStatsNetworkDto,
+    fee: number,
+  ) {
+    const addresses = pools.farms.map((f) => f.address);
+    const listAddresses = arrayChunk(addresses);
+    for (let index = 0; index < listAddresses.length; index++) {
+      const list = listAddresses[index];
+      const { volumes } = await this.bitqueryService.getDailyLPVolume(
+        network,
+        list,
+      );
+      pools.farms.forEach((f) => {
+        const volume = volumes.find(
+          (v) =>
+            v.smartContract.address.address.toLowerCase() ===
+            f.address.toLowerCase(),
+        );
+        if (volume) {
+          const aprLpReward =
+            (((volume.tradeAmount * fee) / 100) * 365) / +f.tvl;
+          f.lpRewards = {
+            volume: volume.tradeAmount,
+            apr: aprLpReward,
+          };
+        }
+      });
+    }
   }
 }

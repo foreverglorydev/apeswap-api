@@ -45,6 +45,7 @@ import { BEP20_REWARD_APE_ABI } from './utils/abi/bep20RewardApeAbi';
 import { GeneralStatsChain } from 'src/interfaces/stats/generalStatsChain.dto';
 import { TvlStats, TvlStatsDocument } from './schema/tvlStats.schema';
 import { ChainConfigService } from 'src/config/chain.configuration.service';
+import { BitqueryService } from 'src/bitquery/bitquery.service';
 
 @Injectable()
 export class StatsService {
@@ -62,6 +63,7 @@ export class StatsService {
     private subgraphService: SubgraphService,
     private priceService: PriceService,
     private configService: ChainConfigService,
+    private bitqueryService: BitqueryService,
   ) {}
 
   createTvlStats(stats) {

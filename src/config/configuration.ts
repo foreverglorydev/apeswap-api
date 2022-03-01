@@ -41,6 +41,7 @@ export default () => ({
       'https://data-seed-prebsc-2-s2.binance.org:8545',
     ],
     iazoExposer: '0xe977E40f29f699F75db2A137Af0B3Db2152404b6',
+    apePriceGetter: '',
   },
   56: {
     lottery: {
@@ -65,10 +66,10 @@ export default () => ({
       'https://bsc-dataseed.binance.org:443',
       'https://bsc-dataseed1.defibit.io:443',
       'https://bsc-dataseed1.ninicoin.io:443',
-      /* 'https://bsc-dataseed2.ninicoin.io:443',
+      'https://bsc-dataseed2.ninicoin.io:443',
       'https://bsc-dataseed3.ninicoin.io:443',
       'https://bsc-dataseed4.ninicoin.io:443',
-      'https://bsc-dataseed2.defibit.io:443',
+      /* 'https://bsc-dataseed2.defibit.io:443',
       'https://bsc-dataseed3.defibit.io:443',
       'https://bsc-dataseed4.defibit.io:443',
       'https://bsc-dataseed1.binance.org:443',
@@ -85,6 +86,7 @@ export default () => ({
       lp: LP_ABI,
       erc20: ERC20_ABI,
     },
+    feeLP: 0.15,
   },
   137: {
     contracts: {
@@ -108,5 +110,6 @@ export default () => ({
       lp: LP_ABI_POLYGON,
       erc20: ERC20_ABI_POLYGON,
     },
+    feeLP: 0.05,
   },
 });

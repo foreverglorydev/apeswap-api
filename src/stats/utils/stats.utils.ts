@@ -43,6 +43,10 @@ export function burnAddress(): string {
   return configuration()[process.env.CHAIN_ID].contracts.burn;
 }
 
+export function apePriceGetter(): string {
+  return configuration()[process.env.CHAIN_ID].apePriceGetter;
+}
+
 export function masterApeContractWeb(): any {
   return getContract(MASTER_APE_ABI, masterApeContractAddress());
 }
@@ -156,7 +160,6 @@ function getFarmLPTokenPrices(
   const poolRewardsPerDay = (allocPoints / totalAllocPoints) * rewardsPerDay;
   const apr =
     ((poolRewardsPerDay * prices[bananaAddress].usd) / stakedTvl) * 365;
-
   return {
     address: pool.address,
     name: createLpPairName(t0.symbol, t1.symbol),
@@ -376,4 +379,12 @@ export const getDualFarmApr = (
   );
   const apr = totalRewardsPerYear.div(poolLiquidityUsd).times(100);
   return apr.isNaN() || !apr.isFinite() ? null : apr.toNumber();
+};
+
+export const arrayChunk = (array, chunk = 95) => {
+  return array.reduce((all, one, i) => {
+    const ch = Math.floor(i / chunk);
+    all[ch] = [].concat(all[ch] || [], one);
+    return all;
+  }, []);
 };
